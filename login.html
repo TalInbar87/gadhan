@@ -194,15 +194,20 @@
                 // Attempt login
                 const result = await authClient.login(username, password);
                 
+                console.log('Login result:', result); // DEBUG
+                
                 if (result.success) {
-                    // Success! Redirect
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const redirect = urlParams.get('redirect') || 'index-secure.html';
+                    // Success! Check if token was saved
+                    console.log('Token saved:', authClient.token); // DEBUG
+                    console.log('User saved:', authClient.user); // DEBUG
                     
                     // Show success message briefly
                     showSuccess('התחברות בוצעה בהצלחה!');
                     
                     setTimeout(() => {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect') || 'index-secure.html';
+                        console.log('Redirecting to:', redirect); // DEBUG
                         window.location.href = redirect;
                     }, 500);
                 } else {
