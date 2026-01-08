@@ -4,7 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>דוח צלם מקוון - Online Armory Checkout System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+        // ============================================================
+// AUTHENTICATION SETUP
+// ============================================================
+
+const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+const authClient = new SecureAuthClient(API_URL);
+const authGuard = new AuthGuard(authClient, 'write'); // Requires write permission
+
+// Check authentication on page load
+window.addEventListener('DOMContentLoaded', async () => {
+    // Show loading overlay
+    document.body.insertAdjacentHTML('afterbegin', `
+        <div id="authLoadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="text-align: center; color: white;">
+                <div style="width: 50px; height: 50px; border: 5px solid rgba(255,102,0,0.3); border-top-color: #ff6600; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                <p>מאמת זהות...</p>
+            </div>
+        </div>
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    `);
+    
+    const isAuthenticated = await authGuard.checkAuth();
+    
+    if (isAuthenticated) {
+        // Remove loading overlay
+        document.getElementById('authLoadingOverlay').remove();
+        
+        // Display user info
+        displayUserInfo();
+    }
+});
+
+function displayUserInfo() {
+    const user = authClient.user;
+    
+    // Add user info bar to header
+    const header = document.querySelector('form') || document.body.firstElementChild;
+    header.insertAdjacentHTML('beforebegin', `
+        <div style="background: rgba(255,102,0,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span style="font-weight: bold;">משתמש מחובר:</span> ${user.fullName || user.username}
+                <span style="margin-right: 15px; opacity: 0.7;">🔒 חיבור מאובטח</span>
+            </div>
+            <button onclick="authClient.logout()" style="background: #ff6600; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
+                התנתק
+            </button>
+        </div>
+    `);
+}
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
