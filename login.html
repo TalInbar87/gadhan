@@ -204,12 +204,12 @@
                     // Show success message briefly
                     showSuccess('התחברות בוצעה בהצלחה!');
                     
-                    setTimeout(() => {
+                /*    setTimeout(() => {
                         const urlParams = new URLSearchParams(window.location.search);
                         const redirect = urlParams.get('redirect') || 'index-secure.html';
                         console.log('Redirecting to:', redirect); // DEBUG
                         window.location.href = redirect;
-                    }, 500);
+                    }, 500);*/
                 } else {
                     // Show error
                     showError(result.error || 'שגיאה בהתחברות');
