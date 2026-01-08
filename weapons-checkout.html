@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דוח צלם מקוון - Online Armory Checkout System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .success-check {
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0) rotate(-45deg); }
+            50% { transform: scale(1.2) rotate(-45deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-stone-100 to-stone-200 min-h-screen">
+    <script src="auth-client.js"></script>
+    <!-- Main Form Container -->
+    <div id="formContainer" class="py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 fade-in">
+                <div class="inline-block bg-green-700 text-white px-6 py-3 rounded-t-2xl shadow-lg">
+                    <h1 class="text-3xl font-bold tracking-wide">דוח צלם מקוון</h1>
+                </div>
+                <div class="bg-white rounded-b-2xl shadow-lg p-4 border-t-4 border-green-600">
+                    <p class="text-stone-600 text-lg">Online Armory Checkout System</p>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form id="armoryForm" class="bg-white rounded-2xl shadow-2xl p-8 space-y-6 fade-in" style="animation-delay: 0.1s">
+                
+                <!-- Personal Number with Check Button -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 space-y-4">
+                    <label for="personalNumber" class="block text-stone-700 font-bold mb-3 text-lg">
+                        מספר אישי <span class="text-red-600">*</span>
+                    </label>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            id="personalNumber"
+                            name="personalNumber"
+                            maxlength="7"
+                            class="flex-1 px-4 py-3 text-lg border-2 border-blue-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                            placeholder="7 ספרות"
+                            required
+                        />
+                        <button
+                            type="button"
+                            id="checkExistingButton"
+                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none whitespace-nowrap sm:w-auto w-full"
+                            disabled
+                        >
+                            בדוק
+                        </button>
+                    </div>
+                    
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="personalNumber"></p>
+                    
+                    <p class="text-amber-700 text-sm flex items-start gap-2">
+                        <span class="text-amber-600 font-bold">⚠️</span>
+                        <span><strong>חשוב:</strong> אנא בדוק האם קיימים כבר פריטים שחתמת עליהם, אחרת המידע יידרס!</span>
+                    </p>
+                    
+                    <!-- Status Messages -->
+                    <div id="checkStatusExisting" class="hidden bg-green-50 border-2 border-green-400 rounded-lg p-4">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-green-700 font-bold">✓ נמצאו פריטים קיימים! הטופס מולא עם הנתונים שלך</p>
+                        </div>
+                    </div>
+                    
+                    <div id="checkStatusNew" class="hidden bg-blue-50 border-2 border-blue-400 rounded-lg p-4">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <p class="text-blue-700 font-bold">לא נמצאו פריטים קיימים - זו חתימה ראשונה</p>
+                        </div>
+                    </div>
+                    
+                    <div id="checkStatusError" class="hidden bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-red-700 font-bold" id="checkErrorMessage">שגיאה בבדיקה</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200"></div>
+
+                <!-- Full Name -->
+                <div>
+                    <label for="fullName" class="block text-stone-700 font-bold mb-2 text-lg">
+                        שם מלא <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        placeholder="שם פרטי ומשפחה"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="fullName"></p>
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label for="phone" class="block text-stone-700 font-bold mb-2 text-lg">
+                        טלפון <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        placeholder="05XXXXXXXX"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="phone"></p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מייל <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        placeholder="example@email.com"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="email"></p>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200 my-6"></div>
+
+                <!-- Unit -->
+                <div>
+                    <label for="unit" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מסגרת <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                        id="unit"
+                        name="unit"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        required
+                    >
+                        <option value="">בחר מסגרת</option>
+                        <option value="פלוגה א׳">פלוגה א׳</option>
+                        <option value="פלוגה ב׳">פלוגה ב׳</option>
+                        <option value="פלוגה ג׳">פלוגה ג׳</option>
+                        <option value="מפקדה">מפקדה</option>
+                        <option value="ניוד">ניוד</option>
+                        <option value="מחסר">מחסר</option>
+                        <option value="מפג״ד">מפג״ד</option>
+                    </select>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="unit"></p>
+                </div>
+
+                <!-- Weapon Type -->
+                <div>
+                    <label for="weaponType" class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג נשק <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                        id="weaponType"
+                        name="weaponType"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        required
+                    >
+                        <option value="">בחר סוג נשק</option>
+                        <option value="נגב">נגב</option>
+                        <option value="M16">M16</option>
+                        <option value="M4">M4</option>
+                    </select>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponType"></p>
+                </div>
+
+                <!-- Weapon Number -->
+                <div>
+                    <label for="weaponNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר נשק <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="weaponNumber"
+                        name="weaponNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponNumber"></p>
+                </div>
+
+                <!-- Sight Type -->
+                <div>
+                    <label for="sightType" class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג כוונת
+                    </label>
+                    <select
+                        id="sightType"
+                        name="sightType"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר סוג כוונת</option>
+                        <option value="טריג׳">טריג׳</option>
+                        <option value="ליאור">ליאור</option>
+                        <option value="פגיון">פגיון</option>
+                        <option value="זאבון">זאבון</option>
+                        <option value="m5">m5</option>
+                    </select>
+                </div>
+
+                <!-- Sight Number -->
+                <div>
+                    <label for="sightNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר כוונת
+                    </label>
+                    <input
+                        type="text"
+                        id="sightNumber"
+                        name="sightNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                </div>
+
+                <!-- Additional Sight Type -->
+                <div>
+                    <label for="additionalSightType" class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג כוונת נוסף
+                    </label>
+                    <select
+                        id="additionalSightType"
+                        name="additionalSightType"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר סוג כוונת נוסף</option>
+                        <option value="טריג׳">טריג׳</option>
+                        <option value="ליאור">ליאור</option>
+                        <option value="פגיון">פגיון</option>
+                        <option value="זאבון">זאבון</option>
+                        <option value="m5">m5</option>
+                    </select>
+                </div>
+
+                <!-- Additional Sight Number -->
+                <div>
+                    <label for="additionalSightNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר כוונת נוסף
+                    </label>
+                    <input
+                        type="text"
+                        id="additionalSightNumber"
+                        name="additionalSightNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                </div>
+
+                <!-- NVD Type -->
+                <div>
+                    <label for="nvdType" class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג אמרל
+                    </label>
+                    <select
+                        id="nvdType"
+                        name="nvdType"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר סוג אמרל</option>
+                        <option value='שח"ע'>שח"ע</option>
+                        <option value="עכבר">עכבר</option>
+                        <option value="עדי">עדי</option>
+                        <option value="עידו">עידו</option>
+                        <option value="קירו">קירו</option>
+                    </select>
+                </div>
+
+                <!-- NVD Number -->
+                <div id="nvdNumberContainer" class="hidden">
+                    <label for="nvdNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר אמרל <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="nvdNumber"
+                        name="nvdNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="nvdNumber"></p>
+                </div>
+
+                <!-- Binoculars Checkbox -->
+                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
+                    <input
+                        type="checkbox"
+                        id="hasBinoculars"
+                        name="hasBinoculars"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                    />
+                    <label for="hasBinoculars" class="text-stone-700 font-bold text-lg cursor-pointer">
+                        משקפה
+                    </label>
+                </div>
+
+                <!-- Compass Checkbox -->
+                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
+                    <input
+                        type="checkbox"
+                        id="hasCompass"
+                        name="hasCompass"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                    />
+                    <label for="hasCompass" class="text-stone-700 font-bold text-lg cursor-pointer">
+                        מצפן
+                    </label>
+                </div>
+
+                <!-- Zayin Checkbox -->
+                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
+                    <input
+                        type="checkbox"
+                        id="hasZayin"
+                        name="hasZayin"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                    />
+                    <label for="hasZayin" class="text-stone-700 font-bold text-lg cursor-pointer">
+                        ציין
+                    </label>
+                </div>
+
+                <!-- Zayin Number (hidden by default) -->
+                <div id="zayinNumberContainer" class="hidden">
+                    <label for="zayinNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר ציין <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="zayinNumber"
+                        name="zayinNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="zayinNumber"></p>
+                </div>
+
+                <!-- Pak Checkbox -->
+                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
+                    <input
+                        type="checkbox"
+                        id="hasPak"
+                        name="hasPak"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                    />
+                    <label for="hasPak" class="text-stone-700 font-bold text-lg cursor-pointer">
+                        פק
+                    </label>
+                </div>
+
+                <!-- Pak Number (hidden by default) -->
+                <div id="pakNumberContainer" class="hidden">
+                    <label for="pakNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר פק <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="pakNumber"
+                        name="pakNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="pakNumber"></p>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200 my-6"></div>
+
+                <!-- Legal Disclaimer -->
+                <div class="bg-stone-50 border-r-4 border-green-700 p-4 rounded-lg mb-6">
+                    <p class="text-stone-700 text-sm leading-relaxed">
+                        <strong>הצהרה:</strong> אני מצהיר/ה בזאת כי קיבלתי את הציוד והאמצעים המפורטים לעיל במצב תקין ותקני. אני מתחייב/ת לשמור על הציוד ולהחזירו במועד ובמצב תקין. ידוע לי כי אני אחראי/ת באופן אישי על הציוד שנמסר לי ועלי לדווח מיידית על כל נזק, תקלה או אובדן. כל המידע שמסרתי נכון ומדויק.
+                    </p>
+                </div>
+
+                <!-- Signature -->
+                <div>
+                    <label class="block text-stone-700 font-bold mb-2 text-lg">
+                        חתימה <span class="text-red-600">*</span>
+                    </label>
+                    <div class="border-2 border-stone-300 rounded-xl bg-white overflow-hidden" style="touch-action: none; -webkit-user-select: none; user-select: none;">
+                        <canvas 
+                            id="signatureCanvas" 
+                            width="600" 
+                            height="200"
+                            class="w-full cursor-crosshair max-w-full"
+                            style="display: block; touch-action: none;"
+                        ></canvas>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button
+                            type="button"
+                            id="clearSignature"
+                            class="px-4 py-2 bg-stone-500 hover:bg-stone-600 text-white rounded-lg text-sm transition-all duration-200"
+                        >
+                            נקה חתימה
+                        </button>
+                        <p class="text-stone-500 text-sm flex items-center">חתום באצבע או בעכבר</p>
+                    </div>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden" id="signatureError">יש לחתום לפני שליחה</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-200 shadow-lg bg-stone-300 text-stone-500 cursor-not-allowed"
+                        disabled
+                    >
+                        שלח
+                    </button>
+                    
+                    <!-- Loader (hidden by default) -->
+                    <div id="loader" class="hidden mt-4 flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-green-700"></div>
+                        <span class="mr-3 text-green-700 font-bold text-lg">שולח...</span>
+                    </div>
+                </div>
+
+                <!-- Required fields note -->
+                <p class="text-center text-stone-500 text-sm pt-4">
+                    <span class="text-red-600">*</span> שדות חובה
+                </p>
+            </form>
+
+            <!-- Footer -->
+            <div class="text-center mt-8 text-stone-500 text-sm fade-in" style="animation-delay: 0.2s">
+                <p>מערכת דיגיטלית לניהול חתימות על נשק ואמצעי לחימה</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message (Hidden by default) -->
+    <div id="successContainer" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 text-center border-t-4 border-green-700 fade-in">
+                <div class="mb-6">
+                    <div class="w-20 h-20 bg-green-700 rounded-full flex items-center justify-center mx-auto mb-4 success-check">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-800 mb-2">תודה!</h2>
+                </div>
+                
+                <div class="space-y-3 mb-8 text-right bg-stone-50 p-6 rounded-xl">
+                    <p class="text-lg text-stone-700">הטופס נקלט בהצלחה במערכת</p>
+                    <div class="border-t border-stone-300 pt-3 mt-3">
+                        <p class="text-stone-600 font-semibold">מספר אישי: <span class="text-green-700" id="displayPersonalNumber"></span></p>
+                        <p class="text-stone-600 font-semibold">שם: <span class="text-green-700" id="displayFullName"></span></p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <p class="text-stone-500 text-sm">ניתן לסגור חלון זה</p>
+                    <button
+                        id="newFormBtn"
+                        class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    >
+                        מלא טופס נוסף
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Signature canvas setup
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clearSignature');
+        const signatureError = document.getElementById('signatureError');
+        
+        let isDrawing = false;
+        let hasSignature = false;
+        
+        // Set canvas background to white
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Drawing settings
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            ctx.beginPath();
+            ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+            ctx.stroke();
+            hasSignature = true;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const touch = e.touches[0];
+            ctx.beginPath();
+            ctx.moveTo((touch.clientX - rect.left) * scaleX, (touch.clientY - rect.top) * scaleY);
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const touch = e.touches[0];
+            ctx.lineTo((touch.clientX - rect.left) * scaleX, (touch.clientY - rect.top) * scaleY);
+            ctx.stroke();
+            hasSignature = true;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+        }
+        
+        clearBtn.addEventListener('click', () => {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+            checkFormValidity();
+        });
+        
+        // NVD Type change handler - show/hide NVD Number field
+        const nvdTypeSelect = document.getElementById('nvdType');
+        const nvdNumberContainer = document.getElementById('nvdNumberContainer');
+        const nvdNumberInput = document.getElementById('nvdNumber');
+        
+        nvdTypeSelect.addEventListener('change', () => {
+            if (nvdTypeSelect.value) {
+                // Show and require NVD number
+                nvdNumberContainer.classList.remove('hidden');
+                nvdNumberInput.required = true;
+            } else {
+                // Hide and make optional
+                nvdNumberContainer.classList.add('hidden');
+                nvdNumberInput.required = false;
+                nvdNumberInput.value = '';
+                clearError('nvdNumber');
+            }
+            checkFormValidity();
+        });
+        
+        // Zayin checkbox handler
+        const hasZayinCheckbox = document.getElementById('hasZayin');
+        const zayinNumberContainer = document.getElementById('zayinNumberContainer');
+        const zayinNumberInput = document.getElementById('zayinNumber');
+        
+        hasZayinCheckbox.addEventListener('change', () => {
+            if (hasZayinCheckbox.checked) {
+                // Show and require zayin number
+                zayinNumberContainer.classList.remove('hidden');
+                zayinNumberInput.required = true;
+            } else {
+                // Hide and make optional
+                zayinNumberContainer.classList.add('hidden');
+                zayinNumberInput.required = false;
+                zayinNumberInput.value = '';
+                clearError('zayinNumber');
+            }
+            checkFormValidity();
+        });
+        
+        // Pak checkbox handler
+        const hasPakCheckbox = document.getElementById('hasPak');
+        const pakNumberContainer = document.getElementById('pakNumberContainer');
+        const pakNumberInput = document.getElementById('pakNumber');
+        
+        hasPakCheckbox.addEventListener('change', () => {
+            if (hasPakCheckbox.checked) {
+                // Show and require pak number
+                pakNumberContainer.classList.remove('hidden');
+                pakNumberInput.required = true;
+            } else {
+                // Hide and make optional
+                pakNumberContainer.classList.add('hidden');
+                pakNumberInput.required = false;
+                pakNumberInput.value = '';
+                clearError('pakNumber');
+            }
+            checkFormValidity();
+        });
+        
+        // Personal number check functionality
+        const personalNumberInput = document.getElementById('personalNumber');
+        const checkExistingButton = document.getElementById('checkExistingButton');
+        const checkStatusExisting = document.getElementById('checkStatusExisting');
+        const checkStatusNew = document.getElementById('checkStatusNew');
+        const checkStatusError = document.getElementById('checkStatusError');
+        const checkErrorMessage = document.getElementById('checkErrorMessage');
+        
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSe1FXGrJlUhDtZ1Sv0UVPh1Jt-l5JmnthwIzOX-zHP3W2EAxyz0UJutq7K4jAFgDO/exec';
+        
+        // Enable/disable check button based on input
+        personalNumberInput.addEventListener('input', () => {
+            const value = personalNumberInput.value.trim();
+            checkExistingButton.disabled = value.length !== 7 || !/^\d{7}$/.test(value);
+        });
+        
+        // JSONP callback for handling the response
+        window.handleCheckResponse = function(data) {
+            if (data.exists) {
+                // Found existing data - fill the form
+                checkStatusExisting.classList.remove('hidden');
+                fillFormWithData(data.data);
+            } else {
+                // New personal number
+                checkStatusNew.classList.remove('hidden');
+            }
+            
+            // Scroll to next field
+            setTimeout(() => {
+                document.getElementById('fullName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+            
+            checkExistingButton.disabled = false;
+            checkExistingButton.textContent = 'בדוק';
+        };
+        
+        // Check for existing data using JSONP
+        checkExistingButton.addEventListener('click', async () => {
+            const personalNumber = personalNumberInput.value.trim();
+            
+            // Hide all status messages
+            checkStatusExisting.classList.add('hidden');
+            checkStatusNew.classList.add('hidden');
+            checkStatusError.classList.add('hidden');
+            
+            // Disable button and show loading
+            checkExistingButton.disabled = true;
+            checkExistingButton.textContent = '⏳ בודק...';
+            
+            try {
+                // Use JSONP to bypass CORS
+                const script = document.createElement('script');
+                script.src = `${GOOGLE_SCRIPT_URL}?action=checkPersonalNumber&personalNumber=${personalNumber}&callback=handleCheckResponse`;
+                script.onerror = () => {
+                    checkStatusError.classList.remove('hidden');
+                    checkErrorMessage.textContent = 'שגיאה בבדיקת המספר האישי. נסה שוב.';
+                    checkExistingButton.disabled = false;
+                    checkExistingButton.textContent = 'בדוק';
+                };
+                document.body.appendChild(script);
+                
+                // Clean up after 10 seconds
+                setTimeout(() => {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                console.error('Error checking personal number:', error);
+                checkStatusError.classList.remove('hidden');
+                checkErrorMessage.textContent = 'שגיאה בבדיקת המספר האישי. נסה שוב.';
+                checkExistingButton.disabled = false;
+                checkExistingButton.textContent = '🔍 טען קיימים';
+            }
+        });
+        
+        // Fill form with existing data
+        function fillFormWithData(data) {
+            // Fill basic fields
+            document.getElementById('fullName').value = data.fullName || '';
+            document.getElementById('phone').value = data.phone || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('unit').value = data.unit || '';
+            document.getElementById('weaponType').value = data.weaponType || '';
+            document.getElementById('weaponNumber').value = data.weaponNumber || '';
+            
+            // Fill sight fields based on which column has data
+            if (data.trig) {
+                document.getElementById('sightType').value = "טריג׳";
+                document.getElementById('sightNumber').value = data.trig;
+            } else if (data.lior) {
+                document.getElementById('sightType').value = "ליאור";
+                document.getElementById('sightNumber').value = data.lior;
+            } else if (data.pagion) {
+                document.getElementById('sightType').value = "פגיון";
+                document.getElementById('sightNumber').value = data.pagion;
+            } else if (data.zavon) {
+                document.getElementById('sightType').value = "זאבון";
+                document.getElementById('sightNumber').value = data.zavon;
+            } else if (data.m5) {
+                document.getElementById('sightType').value = "m5";
+                document.getElementById('sightNumber').value = data.m5;
+            }
+            
+            // Fill additional sight (check remaining columns)
+            const sightTypes = ['trig', 'lior', 'pagion', 'zavon', 'm5'];
+            const mainSight = document.getElementById('sightType').value;
+            
+            for (let type of sightTypes) {
+                const hebrewName = {trig: "טריג׳", lior: "ליאור", pagion: "פגיון", zavon: "זאבון", m5: "m5"}[type];
+                if (data[type] && hebrewName !== mainSight) {
+                    document.getElementById('additionalSightType').value = hebrewName;
+                    document.getElementById('additionalSightNumber').value = data[type];
+                    break;
+                }
+            }
+            
+            // Fill NVD fields
+            if (data.shacha) {
+                document.getElementById('nvdType').value = 'שח"ע';
+                document.getElementById('nvdNumber').value = data.shacha;
+                nvdTypeSelect.dispatchEvent(new Event('change'));
+            } else if (data.achbar) {
+                document.getElementById('nvdType').value = "עכבר";
+                document.getElementById('nvdNumber').value = data.achbar;
+                nvdTypeSelect.dispatchEvent(new Event('change'));
+            } else if (data.adi) {
+                document.getElementById('nvdType').value = "עדי";
+                document.getElementById('nvdNumber').value = data.adi;
+                nvdTypeSelect.dispatchEvent(new Event('change'));
+            } else if (data.ido) {
+                document.getElementById('nvdType').value = "עידו";
+                document.getElementById('nvdNumber').value = data.ido;
+                nvdTypeSelect.dispatchEvent(new Event('change'));
+            } else if (data.kiro) {
+                document.getElementById('nvdType').value = "קירו";
+                document.getElementById('nvdNumber').value = data.kiro;
+                nvdTypeSelect.dispatchEvent(new Event('change'));
+            }
+            
+            // Fill checkboxes
+            document.getElementById('hasBinoculars').checked = data.binoculars === "1";
+            document.getElementById('hasCompass').checked = data.compass === "1";
+            
+            // Fill zayin
+            if (data.zayin) {
+                document.getElementById('hasZayin').checked = true;
+                document.getElementById('zayinNumber').value = data.zayin;
+                hasZayinCheckbox.dispatchEvent(new Event('change'));
+            }
+            
+            // Fill pak
+            if (data.pak) {
+                document.getElementById('hasPak').checked = true;
+                document.getElementById('pakNumber').value = data.pak;
+                hasPakCheckbox.dispatchEvent(new Event('change'));
+            }
+            
+            // Trigger form validity check
+            checkFormValidity();
+        }
+        
+        // Form validation and handling
+        const form = document.getElementById('armoryForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
+        const successContainer = document.getElementById('successContainer');
+        const newFormBtn = document.getElementById('newFormBtn');
+
+        // Validation functions
+        function validateFullName(name) {
+            const words = name.trim().split(/\s+/);
+            return words.length >= 2 && /^[\u0590-\u05FFa-zA-Z\s]+$/.test(name);
+        }
+
+        function validatePersonalNumber(number) {
+            return /^\d{7}$/.test(number);
+        }
+
+        function validatePhone(phone) {
+            return /^05\d{8}$/.test(phone.replace(/[-\s]/g, ''));
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(fieldName, message) {
+            const input = document.getElementById(fieldName);
+            const errorMsg = document.querySelector(`[data-field="${fieldName}"]`);
+            
+            if (!input) return; // Field doesn't exist
+            
+            input.classList.remove('border-stone-300', 'focus:border-green-600');
+            input.classList.add('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
+            
+            if (errorMsg) {
+                errorMsg.textContent = message;
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function clearError(fieldName) {
+            const input = document.getElementById(fieldName);
+            const errorMsg = document.querySelector(`[data-field="${fieldName}"]`);
+            
+            if (!input) return; // Field doesn't exist
+            
+            input.classList.remove('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
+            input.classList.add('border-stone-300', 'focus:border-green-600');
+            
+            if (errorMsg) {
+                errorMsg.classList.add('hidden');
+            }
+        }
+
+        function checkFormValidity() {
+            const fullName = document.getElementById('fullName').value;
+            const personalNumber = document.getElementById('personalNumber').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const unit = document.getElementById('unit').value;
+            const weaponType = document.getElementById('weaponType').value;
+            const weaponNumber = document.getElementById('weaponNumber').value;
+            
+            // Check if NVD number is required (only if NVD type is selected)
+            const nvdType = document.getElementById('nvdType').value;
+            const nvdNumber = document.getElementById('nvdNumber').value;
+            const nvdNumberRequired = nvdType && !nvdNumber;
+            
+            // Check if zayin number is required (only if zayin checkbox is checked)
+            const hasZayin = document.getElementById('hasZayin').checked;
+            const zayinNumber = document.getElementById('zayinNumber').value;
+            const zayinNumberRequired = hasZayin && !zayinNumber;
+            
+            // Check if pak number is required (only if pak checkbox is checked)
+            const hasPak = document.getElementById('hasPak').checked;
+            const pakNumber = document.getElementById('pakNumber').value;
+            const pakNumberRequired = hasPak && !pakNumber;
+
+            // Don't require signature for button enabling - only validate on submit
+            const isValid = fullName && personalNumber && phone && email && unit && weaponType && weaponNumber && !nvdNumberRequired && !zayinNumberRequired && !pakNumberRequired;
+
+            if (isValid) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-green-700', 'hover:bg-green-800', 'text-white', 'cursor-pointer', 'transform', 'hover:scale-105', 'hover:shadow-2xl');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+                submitBtn.classList.remove('bg-green-700', 'hover:bg-green-800', 'text-white', 'cursor-pointer', 'transform', 'hover:scale-105', 'hover:shadow-2xl');
+            }
+        }
+
+        // Add input event listeners
+        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(fieldName => {
+            const input = document.getElementById(fieldName);
+            input.addEventListener('input', () => {
+                clearError(fieldName);
+                checkFormValidity();
+            });
+            
+            // For select fields, also listen to change event
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', () => {
+                    clearError(fieldName);
+                    checkFormValidity();
+                });
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear all errors
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(clearError);
+
+            let hasErrors = false;
+            let firstErrorField = null;
+
+            // Validate full name
+            const fullName = document.getElementById('fullName').value;
+            if (!fullName) {
+                showError('fullName', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'fullName';
+            } else if (!validateFullName(fullName)) {
+                showError('fullName', 'יש להזין שם פרטי ומשפחה (מינימום 2 מילים)');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'fullName';
+            }
+
+            // Validate personal number
+            const personalNumber = document.getElementById('personalNumber').value;
+            if (!personalNumber) {
+                showError('personalNumber', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'personalNumber';
+            } else if (!validatePersonalNumber(personalNumber)) {
+                showError('personalNumber', 'מספר אישי חייב להכיל בדיוק 7 ספרות');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'personalNumber';
+            }
+
+            // Validate phone
+            const phone = document.getElementById('phone').value;
+            if (!phone) {
+                showError('phone', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'phone';
+            } else if (!validatePhone(phone)) {
+                showError('phone', 'מספר טלפון לא תקין (פורמט: 05XXXXXXXX)');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'phone';
+            }
+
+            // Validate email
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showError('email', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'email';
+            } else if (!validateEmail(email)) {
+                showError('email', 'כתובת מייל לא תקינה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'email';
+            }
+
+            // Validate unit
+            const unit = document.getElementById('unit').value;
+            if (!unit) {
+                showError('unit', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'unit';
+            }
+
+            // Validate weapon type
+            const weaponType = document.getElementById('weaponType').value;
+            if (!weaponType) {
+                showError('weaponType', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'weaponType';
+            }
+
+            // Validate weapon number
+            const weaponNumber = document.getElementById('weaponNumber').value;
+            if (!weaponNumber) {
+                showError('weaponNumber', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'weaponNumber';
+            }
+
+            // Validate NVD number (only if NVD type is selected)
+            const nvdType = document.getElementById('nvdType').value;
+            const nvdNumber = document.getElementById('nvdNumber').value;
+            if (nvdType && !nvdNumber) {
+                showError('nvdNumber', 'שדה חובה כאשר נבחר סוג אמרל');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'nvdNumber';
+            }
+
+            // Validate zayin number (only if zayin checkbox is checked)
+            const hasZayin = document.getElementById('hasZayin').checked;
+            const zayinNumber = document.getElementById('zayinNumber').value;
+            if (hasZayin && !zayinNumber) {
+                showError('zayinNumber', 'שדה חובה כאשר נבחר ציין');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'zayinNumber';
+            }
+
+            // Validate pak number (only if pak checkbox is checked)
+            const hasPak = document.getElementById('hasPak').checked;
+            const pakNumber = document.getElementById('pakNumber').value;
+            if (hasPak && !pakNumber) {
+                showError('pakNumber', 'שדה חובה כאשר נבחר פק');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'pakNumber';
+            }
+
+            // Validate signature
+            if (!hasSignature) {
+                signatureError.textContent = 'יש לחתום לפני שליחה';
+                signatureError.classList.remove('hidden');
+                canvas.classList.add('border-red-500');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'signatureCanvas';
+            }
+
+            if (hasErrors) {
+                // Scroll to first error field
+                if (firstErrorField) {
+                    const errorElement = document.getElementById(firstErrorField);
+                    errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Focus on the field if it's an input
+                    if (errorElement.tagName === 'INPUT' || errorElement.tagName === 'SELECT') {
+                        setTimeout(() => errorElement.focus(), 500);
+                    }
+                }
+                return;
+            }
+
+            // Disable button and show loader
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('bg-green-700', 'hover:bg-green-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+            submitBtn.classList.add('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+            submitBtn.textContent = 'שולח...';
+            
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
+
+            // Prepare data object
+            const signatureData = canvas.toDataURL('image/png');
+            const signatureSize = signatureData.length;
+            console.log('🖊️ Signature size:', signatureSize, 'bytes (~' + Math.round(signatureSize / 1024) + 'KB)');
+            
+            if (signatureSize > 5000000) { // 5MB
+                alert('החתימה גדולה מדי. אנא נסה לחתום שוב.');
+                submitBtn.disabled = false;
+                submitBtn.classList.add('bg-green-700', 'hover:bg-green-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+                submitBtn.classList.remove('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+                submitBtn.textContent = 'שלח';
+                loader.classList.add('hidden');
+                return;
+            }
+            
+            const data = {
+                fullName: fullName,
+                personalNumber: personalNumber,
+                phone: phone,
+                email: document.getElementById('email').value,
+                unit: document.getElementById('unit').value,
+                weaponType: document.getElementById('weaponType').value,
+                weaponNumber: document.getElementById('weaponNumber').value,
+                sightType: document.getElementById('sightType').value,
+                sightNumber: document.getElementById('sightNumber').value,
+                additionalSightType: document.getElementById('additionalSightType').value,
+                additionalSightNumber: document.getElementById('additionalSightNumber').value,
+                nvdType: document.getElementById('nvdType').value,
+                nvdNumber: document.getElementById('nvdNumber').value,
+                hasBinoculars: document.getElementById('hasBinoculars').checked,
+                hasCompass: document.getElementById('hasCompass').checked,
+                hasZayin: document.getElementById('hasZayin').checked,
+                zayinNumber: document.getElementById('zayinNumber').value,
+                hasPak: document.getElementById('hasPak').checked,
+                pakNumber: document.getElementById('pakNumber').value,
+                signature: signatureData,
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('📤 Sending data:', {
+                ...data,
+                signature: 'BASE64_DATA_' + signatureSize + '_BYTES'
+            });
+
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSe1FXGrJlUhDtZ1Sv0UVPh1Jt-l5JmnthwIzOX-zHP3W2EAxyz0UJutq7K4jAFgDO/exec';
+            
+            console.log('🌐 Sending to URL:', GOOGLE_SCRIPT_URL);
+            console.log('📦 Request body:', JSON.stringify(data).substring(0, 200) + '...');
+            
+            try {
+                // Send data to Google Sheets
+                console.log('⏳ Sending POST request...');
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    redirect: 'follow'
+                });
+                
+                console.log('✅ Response received!');
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response statusText:', response.statusText);
+                console.log('📊 Response type:', response.type);
+                console.log('📊 Response URL:', response.url);
+                
+                // Try to read response text
+                try {
+                    const responseText = await response.text();
+                    console.log('📄 Response text:', responseText.substring(0, 500));
+                } catch (textError) {
+                    console.log('⚠️ Could not read response text:', textError);
+                }
+                
+                console.log('✅ Data sent successfully');
+                
+                // Wait a bit to ensure the request completes
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+            } catch (error) {
+                console.error('❌ Error sending to Google Sheets:', error);
+                console.error('Error details:', error.message);
+                console.error('Error stack:', error.stack);
+            }
+
+            // Hide loader
+            loader.classList.add('hidden');
+
+            // Show success message
+            document.getElementById('displayFullName').textContent = data.fullName;
+            document.getElementById('displayPersonalNumber').textContent = data.personalNumber;
+            
+            formContainer.classList.add('hidden');
+            successContainer.classList.remove('hidden');
+        });
+
+        // New form button
+        newFormBtn.addEventListener('click', () => {
+            form.reset();
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(clearError);
+            
+            // Hide NVD number field
+            nvdNumberContainer.classList.add('hidden');
+            nvdNumberInput.required = false;
+            
+            // Hide zayin number field
+            zayinNumberContainer.classList.add('hidden');
+            zayinNumberInput.required = false;
+            
+            // Hide pak number field
+            pakNumberContainer.classList.add('hidden');
+            pakNumberInput.required = false;
+            
+            // Clear signature
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+            signatureError.classList.add('hidden');
+            
+            // Reset submit button
+            submitBtn.textContent = 'שלח';
+            
+            checkFormValidity();
+            successContainer.classList.add('hidden');
+            formContainer.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        });
+
+        // Initial check
+        checkFormValidity();
+    </script>
+</body>
+</html>

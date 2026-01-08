@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בגדחצ"מ קומנדו 8219 - מערכות ניהול מאובטחות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff6600 0%, #ff8c00 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        h1 {
+            color: #000;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .unit-number {
+            color: #1a1a1a;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        /* User Info Bar */
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info .user-details {
+            color: white;
+            text-align: left;
+        }
+
+        .user-info .user-name {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .user-info .user-role {
+            font-size: 0.75em;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .nav-card {
+            background: linear-gradient(145deg, #2d2d2d, #1f1f1f);
+            border: 3px solid #ff6600;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #666;
+        }
+
+        .nav-card.disabled:hover {
+            transform: none;
+            border-color: #666;
+        }
+
+        .nav-card:not(.disabled):hover {
+            transform: translateY(-10px);
+            border-color: #ff8c00;
+            box-shadow: 0 15px 35px rgba(255, 102, 0, 0.4);
+            background: linear-gradient(145deg, #363636, #252525);
+        }
+
+        .nav-card .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .nav-card.weapons .icon {
+            color: #ff6600;
+        }
+
+        .nav-card.radio .icon {
+            color: #ff8c00;
+        }
+
+        .nav-card.report .icon {
+            color: #ffa500;
+        }
+
+        .nav-card.admin .icon {
+            color: #ff4444;
+        }
+
+        .nav-card h2 {
+            color: #ff6600;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-card.disabled h2 {
+            color: #888;
+        }
+
+        .nav-card p {
+            color: #cccccc;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .nav-card.disabled p {
+            color: #666;
+        }
+
+        .permission-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 102, 0, 0.2);
+            color: #ff6600;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .nav-card.disabled .permission-badge {
+            background: rgba(100, 100, 100, 0.2);
+            color: #888;
+        }
+
+        .section-title {
+            color: #ff6600;
+            font-size: 1.8em;
+            margin: 40px 0 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: #888;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 2px solid #ff6600;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                position: static;
+                margin-bottom: 15px;
+                justify-content: center;
+            }
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 102, 0, 0.3);
+            border-top-color: #ff6600;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container" id="mainContent" style="display: none;">
+        <header>
+            <!-- User Info -->
+            <div class="user-info">
+                <div class="user-details">
+                    <div class="user-name" id="userName">טוען...</div>
+                    <div class="user-role" id="userRole"></div>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">התנתק</button>
+            </div>
+
+            <h1>בגדחצ"מ קומנדו</h1>
+            <div class="unit-number">יחידה 8219</div>
+            
+            <div class="security-badge">
+                <span>🔒</span>
+                <span>חיבור מאובטח עם הצפנה</span>
+            </div>
+        </header>
+
+        <div class="section-title">מערכות חתימה</div>
+        <div class="nav-grid">
+            <a href="#" id="weaponsLink" class="nav-card weapons" onclick="navigateTo('weapons-checkout-secure.html', event)">
+                <div class="permission-badge">נדרש: כתיבה</div>
+                <div class="icon">⬛</div>
+                <h2>מערכת חתימה - נשקים</h2>
+                <p>מערכת לניהול וחתימה על נשקים ואמצעי לחימה</p>
+            </a>
+
+            <a href="#" id="radioLink" class="nav-card radio" onclick="navigateTo('radio-checkout-secure.html', event)">
+                <div class="permission-badge">נדרש: כתיבה</div>
+                <div class="icon">⬛</div>
+                <h2>מערכת חתימה - קשר</h2>
+                <p>מערכת לניהול וחתימה על אמצעי קשר</p>
+            </a>
+        </div>
+
+        <div class="section-title">דוחות ומעקב</div>
+        <div class="nav-grid">
+            <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
+                <div class="permission-badge">נדרש: צפייה בדוחות</div>
+                <div class="icon">⬛</div>
+                <h2>דוח צלם</h2>
+                <p>מעקב אחר ציוד צילום ומצלמות</p>
+            </a>
+
+            <a href="#" id="radioReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1jUDDvC2PPYOcEWHgb2fc5Jds_K_YYhjveHYIgAurEBc/edit?usp=sharing', event, true)">
+                <div class="permission-badge">נדרש: צפייה בדוחות</div>
+                <div class="icon">⬛</div>
+                <h2>דוח קשר</h2>
+                <p>דוח מרכז לאמצעי קשר</p>
+            </a>
+        </div>
+
+        <div class="section-title" id="adminSection" style="display: none;">ניהול מערכת</div>
+        <div class="nav-grid" id="adminCards" style="display: none;">
+            <a href="#" id="auditLink" class="nav-card admin" onclick="navigateTo('audit-log.html', event)">
+                <div class="permission-badge">מנהל בלבד</div>
+                <div class="icon">📊</div>
+                <h2>יומן ביקורת</h2>
+                <p>צפייה בכל הפעולות במערכת</p>
+            </a>
+
+            <a href="#" id="usersLink" class="nav-card admin" onclick="navigateTo('user-management.html', event)">
+                <div class="permission-badge">מנהל בלבד</div>
+                <div class="icon">👥</div>
+                <h2>ניהול משתמשים</h2>
+                <p>הוספה ועריכת משתמשים והרשאות</p>
+            </a>
+        </div>
+
+        <footer>
+            <p>בגדחצ"מ קומנדו 8219 | מערכות ניהול ומעקב מאובטחות</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2026 - כל הזכויות שמורות</p>
+            <p style="margin-top: 5px; font-size: 0.8em; color: #00ff00;">
+                🔒 כל התקשורת מוצפנת | 📝 כל הפעולות מתועדות
+            </p>
+        </footer>
+    </div>
+
+    <!-- Auth Client Library -->
+    <script src="auth-client.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxFTWVhbLQBf1zjMtIa3FPBoQwYmK2Ku_30sbUAE0Ls8IJ9Oac3TkDXzxoZXVMXk7XZ-A/exec';
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        const authClient = new SecureAuthClient(API_URL);
+        const authGuard = new AuthGuard(authClient);
+        
+        // ============================================================
+        // PAGE LOAD
+        // ============================================================
+        
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const isAuthenticated = await authGuard.checkAuth();
+            
+            if (isAuthenticated) {
+                initializePage();
+            }
+        });
+        
+        // ============================================================
+        // PAGE INITIALIZATION
+        // ============================================================
+        
+        function initializePage() {
+            const user = authClient.user;
+            
+            // Display user info
+            document.getElementById('userName').textContent = user.fullName || user.username;
+            document.getElementById('userRole').textContent = getRoleDisplayName(user.role);
+            
+            // Set up permissions
+            setupPermissions(user);
+            
+            // Hide loading, show content
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+        
+        // ============================================================
+        // PERMISSIONS SETUP
+        // ============================================================
+        
+        function setupPermissions(user) {
+            // Check each permission
+            const hasWrite = authClient.hasPermission('write');
+            const hasViewReports = authClient.hasPermission('view_reports');
+            const isAdmin = authClient.hasPermission('manage_users');
+            
+            // Weapons & Radio forms
+            if (!hasWrite) {
+                disableCard('weaponsLink');
+                disableCard('radioLink');
+            }
+            
+            // Reports
+            if (!hasViewReports) {
+                disableCard('weaponsReportLink');
+                disableCard('radioReportLink');
+            }
+            
+            // Admin section
+            if (isAdmin) {
+                document.getElementById('adminSection').style.display = 'block';
+                document.getElementById('adminCards').style.display = 'grid';
+            }
+        }
+        
+        function disableCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.add('disabled');
+                card.onclick = (e) => {
+                    e.preventDefault();
+                    alert('אין לך הרשאה לגשת לדף זה. פנה למנהל המערכת.');
+                };
+            }
+        }
+        
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        
+        function navigateTo(url, event, isExternal = false) {
+            event.preventDefault();
+            
+            const card = event.currentTarget;
+            if (card.classList.contains('disabled')) {
+                return;
+            }
+            
+            if (isExternal) {
+                window.open(url, '_blank');
+            } else {
+                window.location.href = url;
+            }
+        }
+        
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        
+        async function handleLogout() {
+            if (confirm('האם אתה בטוח שברצונך להתנתק?')) {
+                await authClient.logout();
+            }
+        }
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        
+        function getRoleDisplayName(role) {
+            const roleNames = {
+                'admin': '👑 מנהל מערכת',
+                'operator': '🔧 מפעיל',
+                'viewer': '👁️ צופה',
+                'user': '👤 משתמש'
+            };
+            return roleNames[role] || role;
+        }
+    </script>
+</body>
+</html>

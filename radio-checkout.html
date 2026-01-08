@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>מערכת ניהול מכשירי קשר - Radio Equipment Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        /* Prevent zoom on input focus in iOS */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select {
+            font-size: 16px !important;
+        }
+        
+        /* Better touch handling */
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .success-check {
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0) rotate(-45deg); }
+            50% { transform: scale(1.2) rotate(-45deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-stone-100 to-stone-200 min-h-screen">
+    <script src="auth-client.js"></script>
+
+    <!-- Main Form Container -->
+    <div id="formContainer" class="py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 fade-in">
+                <div class="inline-block bg-blue-700 text-white px-4 sm:px-6 py-3 rounded-t-2xl shadow-lg">
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-wide">מערכת ניהול מכשירי קשר</h1>
+                </div>
+                <div class="bg-white rounded-b-2xl shadow-lg p-4 border-t-4 border-blue-600">
+                    <p class="text-stone-600 text-base sm:text-lg">Radio Equipment Management System</p>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form id="radioForm" class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 space-y-6 fade-in" style="animation-delay: 0.1s">
+                <!-- Personal Number (First field) -->
+                <div>
+                    <label for="personalNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר אישי <span class="text-red-600">*</span>
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            id="personalNumber"
+                            name="personalNumber"
+                            maxlength="7"
+                            class="flex-1 px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                            placeholder="7 ספרות"
+                            required
+                        />
+                        <button
+                            type="button"
+                            id="checkExistingBtn"
+                            class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 transition-all duration-200 shadow-md whitespace-nowrap flex items-center justify-center gap-2 w-full sm:w-auto"
+                        >
+                            <span id="checkBtnText">בדוק קיים</span>
+                            <div id="checkLoader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        >
+                        </button>
+                    </div>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="personalNumber"></p>
+                    
+                    <!-- Info message about checking existing records -->
+                    <div class="mt-3 p-3 bg-blue-50 border-2 border-blue-400 rounded-xl">
+                        <p class="text-blue-700 text-sm font-semibold flex items-start gap-2">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <span><strong>חשוב:</strong> מומלץ ללחוץ על "בדוק קיים" לפני מילוי הטופס. אם קיימת רשומה, המידע הישן יידרס על ידי המידע החדש.</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Success message -->
+                    <div id="existingRecordMessage" class="hidden mt-3 p-3 bg-green-50 border-2 border-green-500 rounded-xl">
+                        <p class="text-green-700 font-semibold flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            נמצאה רשומה קיימת - המידע הועבר לטופס
+                        </p>
+                    </div>
+                    
+                    <!-- Not found message -->
+                    <div id="notFoundMessage" class="hidden mt-3 p-3 bg-yellow-50 border-2 border-yellow-500 rounded-xl">
+                        <p class="text-yellow-700 font-semibold flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            לא נמצאה רשומה קיימת למספר אישי זה - ניתן להמשיך למילוי טופס חדש
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div>
+                    <label for="fullName" class="block text-stone-700 font-bold mb-2 text-lg">
+                        שם מלא <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                        placeholder="שם פרטי ומשפחה"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="fullName"></p>
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label for="phone" class="block text-stone-700 font-bold mb-2 text-lg">
+                        טלפון <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                        placeholder="05XXXXXXXX"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="phone"></p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מייל <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                        placeholder="example@email.com"
+                        required
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="email"></p>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200 my-6"></div>
+
+                <!-- Unit -->
+                <div>
+                    <label for="unit" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מסגרת <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                        id="unit"
+                        name="unit"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                        required
+                    >
+                        <option value="">בחר מסגרת</option>
+                        <option value="פלוגה א׳">פלוגה א׳</option>
+                        <option value="פלוגה ב׳">פלוגה ב׳</option>
+                        <option value="פלוגה ג׳">פלוגה ג׳</option>
+                        <option value="פלס״מ">פלס״מ</option>
+                        <option value="ניוד">ניוד</option>
+                        <option value="מחסר">מחסר</option>
+                        <option value="מפג״ד">מפג״ד</option>
+                    </select>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="unit"></p>
+                </div>
+
+                <!-- Radio Type -->
+                <div>
+                    <label for="radioType" class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג מ.ק
+                    </label>
+                    <select
+                        id="radioType"
+                        name="radioType"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר סוג מ.ק (אופציונלי)</option>
+                        <option value="624">624</option>
+                        <option value="91">91</option>
+                    </select>
+                </div>
+
+                <!-- Radio Number -->
+                <div>
+                    <label for="radioNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר מ.ק
+                    </label>
+                    <input
+                        type="text"
+                        id="radioNumber"
+                        name="radioNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200"
+                        placeholder="מספר סידורי (אופציונלי)"
+                    />
+                </div>
+
+                <!-- Column Checkbox -->
+                <div class="bg-stone-50 p-4 rounded-xl border-2 border-stone-200">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="hasColumn" name="hasColumn" class="w-5 h-5 text-blue-600">
+                        <span class="mr-3 text-stone-700 font-bold text-lg">עמוד</span>
+                    </label>
+                    
+                    <!-- Column Number (conditional) -->
+                    <div id="columnNumberContainer" class="hidden mt-3">
+                        <label for="columnNumber" class="block text-stone-700 font-bold mb-2">
+                            מספר עמוד <span class="text-red-600">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="columnNumber"
+                            name="columnNumber"
+                            class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200"
+                            placeholder="מספר עמוד"
+                        />
+                        <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="columnNumber"></p>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200 my-6"></div>
+
+                <h3 class="text-xl font-bold text-stone-700 mb-4">ציוד נוסף</h3>
+
+                <!-- Amplifier -->
+                <div>
+                    <label for="amplifier" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מגבר
+                    </label>
+                    <select
+                        id="amplifier"
+                        name="amplifier"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Rigid Adapter -->
+                <div>
+                    <label for="rigidAdapter" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מתאם קשיח
+                    </label>
+                    <select
+                        id="rigidAdapter"
+                        name="rigidAdapter"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Long Antenna -->
+                <div>
+                    <label for="longAntenna" class="block text-stone-700 font-bold mb-2 text-lg">
+                        אנטנה לונג
+                    </label>
+                    <select
+                        id="longAntenna"
+                        name="longAntenna"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- MAD -->
+                <div>
+                    <label for="mad" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מעד
+                    </label>
+                    <select
+                        id="mad"
+                        name="mad"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Flexible Adapter -->
+                <div>
+                    <label for="flexibleAdapter" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מתאם גמיש
+                    </label>
+                    <select
+                        id="flexibleAdapter"
+                        name="flexibleAdapter"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Short Antenna -->
+                <div>
+                    <label for="shortAntenna" class="block text-stone-700 font-bold mb-2 text-lg">
+                        אנטנה שורט
+                    </label>
+                    <select
+                        id="shortAntenna"
+                        name="shortAntenna"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Speaker -->
+                <div>
+                    <label for="speaker" class="block text-stone-700 font-bold mb-2 text-lg">
+                        רמק
+                    </label>
+                    <select
+                        id="speaker"
+                        name="speaker"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- MADONA -->
+                <div>
+                    <label for="madona" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מדונה
+                    </label>
+                    <select
+                        id="madona"
+                        name="madona"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Apple -->
+                <div>
+                    <label for="apple" class="block text-stone-700 font-bold mb-2 text-lg">
+                        תפוח
+                    </label>
+                    <select
+                        id="apple"
+                        name="apple"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Pear -->
+                <div>
+                    <label for="pear" class="block text-stone-700 font-bold mb-2 text-lg">
+                        אגס
+                    </label>
+                    <select
+                        id="pear"
+                        name="pear"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600 transition-all duration-200 bg-white"
+                    >
+                        <option value="">בחר כמות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t-2 border-stone-200 my-6"></div>
+
+                <!-- Legal Declaration -->
+                <div class="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 sm:p-6 mb-6">
+                    <div class="flex items-start gap-2 sm:gap-3">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-amber-900 mb-2">הצהרה</h3>
+                            <p class="text-sm sm:text-base text-amber-800 leading-relaxed">
+                                אני מצהיר/ה בזאת כי קיבלתי את הציוד והאמצעים המפורטים לעיל במצב תקין ותקני. 
+                                אני מתחייב/ת לשמור על הציוד ולהחזירו במועד ובמצב תקין. 
+                                ידוע לי כי אני אחראי/ת באופן אישי על הציוד שנמסר לי ועלי לדווח מיידית על כל נזק, תקלה או אובדן.
+                                <strong class="block mt-2">כל המידע שמסרתי נכון ומדויק.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signature Section -->
+                <div class="mb-6">
+                    <label class="block text-stone-700 font-bold mb-3 text-lg">
+                        חתימה <span class="text-red-600">*</span>
+                    </label>
+                    <div class="bg-white border-2 border-stone-300 rounded-xl p-4">
+                        <div class="relative">
+                            <canvas
+                                id="signatureCanvas"
+                                class="w-full border-2 border-stone-200 rounded-lg cursor-crosshair touch-none"
+                                style="touch-action: none; max-width: 100%; height: 200px;"
+                            ></canvas>
+                        </div>
+                        <div class="flex flex-col sm:flex-row justify-between items-center mt-3 gap-2">
+                            <button
+                                type="button"
+                                id="clearSignature"
+                                class="w-full sm:w-auto bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition-all duration-200 text-lg"
+                            >
+                                נקה חתימה
+                            </button>
+                            <p class="text-sm text-stone-600 text-center sm:text-right">חתום באמצעות העכבר או המסך מגע</p>
+                        </div>
+                    </div>
+                    <p id="signatureError" class="text-red-600 text-sm mt-2 font-semibold hidden">
+                        נא לחתום לפני שליחת הטופס
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    id="submitBtn"
+                    class="w-full bg-blue-700 text-white py-4 px-6 rounded-xl text-xl font-bold hover:bg-blue-800 transition-all duration-200 shadow-lg cursor-pointer transform hover:scale-105 flex items-center justify-center gap-3"
+                >
+                    <span id="submitBtnText">שלח</span>
+                    <svg id="submitLoader" class="hidden animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <!-- Loading Message -->
+                <div id="loadingMessage" class="hidden">
+                    <div class="bg-blue-50 border-2 border-blue-500 rounded-xl p-4 text-center">
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+                            <p class="text-blue-700 text-lg font-bold">שולח את הטופס...</p>
+                        </div>
+                        <p class="text-blue-600 text-sm">אנא המתן, הנתונים נשמרים במערכת</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Container -->
+    <div id="successContainer" class="hidden py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 text-center fade-in">
+                <!-- Success Icon -->
+                <div class="mb-6">
+                    <div class="inline-block bg-green-100 rounded-full p-4 sm:p-6 success-check">
+                        <svg class="w-16 h-16 sm:w-20 sm:h-20 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <h2 class="text-2xl sm:text-3xl font-bold text-stone-800 mb-4">הטופס נשלח בהצלחה!</h2>
+                <p class="text-lg sm:text-xl text-stone-600 mb-8">המידע נשמר במערכת</p>
+
+                <!-- Details Box -->
+                <div class="bg-stone-50 rounded-xl p-4 sm:p-6 mb-8 text-right">
+                    <div class="space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between border-b border-stone-200 pb-2 gap-1">
+                            <span class="font-bold text-stone-700">שם מלא:</span>
+                            <span id="displayFullName" class="text-stone-600"></span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row justify-between gap-1">
+                            <span class="font-bold text-stone-700">מספר אישי:</span>
+                            <span id="displayPersonalNumber" class="text-stone-600"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Form Button -->
+                <button
+                    id="newFormBtn"
+                    class="w-full sm:w-auto bg-blue-700 text-white py-3 px-8 rounded-xl text-lg font-bold hover:bg-blue-800 transition-all duration-200 shadow-lg transform hover:scale-105"
+                >
+                    טופס חדש
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('radioForm');
+        const formContainer = document.getElementById('formContainer');
+        const successContainer = document.getElementById('successContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitLoader = document.getElementById('submitLoader');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const newFormBtn = document.getElementById('newFormBtn');
+        const checkExistingBtn = document.getElementById('checkExistingBtn');
+        const checkBtnText = document.getElementById('checkBtnText');
+        const checkLoader = document.getElementById('checkLoader');
+        const existingRecordMessage = document.getElementById('existingRecordMessage');
+        const notFoundMessage = document.getElementById('notFoundMessage');
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clearSignature');
+        const signatureError = document.getElementById('signatureError');
+        
+        const hasColumnCheckbox = document.getElementById('hasColumn');
+        const columnNumberContainer = document.getElementById('columnNumberContainer');
+        const columnNumberInput = document.getElementById('columnNumber');
+
+        let isDrawing = false;
+        let hasSignature = false;
+
+        // Google Script URL - replace with your actual URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG1ymau8BHFFzIyqPqqe-jSIEZgc00SHoV4LMANhQbBRDm45U0RK1Ajh6m0Xcn099X/exec';
+
+        // Validation functions - defined early so they can be used anywhere
+        function validatePersonalNumber(number) {
+            return /^\d{7}$/.test(number);
+        }
+
+        function validatePhone(phone) {
+            return /^05\d{8}$/.test(phone.replace(/[-\s]/g, ''));
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(fieldId, message) {
+            const errorElement = document.querySelector(`[data-field="${fieldId}"]`);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('border-red-500');
+            }
+        }
+
+        function clearError(fieldId) {
+            const errorElement = document.querySelector(`[data-field="${fieldId}"]`);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.remove('border-red-500');
+            }
+        }
+
+        // Check for existing record
+        checkExistingBtn.addEventListener('click', async () => {
+            
+            const personalNumber = document.getElementById('personalNumber').value;
+            
+            
+            if (!personalNumber || !validatePersonalNumber(personalNumber)) {
+                showError('personalNumber', 'נא להזין מספר אישי תקין (7 ספרות)');
+                return;
+            }
+            
+            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+                alert('⚠️ שגיאה: יש להגדיר את ה-URL של Google Apps Script בקוד!\n\nחפש את השורה:\nconst GOOGLE_SCRIPT_URL = \'YOUR_GOOGLE_SCRIPT_URL_HERE\';\n\nוהחלף אותה ב-URL של ה-Web App שלך.');
+                return;
+            }
+            
+            // Clear previous messages
+            existingRecordMessage.classList.add('hidden');
+            notFoundMessage.classList.add('hidden');
+            clearError('personalNumber');
+            
+            // Show loader and disable button
+            checkExistingBtn.disabled = true;
+            checkBtnText.textContent = 'בודק...';
+            checkLoader.classList.remove('hidden');
+            
+            try {
+                // Create JSONP request
+                const callbackName = 'jsonpCallback' + Date.now();
+                const script = document.createElement('script');
+                
+                window[callbackName] = function(response) {
+                    
+                    
+                    if (response.exists && response.data) {
+                        // Found existing record - show success message
+                        existingRecordMessage.classList.remove('hidden');
+                        notFoundMessage.classList.add('hidden');
+                        
+                        const data = response.data;
+                        
+                        // Fill basic fields
+                        document.getElementById('fullName').value = data.fullName || '';
+                        document.getElementById('phone').value = data.phone || '';
+                        document.getElementById('email').value = data.email || '';
+                        document.getElementById('unit').value = data.unit || '';
+                        
+                        // Fill radio type
+                        if (data.radio624) {
+                            document.getElementById('radioType').value = '624';
+                            document.getElementById('radioNumber').value = data.radio624;
+                        } else if (data.radio91) {
+                            document.getElementById('radioType').value = '91';
+                            document.getElementById('radioNumber').value = data.radio91;
+                        }
+                        
+                        // Fill column
+                        if (data.hasColumn) {
+                            document.getElementById('hasColumn').checked = true;
+                            columnNumberContainer.classList.remove('hidden');
+                            columnNumberInput.required = true;
+                            document.getElementById('columnNumber').value = data.columnNumber || '';
+                        }
+                        
+                        // Fill equipment quantities
+                        document.getElementById('amplifier').value = data.amplifier || '';
+                        document.getElementById('rigidAdapter').value = data.rigidAdapter || '';
+                        document.getElementById('longAntenna').value = data.longAntenna || '';
+                        document.getElementById('mad').value = data.mad || '';
+                        document.getElementById('flexibleAdapter').value = data.flexibleAdapter || '';
+                        document.getElementById('shortAntenna').value = data.shortAntenna || '';
+                        document.getElementById('speaker').value = data.speaker || '';
+                        document.getElementById('madona').value = data.madona || '';
+                        document.getElementById('apple').value = data.apple || '';
+                        document.getElementById('pear').value = data.pear || '';
+                        
+                        // Scroll to show the success message
+                        existingRecordMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Check form validity after filling
+                        checkFormValidity();
+                    } else {
+                        // No existing record found - show info message
+                        existingRecordMessage.classList.add('hidden');
+                        notFoundMessage.classList.remove('hidden');
+                        
+                        // Scroll to show the message
+                        notFoundMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    
+                    // Cleanup
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    
+                    // Reset button
+                    checkExistingBtn.disabled = false;
+                    checkBtnText.textContent = 'בדוק קיים';
+                    checkLoader.classList.add('hidden');
+                };
+                
+                // Make JSONP request
+                script.src = `${GOOGLE_SCRIPT_URL}?action=checkPersonalNumber&personalNumber=${encodeURIComponent(personalNumber)}&callback=${callbackName}`;
+                script.onerror = function() {
+                    // Show error message
+                    existingRecordMessage.classList.add('hidden');
+                    notFoundMessage.classList.add('hidden');
+                    showError('personalNumber', 'שגיאה בבדיקת רשומה קיימת. נא לנסות שוב.');
+                    
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    
+                    // Reset button
+                    checkExistingBtn.disabled = false;
+                    checkBtnText.textContent = 'בדוק קיים';
+                    checkLoader.classList.add('hidden');
+                };
+                
+                document.body.appendChild(script);
+                
+            } catch (error) {
+                console.error('Error checking existing record:', error);
+                showError('personalNumber', 'שגיאה בבדיקת רשומה קיימת');
+                
+                // Reset button
+                checkExistingBtn.disabled = false;
+                checkBtnText.textContent = 'בדוק קיים';
+                checkLoader.classList.add('hidden');
+            }
+        });
+
+        // Handle column checkbox
+        hasColumnCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                columnNumberContainer.classList.remove('hidden');
+                columnNumberInput.required = true;
+            } else {
+                columnNumberContainer.classList.add('hidden');
+                columnNumberInput.required = false;
+                columnNumberInput.value = '';
+                clearError('columnNumber');
+            }
+            checkFormValidity();
+        });
+
+        // Set up canvas with white background
+        function setupCanvas() {
+            // Set canvas size to match container
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            canvas.width = containerWidth;
+            canvas.height = 200;
+            
+            
+            // Fill with white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        
+        setupCanvas();
+        
+        // Resize canvas when window resizes
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Save current signature
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                tempCtx.drawImage(canvas, 0, 0);
+                
+                // Resize
+                setupCanvas();
+                
+                // Restore signature
+                if (hasSignature) {
+                    ctx.drawImage(tempCanvas, 0, 0);
+                }
+            }, 100);
+        });
+
+        // Mouse events for signature
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events for signature (mobile)
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+            
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            hasSignature = true;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+            checkFormValidity();
+        }
+
+        function startDrawing(e) {
+            
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            hasSignature = true;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+            checkFormValidity();
+        }
+
+        function stopDrawing() {
+            
+            isDrawing = false;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            setupCanvas();
+            hasSignature = false;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+            checkFormValidity();
+        });
+
+        function checkFormValidity() {
+            const requiredFields = ['fullName', 'personalNumber', 'phone', 'email', 'unit'];
+            let allValid = true;
+
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value) {
+                    allValid = false;
+                }
+            });
+
+            if (!hasSignature) {
+                allValid = false;
+            }
+
+            if (allValid) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+                submitBtn.classList.add('bg-stone-300', 'text-stone-500', 'cursor-not-allowed');
+            }
+        }
+
+        // Add event listeners to all inputs
+        ['fullName', 'personalNumber', 'phone', 'email', 'unit'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', () => {
+                    clearError(fieldId);
+                    checkFormValidity();
+                });
+                field.addEventListener('change', checkFormValidity);
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear all previous errors
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit'].forEach(clearError);
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+
+            let hasErrors = false;
+            let firstErrorField = null;
+
+            // Validate full name
+            const fullName = document.getElementById('fullName').value;
+            if (!fullName) {
+                showError('fullName', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'fullName';
+            }
+
+            // Validate personal number
+            const personalNumber = document.getElementById('personalNumber').value;
+            if (!personalNumber) {
+                showError('personalNumber', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'personalNumber';
+            } else if (!validatePersonalNumber(personalNumber)) {
+                showError('personalNumber', 'מספר אישי חייב להכיל בדיוק 7 ספרות');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'personalNumber';
+            }
+
+            // Validate phone
+            const phone = document.getElementById('phone').value;
+            if (!phone) {
+                showError('phone', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'phone';
+            } else if (!validatePhone(phone)) {
+                showError('phone', 'מספר טלפון לא תקין (פורמט: 05XXXXXXXX)');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'phone';
+            }
+
+            // Validate email
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showError('email', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'email';
+            } else if (!validateEmail(email)) {
+                showError('email', 'כתובת מייל לא תקינה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'email';
+            }
+
+            // Validate unit
+            const unit = document.getElementById('unit').value;
+            if (!unit) {
+                showError('unit', 'שדה חובה');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'unit';
+            }
+
+            // Validate column number (only if column checkbox is checked)
+            const hasColumn = document.getElementById('hasColumn').checked;
+            const columnNumber = document.getElementById('columnNumber').value;
+            if (hasColumn && !columnNumber) {
+                showError('columnNumber', 'שדה חובה כאשר עמוד מסומן');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'columnNumber';
+            }
+
+            // Validate signature
+            if (!hasSignature) {
+                signatureError.textContent = 'יש לחתום לפני שליחה';
+                signatureError.classList.remove('hidden');
+                canvas.classList.add('border-red-500');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'signatureCanvas';
+            }
+
+            if (hasErrors) {
+                // Scroll to first error field
+                if (firstErrorField) {
+                    const errorElement = document.getElementById(firstErrorField);
+                    errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Focus on the field if it's an input
+                    if (errorElement.tagName === 'INPUT' || errorElement.tagName === 'SELECT') {
+                        setTimeout(() => errorElement.focus(), 500);
+                    }
+                }
+                return;
+            }
+
+            // Disable button and show loader
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+            submitBtn.classList.add('bg-stone-400', 'cursor-not-allowed');
+            submitBtnText.textContent = 'שולח...';
+            submitLoader.classList.remove('hidden');
+            
+            loadingMessage.classList.remove('hidden');
+            
+            // Scroll to loading message
+            loadingMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Check if Google Script URL is configured
+            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+                loadingMessage.classList.add('hidden');
+                submitLoader.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+                submitBtn.classList.remove('bg-stone-400', 'cursor-not-allowed');
+                submitBtnText.textContent = 'שלח';
+                
+                alert('⚠️ שגיאה: יש להגדיר את ה-URL של Google Apps Script בקוד!\n\nחפש את השורה:\nconst GOOGLE_SCRIPT_URL = \'YOUR_GOOGLE_SCRIPT_URL_HERE\';\n\nוהחלף אותה ב-URL של ה-Web App שלך.');
+                return;
+            }
+
+            // Prepare data object - separate column for each equipment type
+            const data = {
+                fullName: fullName,
+                personalNumber: personalNumber,
+                phone: phone,
+                email: email,
+                unit: unit,
+                // Radio type - separate columns
+                radio624: document.getElementById('radioType').value === '624' ? document.getElementById('radioNumber').value : '',
+                radio91: document.getElementById('radioType').value === '91' ? document.getElementById('radioNumber').value : '',
+                // Column
+                hasColumn: hasColumn,
+                columnNumber: hasColumn ? columnNumber : '',
+                // Equipment - each as separate field
+                amplifier: document.getElementById('amplifier').value,
+                rigidAdapter: document.getElementById('rigidAdapter').value,
+                longAntenna: document.getElementById('longAntenna').value,
+                mad: document.getElementById('mad').value,
+                flexibleAdapter: document.getElementById('flexibleAdapter').value,
+                shortAntenna: document.getElementById('shortAntenna').value,
+                speaker: document.getElementById('speaker').value,
+                madona: document.getElementById('madona').value,
+                apple: document.getElementById('apple').value,
+                pear: document.getElementById('pear').value,
+                signature: canvas.toDataURL('image/png'),
+                timestamp: new Date().toISOString()
+            };
+
+            // TODO: Replace with your Google Apps Script URL
+            // const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; // Already defined at top
+            
+            try {
+                // Send data to Google Sheets
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                
+            } catch (error) {
+                console.error('Error sending to Google Sheets:', error);
+            }
+
+            // Hide loader
+            loadingMessage.classList.add('hidden');
+            submitLoader.classList.add('hidden');
+
+            // Show success message
+            document.getElementById('displayFullName').textContent = data.fullName;
+            document.getElementById('displayPersonalNumber').textContent = data.personalNumber;
+            
+            formContainer.classList.add('hidden');
+            successContainer.classList.remove('hidden');
+        });
+
+        // New form button
+        newFormBtn.addEventListener('click', () => {
+            form.reset();
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'columnNumber'].forEach(clearError);
+            
+            // Hide all messages
+            existingRecordMessage.classList.add('hidden');
+            notFoundMessage.classList.add('hidden');
+            loadingMessage.classList.add('hidden');
+            
+            // Hide column number field
+            columnNumberContainer.classList.add('hidden');
+            columnNumberInput.required = false;
+            
+            // Clear signature
+            setupCanvas();
+            hasSignature = false;
+            signatureError.classList.add('hidden');
+            canvas.classList.remove('border-red-500');
+            
+            // Reset submit button
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-stone-400', 'cursor-not-allowed');
+            submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+            submitBtnText.textContent = 'שלח';
+            submitLoader.classList.add('hidden');
+            
+            checkFormValidity();
+            successContainer.classList.add('hidden');
+            formContainer.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        });
+
+        // Initial check
+        checkFormValidity();
+    </script>
+</body>
+</html>

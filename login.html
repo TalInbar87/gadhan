@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>התחברות - מערכת ניהול בגדחצ"מ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex items-center justify-center p-4">
+    
+    <div class="max-w-md w-full">
+        <!-- Logo/Header -->
+        <div class="text-center mb-8 fade-in">
+            <div class="inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-2xl shadow-2xl">
+                <h1 class="text-3xl font-bold">🔐</h1>
+            </div>
+            <h2 class="text-white text-2xl font-bold mt-4">מערכת ניהול בגדחצ"מ</h2>
+            <p class="text-gray-400 mt-2">יחידה 8219</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 fade-in" style="animation-delay: 0.1s">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">התחברות למערכת</h3>
+            
+            <form id="loginForm" class="space-y-6">
+                <!-- Username -->
+                <div>
+                    <label for="username" class="block text-gray-700 font-bold mb-2">
+                        שם משתמש
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-500"
+                        placeholder="הזן שם משתמש"
+                        required
+                        autocomplete="username"
+                    />
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-gray-700 font-bold mb-2">
+                        סיסמה
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-500"
+                        placeholder="הזן סיסמה"
+                        required
+                        autocomplete="current-password"
+                    />
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-red-700 font-bold" id="errorText"></p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                    <span id="buttonText">התחבר</span>
+                    <span id="buttonLoader" class="hidden">מתחבר...</span>
+                </button>
+            </form>
+
+            <!-- Info -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <p class="text-gray-600 text-sm text-center">
+                    <svg class="w-4 h-4 inline-block ml-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    אין לך גישה? פנה למנהל המערכת
+                </p>
+            </div>
+
+            <!-- Default Credentials Info (Remove in production!) -->
+            <div class="mt-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                <p class="text-yellow-800 text-sm font-semibold text-center">
+                    ⚠️ למטרות בדיקה בלבד
+                </p>
+                <p class="text-yellow-700 text-xs text-center mt-1">
+                    משתמש: admin | סיסמה: admin123
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6 text-gray-400 text-sm">
+            <p>מערכת מאובטחת עם הצפנה מקצה לקצה</p>
+            <p class="mt-1">© 2026 - כל הזכויות שמורות</p>
+        </div>
+    </div>
+
+    <!-- Auth Client Library -->
+    <script src="auth-client.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxFTWVhbLQBf1zjMtIa3FPBoQwYmK2Ku_30sbUAE0Ls8IJ9Oac3TkDXzxoZXVMXk7XZ-A/exec'; // Replace with your deployed script URL
+        
+        // ============================================================
+        // VALIDATION
+        // ============================================================
+        
+        // Check if API URL is configured
+        if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' || !API_URL.includes('script.google.com')) {
+            document.getElementById('errorMessage').classList.remove('hidden');
+            document.getElementById('errorText').innerHTML = `
+                <strong>⚠️ שגיאת הגדרה:</strong><br>
+                נא לעדכן את ה-API_URL בקובץ login.html<br>
+                <small style="direction: ltr; display: block; margin-top: 5px;">
+                const API_URL = 'YOUR_ACTUAL_GOOGLE_APPS_SCRIPT_URL';
+                </small>
+            `;
+            document.getElementById('loginButton').disabled = true;
+        }
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        const authClient = new SecureAuthClient(API_URL);
+        
+        // Check if already logged in
+        if (authClient.isAuthenticated()) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect') || 'index-secure.html';
+            window.location.href = redirect;
+        }
+        
+        // ============================================================
+        // FORM HANDLING
+        // ============================================================
+        
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+        const buttonText = document.getElementById('buttonText');
+        const buttonLoader = document.getElementById('buttonLoader');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('נא למלא את כל השדות');
+                return;
+            }
+            
+            // Show loading state
+            loginButton.disabled = true;
+            buttonText.classList.add('hidden');
+            buttonLoader.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            
+            try {
+                // Attempt login
+                const result = await authClient.login(username, password);
+                
+                if (result.success) {
+                    // Success! Redirect
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || 'index-secure.html';
+                    
+                    // Show success message briefly
+                    showSuccess('התחברות בוצעה בהצלחה!');
+                    
+                    setTimeout(() => {
+                        window.location.href = redirect;
+                    }, 500);
+                } else {
+                    // Show error
+                    showError(result.error || 'שגיאה בהתחברות');
+                    resetButton();
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('שגיאת רשת - נא לנסות שוב');
+                resetButton();
+            }
+        });
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            errorMessage.classList.remove('bg-green-50', 'border-green-300');
+            errorMessage.classList.add('bg-red-50', 'border-red-300');
+            errorText.classList.remove('text-green-700');
+            errorText.classList.add('text-red-700');
+        }
+        
+        function showSuccess(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            errorMessage.classList.remove('bg-red-50', 'border-red-300');
+            errorMessage.classList.add('bg-green-50', 'border-green-300');
+            errorText.classList.remove('text-red-700');
+            errorText.classList.add('text-green-700');
+        }
+        
+        function resetButton() {
+            loginButton.disabled = false;
+            buttonText.classList.remove('hidden');
+            buttonLoader.classList.add('hidden');
+        }
+        
+        // ============================================================
+        // KEYBOARD SHORTCUTS
+        // ============================================================
+        
+        document.addEventListener('keydown', (e) => {
+            // Alt + L for quick login (development only)
+            if (e.altKey && e.key === 'l') {
+                document.getElementById('username').value = 'admin';
+                document.getElementById('password').value = 'admin123';
+            }
+        });
+    </script>
+</body>
+</html>

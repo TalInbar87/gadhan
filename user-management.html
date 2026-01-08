@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול משתמשים - מערכת ניהול בגדחצ"מ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-600 to-orange-700 shadow-2xl">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">👥 ניהול משתמשים</h1>
+                        <p class="text-orange-200 mt-1">הוספה ועריכת משתמשים והרשאות</p>
+                    </div>
+                    <button onclick="window.location.href='index-secure.html'" 
+                            class="bg-white text-orange-600 px-6 py-2 rounded-lg font-bold hover:bg-orange-50 transition-all">
+                        חזרה לדף הבית
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            
+            <!-- Add User Card -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                    <span>➕</span>
+                    <span>הוסף משתמש חדש</span>
+                </h2>
+
+                <form id="addUserForm" class="grid md:grid-cols-2 gap-6">
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">שם משתמש *</label>
+                        <input type="text" id="newUsername" required
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all"
+                               placeholder="הזן שם משתמש ייחודי">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">סיסמה *</label>
+                        <input type="password" id="newPassword" required
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all"
+                               placeholder="הזן סיסמה">
+                    </div>
+
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">שם מלא *</label>
+                        <input type="text" id="newFullName" required
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all"
+                               placeholder="שם פרטי ומשפחה">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">אימייל</label>
+                        <input type="email" id="newEmail"
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all"
+                               placeholder="example@example.com">
+                    </div>
+
+                    <!-- Personal Number -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">מספר אישי</label>
+                        <input type="text" id="newPersonalNumber" maxlength="7"
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all"
+                               placeholder="7 ספרות">
+                    </div>
+
+                    <!-- Role -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">תפקיד *</label>
+                        <select id="newRole" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all">
+                            <option value="">בחר תפקיד...</option>
+                            <option value="admin">👑 מנהל מערכת</option>
+                            <option value="operator">🔧 מפעיל</option>
+                            <option value="viewer">👁️ צופה</option>
+                            <option value="user">👤 משתמש</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="md:col-span-2">
+                        <button type="submit" id="addUserBtn"
+                                class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg">
+                            <span id="addUserBtnText">➕ הוסף משתמש</span>
+                            <span id="addUserBtnLoader" class="hidden">מוסיף...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Message -->
+                <div id="addUserMessage" class="hidden mt-4 p-4 rounded-lg"></div>
+            </div>
+
+            <!-- Role Descriptions -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">📋 תיאור תפקידים והרשאות</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Admin -->
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border-2 border-red-300">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl">👑</span>
+                            <h3 class="text-xl font-bold text-red-800">מנהל מערכת</h3>
+                        </div>
+                        <ul class="space-y-2 text-red-700">
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>הרשאות מלאות לכל המערכת</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>ניהול משתמשים והרשאות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>צפייה ביומן ביקורת מלא</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>מחיקת ועריכת רשומות</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Operator -->
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-300">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl">🔧</span>
+                            <h3 class="text-xl font-bold text-blue-800">מפעיל</h3>
+                        </div>
+                        <ul class="space-y-2 text-blue-700">
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>קריאה וכתיבה של נתונים</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>צפייה בדוחות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>הזנת חתימות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>×</span>
+                                <span>אין גישה לניהול משתמשים</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Viewer -->
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border-2 border-green-300">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl">👁️</span>
+                            <h3 class="text-xl font-bold text-green-800">צופה</h3>
+                        </div>
+                        <ul class="space-y-2 text-green-700">
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>קריאה בלבד</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>צפייה בדוחות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>×</span>
+                                <span>אין אפשרות להזין נתונים</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>×</span>
+                                <span>אין גישה למערכות חתימה</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- User -->
+                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-300">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl">👤</span>
+                            <h3 class="text-xl font-bold text-gray-800">משתמש</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>כתיבה בלבד</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>✓</span>
+                                <span>הזנת חתימות אישיות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>×</span>
+                                <span>אין גישה לדוחות</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span>×</span>
+                                <span>אין יכולת לקרוא נתונים אחרים</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Auth Client Library -->
+    <script src="auth-client.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxFTWVhbLQBf1zjMtIa3FPBoQwYmK2Ku_30sbUAE0Ls8IJ9Oac3TkDXzxoZXVMXk7XZ-A/exec';
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        const authClient = new SecureAuthClient(API_URL);
+        const authGuard = new AuthGuard(authClient, 'manage_users');
+        
+        // ============================================================
+        // PAGE LOAD
+        // ============================================================
+        
+        window.addEventListener('DOMContentLoaded', async () => {
+            const isAuthorized = await authGuard.checkAuth();
+            
+            if (isAuthorized) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.remove('hidden');
+                setupEventListeners();
+            }
+        });
+        
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        
+        function setupEventListeners() {
+            document.getElementById('addUserForm').addEventListener('submit', handleAddUser);
+        }
+        
+        // ============================================================
+        // ADD USER
+        // ============================================================
+        
+        async function handleAddUser(e) {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('newUsername').value.trim(),
+                password: document.getElementById('newPassword').value,
+                fullName: document.getElementById('newFullName').value.trim(),
+                email: document.getElementById('newEmail').value.trim(),
+                personalNumber: document.getElementById('newPersonalNumber').value.trim(),
+                role: document.getElementById('newRole').value
+            };
+            
+            // Validation
+            if (!userData.username || !userData.password || !userData.fullName || !userData.role) {
+                showMessage('error', 'נא למלא את כל השדות החובה');
+                return;
+            }
+            
+            if (userData.username.length < 3) {
+                showMessage('error', 'שם המשתמש חייב להיות לפחות 3 תווים');
+                return;
+            }
+            
+            if (userData.password.length < 6) {
+                showMessage('error', 'הסיסמה חייבת להיות לפחות 6 תווים');
+                return;
+            }
+            
+            // Show loading
+            const btn = document.getElementById('addUserBtn');
+            const btnText = document.getElementById('addUserBtnText');
+            const btnLoader = document.getElementById('addUserBtnLoader');
+            
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            
+            try {
+                const result = await authClient.createUser(userData);
+                
+                if (result.success) {
+                    showMessage('success', '✓ המשתמש נוסף בהצלחה!');
+                    document.getElementById('addUserForm').reset();
+                } else {
+                    showMessage('error', 'שגיאה בהוספת המשתמש');
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showMessage('error', error.message || 'שגיאה בהוספת המשתמש');
+            } finally {
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }
+        }
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        
+        function showMessage(type, message) {
+            const messageDiv = document.getElementById('addUserMessage');
+            messageDiv.classList.remove('hidden', 'bg-red-50', 'bg-green-50', 'border-red-300', 'border-green-300', 'text-red-700', 'text-green-700');
+            
+            if (type === 'success') {
+                messageDiv.classList.add('bg-green-50', 'border-2', 'border-green-300', 'text-green-700');
+            } else {
+                messageDiv.classList.add('bg-red-50', 'border-2', 'border-red-300', 'text-red-700');
+            }
+            
+            messageDiv.textContent = message;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
