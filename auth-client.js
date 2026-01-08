@@ -45,7 +45,6 @@
     // ============================================================
     
     async login(username, password) {
-        console.log(this.apiUrl)
         try {
             // Use form data to bypass CORS
             const formData = new URLSearchParams();
@@ -310,7 +309,8 @@ class AuthGuard {
     }
     
     redirectToLogin() {
-        const currentPage = window.location.pathname;
+        // Get just the filename, not the full path
+        const currentPage = window.location.pathname.split('/').pop() || 'index-secure.html';
         window.location.href = `login.html?redirect=${encodeURIComponent(currentPage)}`;
     }
     

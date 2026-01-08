@@ -129,7 +129,7 @@
         // CONFIGURATION
         // ============================================================
         
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxynO4648KGSx-IX65LVX3d8wRWGWduamBuAs8GK1fqBPnxoVbumZQkYyEeUQ81rcvZyA/exec'; // Replace with your deployed script URL
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'; // Replace with your deployed script URL
         
         // ============================================================
         // VALIDATION
@@ -156,9 +156,9 @@
         
         // Check if already logged in
         if (authClient.isAuthenticated()) {
-            /*const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
             const redirect = urlParams.get('redirect') || 'index-secure.html';
-            window.location.href = redirect;*/
+            window.location.href = redirect;
         }
         
         // ============================================================
@@ -204,12 +204,13 @@
                     // Show success message briefly
                     showSuccess('התחברות בוצעה בהצלחה!');
                     
-                /*    setTimeout(() => {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const redirect = urlParams.get('redirect') || 'index-secure.html';
+                    setTimeout(() => {
+                        let redirect = new URLSearchParams(window.location.search).get('redirect') || 'index-secure.html';
+                        // Remove leading slash if present
+                        redirect = redirect.replace(/^\/+/, '');
                         console.log('Redirecting to:', redirect); // DEBUG
                         window.location.href = redirect;
-                    }, 500);*/
+                    }, 500);
                 } else {
                     // Show error
                     showError(result.error || 'שגיאה בהתחברות');
