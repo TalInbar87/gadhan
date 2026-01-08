@@ -132,6 +132,9 @@
         
         // Use URL encoding for Unicode support (matching backend)
         const urlEncoded = encodeURIComponent(encrypted);
+        
+        // Use regular btoa (standard base64)
+        // This matches Utilities.base64Decode in backend
         return btoa(urlEncoded);
     }
     
@@ -163,8 +166,12 @@
         }
         
         try {
+            // Use a fixed encryption key that matches backend
+            // This should match CONFIG.JWT_SECRET in backend
+            const encryptionKey = 'BagadHatzamKomando8219SecretKey2026XyZ_STATIC_2026';
+            
             // Encrypt form data
-            const encryptedData = await this.encryptData(formData, this.token);
+            const encryptedData = await this.encryptData(formData, encryptionKey);
             
             const postData = new URLSearchParams();
             postData.append('data', JSON.stringify({
@@ -234,8 +241,9 @@
             }
             
             if (result.statusCode === 200 && result.data) {
-                // Decrypt data
-                const decryptedData = await this.decryptData(result.data.data, this.token);
+                // Decrypt data using the same fixed key
+                const encryptionKey = 'BagadHatzamKomando8219SecretKey2026XyZ_STATIC_2026';
+                const decryptedData = await this.decryptData(result.data.data, encryptionKey);
                 return { success: true, data: decryptedData };
             } else if (result.statusCode === 404) {
                 return { success: true, data: null };
