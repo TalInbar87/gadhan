@@ -371,8 +371,17 @@
         // ============================================================
         
         window.addEventListener('DOMContentLoaded', async () => {
+            console.log('=== INDEX-SECURE PAGE LOAD ===');
+            console.log('Token in storage:', sessionStorage.getItem('auth_token'));
+            console.log('User in storage:', sessionStorage.getItem('auth_user'));
+            console.log('authClient.token:', authClient.token);
+            console.log('authClient.user:', authClient.user);
+            console.log('isAuthenticated:', authClient.isAuthenticated());
+            
             // Check authentication
             const isAuthenticated = await authGuard.checkAuth();
+            
+            console.log('After checkAuth:', isAuthenticated);
             
             if (isAuthenticated) {
                 initializePage();

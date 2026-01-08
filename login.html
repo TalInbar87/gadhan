@@ -200,17 +200,23 @@
                     // Success! Check if token was saved
                     console.log('Token saved:', authClient.token); // DEBUG
                     console.log('User saved:', authClient.user); // DEBUG
+                    console.log('SessionStorage token:', sessionStorage.getItem('auth_token')); // DEBUG
+                    console.log('SessionStorage user:', sessionStorage.getItem('auth_user')); // DEBUG
                     
                     // Show success message briefly
                     showSuccess('התחברות בוצעה בהצלחה!');
                     
+                    // TEMPORARY: Don't redirect, just log
                     setTimeout(() => {
                         let redirect = new URLSearchParams(window.location.search).get('redirect') || 'index-secure.html';
                         // Remove leading slash if present
                         redirect = redirect.replace(/^\/+/, '');
-                        console.log('Redirecting to:', redirect); // DEBUG
+                        console.log('Would redirect to:', redirect); // DEBUG
+                        console.log('Token before redirect:', sessionStorage.getItem('auth_token')); // DEBUG
+                        
+                        // UNCOMMENT WHEN FIXED:
                         window.location.href = redirect;
-                    }, 500);
+                    }, 2000); // Increased to 2 seconds to see logs
                 } else {
                     // Show error
                     showError(result.error || 'שגיאה בהתחברות');
