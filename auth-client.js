@@ -45,6 +45,7 @@
     // ============================================================
     
     async login(username, password) {
+        console.log(this.apiUrl)
         try {
             // Use form data to bypass CORS
             const formData = new URLSearchParams();
