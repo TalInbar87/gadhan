@@ -520,11 +520,11 @@
         // AUTHENTICATION & CONFIGURATION
         // ============================================================
         
-        const GOOGLE_SCRIPTURL = 'https://script.google.com/macros/s/AKfycbzNG9LHp0EB7N99OXoKlx10fWSQwUFnhnvIAvHaMBYI2LMpjnv6-mEGLj4tto7oDCtx9g/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzNG9LHp0EB7N99OXoKlx10fWSQwUFnhnvIAvHaMBYI2LMpjnv6-mEGLj4tto7oDCtx9g/exec';
         const FORM_TYPE = 'weapons';
         
         // Initialize authentication
-        const authClient = new SecureAuthClient(GOOGLE_SCRIPTURL);
+        const authClient = new SecureAuthClient(API_URL);
         const authGuard = new AuthGuard(authClient, 'write');
         
         // Check authentication on page load
