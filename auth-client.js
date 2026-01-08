@@ -130,11 +130,13 @@
             );
         }
         
-        return btoa(encrypted);
+        // Use Unicode-safe base64 encoding
+        return this.unicodeTob64(encrypted);
     }
     
     async decryptData(encryptedData, key) {
-        const decoded = atob(encryptedData);
+        // Use Unicode-safe base64 decoding
+        const decoded = this.b64ToUnicode(encryptedData);
         let decrypted = '';
         
         for (let i = 0; i < decoded.length; i++) {
@@ -144,6 +146,20 @@
         }
         
         return JSON.parse(decrypted);
+    }
+    
+    // Unicode-safe base64 encoding
+    unicodeTob64(str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+            return String.fromCharCode(parseInt(p1, 16));
+        }));
+    }
+    
+    // Unicode-safe base64 decoding
+    b64ToUnicode(b64) {
+        return decodeURIComponent(Array.prototype.map.call(atob(b64), (c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
     }
     
     // ============================================================
