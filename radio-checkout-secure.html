@@ -9,7 +9,7 @@
 // AUTHENTICATION SETUP
 // ============================================================
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxqvtTabPUKX5JnSYapMxGvC0eCNT8CLVOeTKJzVNYGcSoPfZwzUPNtL0emjy3GKSpqqQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwsFyStcK6uhjqwhENW15dCzg1L4CpsDnJ8QQ4nBm7ZZTre0k53BPrmx7AE8F2Cs_CGIQ/exec';
 const authClient = new SecureAuthClient(API_URL);
 const authGuard = new AuthGuard(authClient, 'write'); // Requires write permission
 
@@ -695,7 +695,7 @@ function displayUserInfo() {
         let hasSignature = false;
 
         // Google Script URL - replace with your actual URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqvtTabPUKX5JnSYapMxGvC0eCNT8CLVOeTKJzVNYGcSoPfZwzUPNtL0emjy3GKSpqqQ/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsFyStcK6uhjqwhENW15dCzg1L4CpsDnJ8QQ4nBm7ZZTre0k53BPrmx7AE8F2Cs_CGIQ/exec';
 
         // Validation functions - defined early so they can be used anywhere
         function validatePersonalNumber(number) {
