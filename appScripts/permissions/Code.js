@@ -2,7 +2,7 @@
  * ================================================================
  * Google Apps Script - מערכת אבטחה והרשאות (Middleware)
  * ================================================================
- * fffffffff
+ * fffffffffdddd
  * תיאור: סקריפט Standalone לניהול Authentication ו-Authorization
  * 
  * Sheets שבשימוש:
