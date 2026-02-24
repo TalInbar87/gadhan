@@ -25,12 +25,23 @@ jobs:
       
       # 3. התקנת clasp
       - name: 📦 Install clasp
-        run: npm install -g @google/clasp
+        run: npm install -g @google/clasp@latest
       
       # 4. הגדרת credentials
       - name: 🔐 Setup clasp credentials
         run: |
+          mkdir -p ~/.config/clasp
           echo "$CLASPRC_JSON" > ~/.clasprc.json
+          
+          # Debug - show what we got (without sensitive data)
+          echo "Credential file created"
+          
+          # Try to extract and validate the format
+          if grep -q "tokens" ~/.clasprc.json; then
+            echo "New clasp format detected"
+          else
+            echo "Old clasp format detected"
+          fi
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       
