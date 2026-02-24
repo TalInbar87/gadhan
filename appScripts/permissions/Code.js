@@ -2,7 +2,7 @@
  * ================================================================
  * Google Apps Script - מערכת אבטחה והרשאות (Middleware)
  * ================================================================
- * fixed Json
+ * fffffffff
  * תיאור: סקריפט Standalone לניהול Authentication ו-Authorization
  * 
  * Sheets שבשימוש:
@@ -517,16 +517,33 @@ function doPost(e) {
   try {
     Logger.log('🎯 doPost called');
     
+    // בדיקה ש-e קיים
+    if (!e) {
+      Logger.log('❌ No event object received');
+      return createResponse(400, 'No request data received', null);
+    }
+    
     // פענוח הנתונים
     let data;
     if (e.postData && e.postData.contents) {
       // JSON ישיר מ-postData
+      Logger.log('📦 Parsing from postData.contents');
       data = JSON.parse(e.postData.contents);
     } else if (e.parameter && e.parameter.data) {
       // URL-encoded JSON מ-parameter
+      Logger.log('📦 Parsing from parameter.data');
       const decodedData = decodeURIComponent(e.parameter.data);
       data = JSON.parse(decodedData);
+    } else if (e.parameters && e.parameters.data && e.parameters.data[0]) {
+      // Array של parameters
+      Logger.log('📦 Parsing from parameters.data array');
+      const decodedData = decodeURIComponent(e.parameters.data[0]);
+      data = JSON.parse(decodedData);
     } else {
+      Logger.log('❌ No data in request');
+      Logger.log('e.postData: ' + JSON.stringify(e.postData));
+      Logger.log('e.parameter: ' + JSON.stringify(e.parameter));
+      Logger.log('e.parameters: ' + JSON.stringify(e.parameters));
       return createResponse(400, 'No data provided', null);
     }
     
