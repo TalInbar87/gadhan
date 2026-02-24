@@ -53,6 +53,12 @@ const CONFIG = {
  */
 function doGet(e) {
   try {
+    // בדיקה שיש פרמטרים
+    if (!e || !e.parameter) {
+      Logger.log('❌ No parameters received in doGet');
+      return createJsonpResponse({ error: 'No parameters received' }, 'callback');
+    }
+    
     const action = e.parameter.action;
     const callback = e.parameter.callback || 'callback';
     
@@ -65,7 +71,8 @@ function doGet(e) {
     
   } catch (error) {
     Logger.log('❌ Error in doGet: ' + error.toString());
-    const callback = e.parameter.callback || 'callback';
+    // בדיקה בטוחה של callback
+    const callback = (e && e.parameter && e.parameter.callback) || 'callback';
     return createJsonpResponse({ error: error.toString() }, callback);
   }
 }
