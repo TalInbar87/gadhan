@@ -520,9 +520,12 @@ function doPost(e) {
     // פענוח הנתונים
     let data;
     if (e.postData && e.postData.contents) {
+      // JSON ישיר מ-postData
       data = JSON.parse(e.postData.contents);
     } else if (e.parameter && e.parameter.data) {
-      data = JSON.parse(e.parameter.data);
+      // URL-encoded JSON מ-parameter
+      const decodedData = decodeURIComponent(e.parameter.data);
+      data = JSON.parse(decodedData);
     } else {
       return createResponse(400, 'No data provided', null);
     }
@@ -548,6 +551,7 @@ function doPost(e) {
     
   } catch (error) {
     Logger.log('❌ Error in doPost: ' + error.toString());
+    Logger.log('Error details: ' + error.stack);
     return createResponse(500, 'Server error: ' + error.toString(), null);
   }
 }
