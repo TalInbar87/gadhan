@@ -31,21 +31,13 @@ jobs:
       - name: 🔐 Setup clasp credentials
         run: |
           echo "$CLASPRC_JSON" > ~/.clasprc.json
-          echo "$SCRIPT_ID_PERMISSIONS" > appScripts/.clasp-permissions.json
-          echo "$SCRIPT_ID_WEAPONS" > appScripts/.clasp-weapons.json
-          echo "$SCRIPT_ID_RADIO" > appScripts/.clasp-radio.json
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
-          SCRIPT_ID_PERMISSIONS: ${{ secrets.SCRIPT_ID_PERMISSIONS }}
-          SCRIPT_ID_WEAPONS: ${{ secrets.SCRIPT_ID_WEAPONS }}
-          SCRIPT_ID_RADIO: ${{ secrets.SCRIPT_ID_RADIO }}
       
       # 5. Deploy Permissions Script
       - name: 🔒 Deploy Permissions Script
         run: |
-          cat appScripts/.clasp-permissions.json > appScripts/.clasp.json
-          cd appScripts
-          cp permissionsAppScript-clean.js Code.gs
+          cd appScripts/permissions
           clasp push -f
           clasp deploy --description "Auto deploy $(date)"
         continue-on-error: true
@@ -53,9 +45,7 @@ jobs:
       # 6. Deploy Weapons Script
       - name: 🔫 Deploy Weapons Script
         run: |
-          cat appScripts/.clasp-weapons.json > appScripts/.clasp.json
-          cd appScripts
-          cp weaponAppScript-clean.js Code.gs
+          cd appScripts/weapons
           clasp push -f
           clasp deploy --description "Auto deploy $(date)"
         continue-on-error: true
@@ -63,9 +53,7 @@ jobs:
       # 7. Deploy Radio Script
       - name: 📡 Deploy Radio Script
         run: |
-          cat appScripts/.clasp-radio.json > appScripts/.clasp.json
-          cd appScripts
-          cp radioAppScript-clean.js Code.gs
+          cd appScripts/radio
           clasp push -f
           clasp deploy --description "Auto deploy $(date)"
         continue-on-error: true
