@@ -53,6 +53,12 @@ const CONFIG = {
  */
 function doGet(e) {
   try {
+    // בדיקה שיש פרמטרים
+    if (!e || !e.parameter) {
+      Logger.log('❌ No parameters received in doGet');
+      return createJsonpResponse({ error: 'No parameters received' }, 'callback');
+    }
+    
     const action = e.parameter.action;
     const callback = e.parameter.callback || 'callback';
     
@@ -65,7 +71,8 @@ function doGet(e) {
     
   } catch (error) {
     Logger.log('❌ Error in doGet: ' + error.toString());
-    const callback = e.parameter.callback || 'callback';
+    // בדיקה בטוחה של callback
+    const callback = (e && e.parameter && e.parameter.callback) || 'callback';
     return createJsonpResponse({ error: error.toString() }, callback);
   }
 }
@@ -137,7 +144,7 @@ function handleCheckPersonalNumber(personalNumber, callback) {
 function doPost(e) {
   try {
     Logger.log('🎯 doPost called!');
-    
+
     // בדיקה שיש נתונים
     if (!e.postData) {
       Logger.log('❌ No postData found!');
@@ -146,25 +153,31 @@ function doPost(e) {
         error: 'No postData found'
       });
     }
-    
+
     // פענוח הנתונים
     const data = JSON.parse(e.postData.contents);
     Logger.log('✅ Data parsed successfully');
+
+    // בדיקה אם זו בקשת זיכוי
+    if (data.action === 'credit') {
+      return handleCredit(data);
+    }
+
     Logger.log('📥 Personal Number: ' + data.personalNumber);
     Logger.log('🏢 Unit: ' + data.unit);
-    
+
     // שמירת הנתונים
     saveToSheet(data);
-    
+
     // יצירת PDF ושליחת מייל
     generateAndSendPDF(data);
-    
+
     // החזרת תשובת הצלחה
     return createJsonResponse({
       success: true,
       message: 'Data saved and email sent successfully'
     });
-    
+
   } catch (error) {
     Logger.log('❌ Error in doPost: ' + error.toString());
     return createJsonResponse({
@@ -172,6 +185,86 @@ function doPost(e) {
       error: error.toString()
     });
   }
+}
+
+/**
+ * טיפול בזיכוי - העברת רשומה לגיליון זיכויים ומחיקה מהגיליונות
+ */
+function handleCredit(data) {
+  const personalNumber = data.personalNumber;
+  Logger.log('💳 Credit request for: ' + personalNumber);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const mainSheet = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
+
+  if (!mainSheet) {
+    return createJsonResponse({ success: false, error: 'Main sheet not found' });
+  }
+
+  // חיפוש הרשומה בגיליון הראשי - עמודה A = מספר אישי
+  const allData = mainSheet.getDataRange().getValues();
+  let foundRow = -1;
+  let rowData = null;
+
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] == personalNumber) { // עמודה A = מספר אישי
+      foundRow = i + 1;
+      rowData = allData[i];
+      break;
+    }
+  }
+
+  if (foundRow === -1) {
+    return createJsonResponse({ success: false, error: 'Record not found' });
+  }
+
+  // יצירת/קבלת גיליון זיכויים
+  let creditSheet = ss.getSheetByName('זיכויים');
+  if (!creditSheet) {
+    creditSheet = ss.insertSheet('זיכויים');
+    const headers = [
+      "מספר אישי", "תאריך ושעה", "שם מלא", "טלפון", "מייל", "מסגרת",
+      "624", "91", "עמוד", "מספר עמוד", "מגבר", "מתאם קשיח", "אנטנה לונג",
+      "מעד", "מתאם גמיש", "אנטנה שורט", "רמק", "מדונה", "תפוח", "אגס",
+      "תאריך זיכוי", "זוכה על ידי"
+    ];
+    creditSheet.appendRow(headers);
+    const headerRange = creditSheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground("#8B0000");
+    headerRange.setFontColor("#FFFFFF");
+    headerRange.setFontWeight("bold");
+    headerRange.setHorizontalAlignment("right");
+  }
+
+  // הוספת השורה לזיכויים עם metadata
+  const creditRow = [...rowData, data.creditAt || new Date().toISOString(), data.creditBy || 'unknown'];
+  creditSheet.appendRow(creditRow);
+  Logger.log('✓ Record added to credits sheet');
+
+  // מחיקה מהגיליון הראשי
+  mainSheet.deleteRow(foundRow);
+  Logger.log('✓ Record deleted from main sheet');
+
+  // מחיקה מגיליון המסגרת (אם קיים)
+  const unit = rowData[5]; // עמודה F = מסגרת
+  if (unit) {
+    const unitSheet = ss.getSheetByName(unit);
+    if (unitSheet) {
+      const unitData = unitSheet.getDataRange().getValues();
+      for (let i = 1; i < unitData.length; i++) {
+        if (unitData[i][0] == personalNumber) { // עמודה A = מספר אישי
+          unitSheet.deleteRow(i + 1);
+          Logger.log('✓ Record deleted from unit sheet: ' + unit);
+          break;
+        }
+      }
+    }
+  }
+
+  return createJsonResponse({
+    success: true,
+    message: 'Credit completed - record moved to credits sheet'
+  });
 }
 
 // ================================================================

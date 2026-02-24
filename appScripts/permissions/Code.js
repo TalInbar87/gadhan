@@ -562,6 +562,8 @@ function doPost(e) {
         return handleGetExisting(data, e);
       case 'create_user':
         return handleCreateUser(data, e);
+      case 'credit_data':
+        return handleCreditData(data, e);
       default:
         return createResponse(400, 'Unknown action: ' + action, null);
     }
@@ -850,6 +852,94 @@ function handleCreateUser(data, request) {
     
   } catch (e) {
     return createResponse(500, 'Error creating user', null);
+  }
+}
+
+// ================================================================
+// זיכוי - Credit Data
+// ================================================================
+
+/**
+ * זיכוי ציוד - העברה לגיליון זיכויים ומחיקה מהגיליונות הקיימים
+ */
+function handleCreditData(data, request) {
+  const { token, formType, creditData } = data;
+
+  // אימות Token
+  const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
+  if (!payload) {
+    return createResponse(401, 'Invalid or expired token', null);
+  }
+
+  // רק Admin יכול לזכות
+  if (payload.role !== 'admin') {
+    AuditLogger.log(payload.username, 'CREDIT_DENIED', formType,
+                   creditData.personalNumber, { reason: 'Not admin' }, request);
+    return createResponse(403, 'Only admins can credit equipment', null);
+  }
+
+  // העברה לסקריפט המקורי
+  const originalScriptUrl = formType === 'weapons'
+    ? CONFIG.ORIGINAL_SCRIPTS.WEAPONS
+    : CONFIG.ORIGINAL_SCRIPTS.RADIO;
+
+  if (!originalScriptUrl) {
+    return createResponse(500, 'Original script URL not configured', null);
+  }
+
+  try {
+    Logger.log('📤 Credit request to: ' + originalScriptUrl);
+
+    // Add metadata
+    creditData.creditApprovedBy = payload.username;
+    creditData.creditApprovedAt = new Date().toISOString();
+
+    const response = UrlFetchApp.fetch(originalScriptUrl, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({
+        action: 'credit',
+        personalNumber: creditData.personalNumber,
+        creditBy: creditData.creditBy,
+        creditAt: creditData.creditAt,
+        creditSignature: creditData.creditSignature
+      }),
+      muteHttpExceptions: true
+    });
+
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+
+    if (responseCode >= 200 && responseCode < 300) {
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        result = { success: true };
+      }
+
+      if (result.success !== false) {
+        AuditLogger.log(
+          payload.username,
+          'DATA_CREDITED',
+          formType,
+          creditData.personalNumber,
+          { action: 'credit', creditBy: creditData.creditBy },
+          request
+        );
+
+        return createResponse(200, 'Credit completed successfully', null);
+      } else {
+        return createResponse(500, result.error || 'Credit failed', null);
+      }
+    } else {
+      Logger.log('⚠️ Credit error from script: ' + responseCode);
+      return createResponse(500, 'Error from data processor', null);
+    }
+
+  } catch (e) {
+    Logger.log('❌ Error crediting data: ' + e.toString());
+    return createResponse(500, 'Error crediting data: ' + e.toString(), null);
   }
 }
 

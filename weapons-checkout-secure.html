@@ -25,11 +25,38 @@
         .success-check {
             animation: checkmark 0.6s ease-in-out;
         }
-        
+
         @keyframes checkmark {
             0% { transform: scale(0) rotate(-45deg); }
             50% { transform: scale(1.2) rotate(-45deg); }
             100% { transform: scale(1) rotate(0); }
+        }
+
+        /* Disabled form fields */
+        .form-field-lockable:disabled {
+            background-color: #f5f5f4 !important;
+            color: #a8a29e !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+        }
+
+        /* Credit popup overlay */
+        .credit-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .credit-popup {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
         }
     </style>
 </head>
@@ -126,9 +153,10 @@
                         type="text"
                         id="fullName"
                         name="fullName"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 form-field-lockable"
                         placeholder="שם פרטי ומשפחה"
                         required
+                        disabled
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="fullName"></p>
                 </div>
@@ -142,9 +170,10 @@
                         type="tel"
                         id="phone"
                         name="phone"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 form-field-lockable"
                         placeholder="05XXXXXXXX"
                         required
+                        disabled
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="phone"></p>
                 </div>
@@ -158,9 +187,10 @@
                         type="email"
                         id="email"
                         name="email"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 form-field-lockable"
                         placeholder="example@email.com"
                         required
+                        disabled
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="email"></p>
                 </div>
@@ -176,8 +206,9 @@
                     <select
                         id="unit"
                         name="unit"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
                         required
+                        disabled
                     >
                         <option value="">בחר מסגרת</option>
                         <option value="פלוגה א׳">פלוגה א׳</option>
@@ -199,8 +230,9 @@
                     <select
                         id="weaponType"
                         name="weaponType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
                         required
+                        disabled
                     >
                         <option value="">בחר סוג נשק</option>
                         <option value="נגב">נגב</option>
@@ -220,9 +252,10 @@
                         id="weaponNumber"
                         name="weaponNumber"
                         maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
                         placeholder="מספר סידורי"
                         required
+                        disabled
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponNumber"></p>
                 </div>
@@ -235,7 +268,8 @@
                     <select
                         id="sightType"
                         name="sightType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
+                        disabled
                     >
                         <option value="">בחר סוג כוונת</option>
                         <option value="טריג׳">טריג׳</option>
@@ -256,8 +290,9 @@
                         id="sightNumber"
                         name="sightNumber"
                         maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
                         placeholder="מספר סידורי"
+                        disabled
                     />
                 </div>
 
@@ -269,7 +304,8 @@
                     <select
                         id="additionalSightType"
                         name="additionalSightType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
+                        disabled
                     >
                         <option value="">בחר סוג כוונת נוסף</option>
                         <option value="טריג׳">טריג׳</option>
@@ -290,8 +326,9 @@
                         id="additionalSightNumber"
                         name="additionalSightNumber"
                         maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
                         placeholder="מספר סידורי"
+                        disabled
                     />
                 </div>
 
@@ -303,7 +340,8 @@
                     <select
                         id="nvdType"
                         name="nvdType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
+                        disabled
                     >
                         <option value="">בחר סוג אמרל</option>
                         <option value='שח"ע'>שח"ע</option>
@@ -336,7 +374,8 @@
                         type="checkbox"
                         id="hasBinoculars"
                         name="hasBinoculars"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
+                        disabled
                     />
                     <label for="hasBinoculars" class="text-stone-700 font-bold text-lg cursor-pointer">
                         משקפה
@@ -349,7 +388,8 @@
                         type="checkbox"
                         id="hasCompass"
                         name="hasCompass"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
+                        disabled
                     />
                     <label for="hasCompass" class="text-stone-700 font-bold text-lg cursor-pointer">
                         מצפן
@@ -362,7 +402,8 @@
                         type="checkbox"
                         id="hasZayin"
                         name="hasZayin"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
+                        disabled
                     />
                     <label for="hasZayin" class="text-stone-700 font-bold text-lg cursor-pointer">
                         ציין
@@ -391,7 +432,8 @@
                         type="checkbox"
                         id="hasPak"
                         name="hasPak"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
+                        disabled
                     />
                     <label for="hasPak" class="text-stone-700 font-bold text-lg cursor-pointer">
                         פק
@@ -449,6 +491,19 @@
                         <p class="text-stone-500 text-sm flex items-center">חתום באצבע או בעכבר</p>
                     </div>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden" id="signatureError">יש לחתום לפני שליחה</p>
+                </div>
+
+                <!-- Credit Button (Admin only) -->
+                <div id="creditButtonContainer" class="hidden pt-2">
+                    <button
+                        type="button"
+                        id="creditBtn"
+                        class="w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-200 shadow-lg bg-red-600 hover:bg-red-700 text-white transform hover:scale-105"
+                        onclick="openCreditPopup()"
+                        disabled
+                    >
+                        זיכוי
+                    </button>
                 </div>
 
                 <!-- Submit Button -->
@@ -516,14 +571,50 @@
         </div>
     </div>
 
+    <!-- Credit Popup -->
+    <div id="creditOverlay" class="credit-overlay hidden">
+        <div class="credit-popup">
+            <h3 style="font-size: 1.5rem; font-weight: bold; color: #dc2626; margin-bottom: 1rem; text-align: center;">זיכוי ציוד</h3>
+            <p style="color: #57534e; margin-bottom: 1.5rem; text-align: center;">האם לזכות את כל הציוד של חייל זה?</p>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                    <input type="checkbox" id="creditConfirmCheckbox" style="width: 1.25rem; height: 1.25rem;" onchange="updateCreditSubmitState()">
+                    <span style="font-weight: bold; color: #1c1917;">כן, אני מאשר/ת זיכוי</span>
+                </label>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: bold; color: #44403c; margin-bottom: 0.5rem;">חתימת מאשר:</label>
+                <div style="border: 2px solid #d6d3d1; border-radius: 0.75rem; overflow: hidden; background: white;">
+                    <canvas id="creditSignatureCanvas" width="400" height="150" style="width: 100%; display: block; cursor: crosshair; touch-action: none;"></canvas>
+                </div>
+                <button type="button" onclick="clearCreditSignature()" style="margin-top: 0.5rem; background: #78716c; color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.85rem;">נקה חתימה</button>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" id="creditSubmitBtn" onclick="submitCredit()" disabled style="flex: 1; background: #dc2626; color: white; border: none; padding: 0.75rem; border-radius: 0.75rem; font-weight: bold; font-size: 1.1rem; cursor: not-allowed; opacity: 0.5;">
+                    אישור זיכוי
+                </button>
+                <button type="button" onclick="closeCreditPopup()" style="flex: 1; background: #e7e5e4; color: #44403c; border: none; padding: 0.75rem; border-radius: 0.75rem; font-weight: bold; font-size: 1.1rem; cursor: pointer;">
+                    ביטול
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         // AUTHENTICATION & CONFIGURATION
         // ============================================================
-        
+
         const API_URL = 'https://script.google.com/macros/s/AKfycbwxJactPgK20FFMeh7FXj3zG0m3Hx7Ha31Wx3hzt5NeUo8SxEd72dTpkvHo3kM6RZ8xfA/exec';
         const FORM_TYPE = 'weapons';
-        
+
+        // Track whether personal number was checked
+        let personalNumberChecked = false;
+        let existingDataFound = false;
+
         // Initialize authentication
         const authClient = new SecureAuthClient(API_URL);
         const authGuard = new AuthGuard(authClient, 'write');
@@ -558,7 +649,7 @@
             const user = authClient.user;
             const formContainer = document.getElementById('formContainer');
             const firstChild = formContainer.querySelector('.max-w-2xl');
-            
+
             firstChild.insertAdjacentHTML('afterbegin', `
                 <div style="background: rgba(34, 197, 94, 0.1); padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border: 2px solid rgba(34, 197, 94, 0.3);">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -573,6 +664,191 @@
                     </button>
                 </div>
             `);
+
+            // Show credit button for admin users
+            if (authClient.hasPermission('manage_users')) {
+                document.getElementById('creditButtonContainer').classList.remove('hidden');
+            }
+        }
+
+        // ============================================================
+        // FORM FIELD LOCKING
+        // ============================================================
+
+        function unlockFormFields() {
+            document.querySelectorAll('.form-field-lockable').forEach(field => {
+                field.disabled = false;
+            });
+            personalNumberChecked = true;
+        }
+
+        function lockFormFields() {
+            document.querySelectorAll('.form-field-lockable').forEach(field => {
+                field.disabled = true;
+            });
+            personalNumberChecked = false;
+            existingDataFound = false;
+        }
+
+        // ============================================================
+        // CREDIT (ZIKUI) FUNCTIONALITY
+        // ============================================================
+
+        let creditHasSignature = false;
+
+        function setupCreditSignatureCanvas() {
+            const creditCanvas = document.getElementById('creditSignatureCanvas');
+            const creditCtx = creditCanvas.getContext('2d');
+            creditCtx.fillStyle = 'white';
+            creditCtx.fillRect(0, 0, creditCanvas.width, creditCanvas.height);
+            creditCtx.strokeStyle = '#000';
+            creditCtx.lineWidth = 2;
+            creditCtx.lineCap = 'round';
+            creditCtx.lineJoin = 'round';
+
+            let drawing = false;
+
+            creditCanvas.addEventListener('mousedown', (e) => {
+                drawing = true;
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.beginPath();
+                creditCtx.moveTo((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+            });
+            creditCanvas.addEventListener('mousemove', (e) => {
+                if (!drawing) return;
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.lineTo((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+                creditCtx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            });
+            creditCanvas.addEventListener('mouseup', () => { drawing = false; });
+            creditCanvas.addEventListener('mouseout', () => { drawing = false; });
+
+            creditCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                drawing = true;
+                const touch = e.touches[0];
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.beginPath();
+                creditCtx.moveTo((touch.clientX - rect.left) * sx, (touch.clientY - rect.top) * sy);
+            }, { passive: false });
+            creditCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!drawing) return;
+                const touch = e.touches[0];
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.lineTo((touch.clientX - rect.left) * sx, (touch.clientY - rect.top) * sy);
+                creditCtx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            }, { passive: false });
+            creditCanvas.addEventListener('touchend', () => { drawing = false; });
+        }
+
+        function clearCreditSignature() {
+            const creditCanvas = document.getElementById('creditSignatureCanvas');
+            const creditCtx = creditCanvas.getContext('2d');
+            creditCtx.fillStyle = 'white';
+            creditCtx.fillRect(0, 0, creditCanvas.width, creditCanvas.height);
+            creditCtx.strokeStyle = '#000';
+            creditCtx.lineWidth = 2;
+            creditCtx.lineCap = 'round';
+            creditCtx.lineJoin = 'round';
+            creditHasSignature = false;
+            updateCreditSubmitState();
+        }
+
+        function updateCreditSubmitState() {
+            const checkbox = document.getElementById('creditConfirmCheckbox');
+            const btn = document.getElementById('creditSubmitBtn');
+            const isValid = checkbox.checked && creditHasSignature;
+            btn.disabled = !isValid;
+            btn.style.opacity = isValid ? '1' : '0.5';
+            btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+        }
+
+        function openCreditPopup() {
+            const pn = document.getElementById('personalNumber').value.trim();
+            if (!pn || !existingDataFound) {
+                alert('יש לבדוק מספר אישי עם נתונים קיימים לפני זיכוי');
+                return;
+            }
+            document.getElementById('creditOverlay').classList.remove('hidden');
+            document.getElementById('creditConfirmCheckbox').checked = false;
+            clearCreditSignature();
+            setupCreditSignatureCanvas();
+            updateCreditSubmitState();
+        }
+
+        function closeCreditPopup() {
+            document.getElementById('creditOverlay').classList.remove('hidden');
+            document.getElementById('creditOverlay').classList.add('hidden');
+        }
+
+        async function submitCredit() {
+            const personalNumber = document.getElementById('personalNumber').value.trim();
+            const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
+
+            const creditBtn = document.getElementById('creditSubmitBtn');
+            creditBtn.disabled = true;
+            creditBtn.textContent = 'מזכה...';
+
+            try {
+                const creditData = {
+                    personalNumber: personalNumber,
+                    creditSignature: creditSignature,
+                    creditBy: authClient.user.username,
+                    creditAt: new Date().toISOString()
+                };
+
+                const postData = new URLSearchParams();
+                postData.append('data', JSON.stringify({
+                    action: 'credit_data',
+                    token: authClient.token,
+                    formType: FORM_TYPE,
+                    creditData: creditData
+                }));
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: postData
+                });
+
+                const result = await response.json();
+
+                if (result.statusCode === 200) {
+                    closeCreditPopup();
+                    alert('הזיכוי בוצע בהצלחה! הפריטים הועברו לגיליון זיכויים.');
+                    // Reset the form
+                    document.getElementById('armoryForm').reset();
+                    lockFormFields();
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    hasSignature = false;
+                    checkFormValidity();
+                    // Hide status messages
+                    checkStatusExisting.classList.add('hidden');
+                    checkStatusNew.classList.add('hidden');
+                } else {
+                    alert('שגיאה בזיכוי: ' + (result.message || 'נסה שוב'));
+                }
+            } catch (error) {
+                console.error('Credit error:', error);
+                alert('שגיאה בזיכוי: ' + error.message);
+            } finally {
+                creditBtn.disabled = false;
+                creditBtn.textContent = 'אישור זיכוי';
+                updateCreditSubmitState();
+            }
         }
         
         // Logout handler
@@ -777,11 +1053,21 @@
                 console.log('📥 Result:', result);
                 
                 if (result.success && result.data) {
-                    // Fill form with existing data
+                    // Unlock form fields first, then fill
+                    unlockFormFields();
                     fillFormWithData(result.data);
                     checkStatusExisting.classList.remove('hidden');
+                    existingDataFound = true;
+                    // Enable credit button if admin
+                    if (authClient.hasPermission('manage_users')) {
+                        document.getElementById('creditBtn').disabled = false;
+                    }
                 } else if (result.success && !result.data) {
+                    unlockFormFields();
                     checkStatusNew.classList.remove('hidden');
+                    existingDataFound = false;
+                    // Disable credit button - no data to credit
+                    document.getElementById('creditBtn').disabled = true;
                 } else {
                     checkStatusError.classList.remove('hidden');
                     checkErrorMessage.textContent = result.error || 'שגיאה בבדיקת נתונים';
@@ -1241,28 +1527,40 @@
         newFormBtn.addEventListener('click', () => {
             form.reset();
             ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(clearError);
-            
+
             // Hide NVD number field
             nvdNumberContainer.classList.add('hidden');
             nvdNumberInput.required = false;
-            
+
             // Hide zayin number field
             zayinNumberContainer.classList.add('hidden');
             zayinNumberInput.required = false;
-            
+
             // Hide pak number field
             pakNumberContainer.classList.add('hidden');
             pakNumberInput.required = false;
-            
+
             // Clear signature
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             hasSignature = false;
             signatureError.classList.add('hidden');
-            
+
             // Reset submit button
             submitBtn.textContent = 'שלח';
-            
+
+            // Re-lock form fields
+            lockFormFields();
+
+            // Hide status messages
+            checkStatusExisting.classList.add('hidden');
+            checkStatusNew.classList.add('hidden');
+
+            // Disable credit button
+            if (document.getElementById('creditBtn')) {
+                document.getElementById('creditBtn').disabled = true;
+            }
+
             checkFormValidity();
             successContainer.classList.add('hidden');
             formContainer.classList.remove('hidden');
