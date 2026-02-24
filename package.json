@@ -1,0 +1,22 @@
+{
+  "name": "gadhan-management-system",
+  "version": "1.0.0",
+  "description": "מערכת ניהול ציוד וחתימות - גדחה\"ו קומנדו 8219",
+  "scripts": {
+    "update-urls": "node update-urls.js",
+    "update-urls:help": "echo '\n📋 שימוש:\n  npm run update-urls -- --permissions=<URL> --weapons=<URL> --radio=<URL>\n\n📚 למידע מלא ראה: URL_UPDATE_GUIDE.md\n'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TalInbar87/gadhan.git"
+  },
+  "keywords": [
+    "military",
+    "equipment",
+    "management",
+    "google-apps-script"
+  ],
+  "author": "Tal Inbar",
+  "license": "UNLICENSED",
+  "private": true
+}

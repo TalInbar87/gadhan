@@ -1,0 +1,32 @@
+# Google Apps Script
+.clasp.json
+.clasp-*.json
+appsscript.json
+Code.gs
+
+# Node
+node_modules/
+package-lock.json
+
+# Secrets
+.clasprc.json
+*.secret
+*.key
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary
+*.tmp
+.cache/
