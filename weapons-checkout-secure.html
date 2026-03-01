@@ -238,6 +238,7 @@
                         <option value="נגב">נגב</option>
                         <option value="M16">M16</option>
                         <option value="M4">M4</option>
+                        <option value="מטול">מטול</option>
                     </select>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponType"></p>
                 </div>
@@ -456,21 +457,7 @@
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="pakNumber"></p>
                 </div>
 
-                <!-- Matol Checkbox -->
-                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
-                    <input
-                        type="checkbox"
-                        id="hasMatol"
-                        name="hasMatol"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
-                        disabled
-                    />
-                    <label for="hasMatol" class="text-stone-700 font-bold text-lg cursor-pointer">
-                        מטול
-                    </label>
-                </div>
-
-                <!-- Matol Number (hidden by default) -->
+                <!-- Matol Number (hidden by default, shown when weapon type is מטול) -->
                 <div id="matolNumberContainer" class="hidden">
                     <label for="matolNumber" class="block text-stone-700 font-bold mb-2 text-lg">
                         מספר מטול <span class="text-red-600">*</span>
@@ -1039,13 +1026,13 @@
             checkFormValidity();
         });
 
-        // Matol checkbox handler
-        const hasMatolCheckbox = document.getElementById('hasMatol');
+        // Matol number visibility based on weapon type
+        const weaponTypeSelect = document.getElementById('weaponType');
         const matolNumberContainer = document.getElementById('matolNumberContainer');
         const matolNumberInput = document.getElementById('matolNumber');
 
-        hasMatolCheckbox.addEventListener('change', () => {
-            if (hasMatolCheckbox.checked) {
+        function updateMatolVisibility() {
+            if (weaponTypeSelect.value === 'מטול') {
                 matolNumberContainer.classList.remove('hidden');
                 matolNumberInput.required = true;
             } else {
@@ -1055,7 +1042,9 @@
                 clearError('matolNumber');
             }
             checkFormValidity();
-        });
+        }
+
+        weaponTypeSelect.addEventListener('change', updateMatolVisibility);
         
         // Personal number check functionality
         const personalNumberInput = document.getElementById('personalNumber');
@@ -1220,10 +1209,9 @@
 
             // Fill matol
             if (data.matol) {
-                document.getElementById('hasMatol').checked = true;
                 document.getElementById('matolNumber').value = data.matol;
-                hasMatolCheckbox.dispatchEvent(new Event('change'));
             }
+            updateMatolVisibility();
             
             // Trigger form validity check
             checkFormValidity();
@@ -1307,10 +1295,9 @@
             const pakNumber = document.getElementById('pakNumber').value;
             const pakNumberRequired = hasPak && !pakNumber;
 
-            // Check if matol number is required (only if matol checkbox is checked)
-            const hasMatol = document.getElementById('hasMatol').checked;
+            // Check if matol number is required (only if weapon type is מטול)
             const matolNumber = document.getElementById('matolNumber').value;
-            const matolNumberRequired = hasMatol && !matolNumber;
+            const matolNumberRequired = weaponType === 'מטול' && !matolNumber;
 
             // Don't require signature for button enabling - only validate on submit
             const isValid = fullName && personalNumber && phone && email && unit && weaponType && weaponNumber && !nvdNumberRequired && !zayinNumberRequired && !pakNumberRequired && !matolNumberRequired;
@@ -1452,10 +1439,9 @@
                 if (!firstErrorField) firstErrorField = 'pakNumber';
             }
 
-            // Validate matol number (only if matol checkbox is checked)
-            const hasMatol = document.getElementById('hasMatol').checked;
+            // Validate matol number (only if weapon type is מטול)
             const matolNumber = document.getElementById('matolNumber').value;
-            if (hasMatol && !matolNumber) {
+            if (weaponType === 'מטול' && !matolNumber) {
                 showError('matolNumber', 'שדה חובה כאשר נבחר מטול');
                 hasErrors = true;
                 if (!firstErrorField) firstErrorField = 'matolNumber';
@@ -1528,7 +1514,6 @@
                 zayinNumber: document.getElementById('zayinNumber').value,
                 hasPak: document.getElementById('hasPak').checked,
                 pakNumber: document.getElementById('pakNumber').value,
-                hasMatol: document.getElementById('hasMatol').checked,
                 matolNumber: document.getElementById('matolNumber').value,
                 signature: signatureData,
                 timestamp: new Date().toISOString()

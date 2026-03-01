@@ -171,6 +171,43 @@ function weapons_createUnitSheet(ss, sheetName) {
   return sheet;
 }
 
+/**
+ * פונקציית מיגרציה חד-פעמית: מוסיפה כותרת 'מטול' בעמודה W (23) לכל גיליונות הנשקים הקיימים
+ * יש להריץ פעם אחת מה-GAS editor
+ */
+function weapons_addMatolHeaderToExistingSheets() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  const sheets = ss.getSheets();
+  const MATOL_COL = 23; // עמודה W, 1-indexed
+
+  sheets.forEach(function(sheet) {
+    const name = sheet.getName();
+    // דלג על גיליון זיכויים
+    if (name === CONFIG.WEAPONS.CREDIT_SHEET_NAME) return;
+
+    const lastCol = sheet.getLastColumn();
+    const firstRow = sheet.getRange(1, 1, 1, Math.max(lastCol, MATOL_COL)).getValues()[0];
+
+    // בדוק אם כבר קיים 'מטול' בעמודה W
+    if (firstRow[MATOL_COL - 1] === 'מטול') {
+      Logger.log('✓ [Migration] Sheet "' + name + '" already has מטול header');
+      return;
+    }
+
+    // הוסף כותרת מטול בעמודה W
+    sheet.getRange(1, MATOL_COL).setValue('מטול');
+    // עצב את הכותרת החדשה כמו שאר הכותרות
+    const cell = sheet.getRange(1, MATOL_COL);
+    cell.setBackground(CONFIG.WEAPONS.HEADER_COLOR);
+    cell.setFontColor('#FFFFFF');
+    cell.setFontWeight('bold');
+    cell.setHorizontalAlignment('right');
+    Logger.log('✓ [Migration] Added מטול header to sheet "' + name + '"');
+  });
+
+  Logger.log('✅ [Migration] weapons_addMatolHeaderToExistingSheets complete');
+}
+
 function weapons_prepareRowData(data, timestamp) {
   return [
     timestamp,
@@ -198,7 +235,7 @@ function weapons_prepareRowData(data, timestamp) {
     data.hasCompass    ? '1' : '',
     data.hasZayin ? (data.zayinNumber || '') : '',
     data.hasPak   ? (data.pakNumber   || '') : '',
-    data.hasMatol ? (data.matolNumber || '') : ''
+    data.weaponType === 'מטול' ? (data.matolNumber || '') : ''
   ];
 }
 
