@@ -31,7 +31,8 @@
       "Bash(/opt/homebrew/bin/gh pr:*)",
       "Bash(/opt/homebrew/bin/gh auth status)",
       "Bash(git add appScripts/unified/Weapons.js appScripts/unified/Radio.js index-secure.html)",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(ls /Users/talinbar/Desktop/gadhan/.claude/worktrees/amazing-goodall/.*)"
     ]
   }
 }
