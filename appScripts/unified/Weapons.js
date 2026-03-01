@@ -464,6 +464,25 @@ function weapons_handleTransferItems(data) {
   if (sourceRow === -1) return { success: false, error: 'חייל המקור לא נמצא במערכת' };
   if (targetRow === -1) return { success: false, error: 'חייל היעד לא נמצא במערכת — יש להוסיפו תחילה דרך טופס הנשק' };
 
+  // בדוק שלחייל היעד אין כבר ציוד מהסוגים המועברים
+  const conflictingItems = selectedItems.filter(key => {
+    const cols = WEAPONS_ITEM_COLUMN_MAP[key];
+    if (!cols) return false;
+    return cols.some(ci => {
+      const val = targetData[ci];
+      return val !== '' && val !== null && val !== undefined && val != 0 && val !== false;
+    });
+  });
+
+  if (conflictingItems.length > 0) {
+    const names = conflictingItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
+    Logger.log('⛔ Transfer blocked — target already has: ' + names);
+    return {
+      success: false,
+      error:   'ההעברה לא בוצעה — לחייל היעד (' + targetData[1] + ') כבר קיים: ' + names
+    };
+  }
+
   // העבר ערכים: הגדר ביעד, נקה ממקור
   selectedItems.forEach(key => {
     const cols = WEAPONS_ITEM_COLUMN_MAP[key];

@@ -299,7 +299,7 @@ function handleCreateUser(data, request) {
     return createResponse(200, 'User created successfully', null);
   } catch (e) {
     Logger.log('❌ createUser error: ' + e);
-    return createResponse(500, 'Error creating user', null);
+    return createResponse(400, e.message || 'Error creating user', null);
   }
 }
 

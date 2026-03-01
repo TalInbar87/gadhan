@@ -94,7 +94,20 @@ class UserManager {
   }
 
   static createUser(userData) {
-    this._getOrCreateSheet().appendRow([
+    const sheet = this._getOrCreateSheet();
+    const rows  = sheet.getDataRange().getValues();
+
+    // בדוק כפילות לפי שם משתמש ומספר אישי
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === userData.username) {
+        throw new Error('שם משתמש "' + userData.username + '" כבר קיים במערכת');
+      }
+      if (userData.personalNumber && rows[i][3] && rows[i][3] == userData.personalNumber) {
+        throw new Error('מספר אישי ' + userData.personalNumber + ' כבר רשום במערכת (משתמש: ' + rows[i][0] + ')');
+      }
+    }
+
+    sheet.appendRow([
       userData.username,
       this.hashPassword(userData.password),
       userData.role || 'user',
