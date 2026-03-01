@@ -456,6 +456,36 @@
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="pakNumber"></p>
                 </div>
 
+                <!-- Matol Checkbox -->
+                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
+                    <input
+                        type="checkbox"
+                        id="hasMatol"
+                        name="hasMatol"
+                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
+                        disabled
+                    />
+                    <label for="hasMatol" class="text-stone-700 font-bold text-lg cursor-pointer">
+                        מטול
+                    </label>
+                </div>
+
+                <!-- Matol Number (hidden by default) -->
+                <div id="matolNumberContainer" class="hidden">
+                    <label for="matolNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                        מספר מטול <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="matolNumber"
+                        name="matolNumber"
+                        maxlength="20"
+                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
+                        placeholder="מספר סידורי"
+                    />
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="matolNumber"></p>
+                </div>
+
                 <!-- Divider -->
                 <div class="border-t-2 border-stone-200 my-6"></div>
 
@@ -1008,6 +1038,24 @@
             }
             checkFormValidity();
         });
+
+        // Matol checkbox handler
+        const hasMatolCheckbox = document.getElementById('hasMatol');
+        const matolNumberContainer = document.getElementById('matolNumberContainer');
+        const matolNumberInput = document.getElementById('matolNumber');
+
+        hasMatolCheckbox.addEventListener('change', () => {
+            if (hasMatolCheckbox.checked) {
+                matolNumberContainer.classList.remove('hidden');
+                matolNumberInput.required = true;
+            } else {
+                matolNumberContainer.classList.add('hidden');
+                matolNumberInput.required = false;
+                matolNumberInput.value = '';
+                clearError('matolNumber');
+            }
+            checkFormValidity();
+        });
         
         // Personal number check functionality
         const personalNumberInput = document.getElementById('personalNumber');
@@ -1169,6 +1217,13 @@
                 document.getElementById('pakNumber').value = data.pak;
                 hasPakCheckbox.dispatchEvent(new Event('change'));
             }
+
+            // Fill matol
+            if (data.matol) {
+                document.getElementById('hasMatol').checked = true;
+                document.getElementById('matolNumber').value = data.matol;
+                hasMatolCheckbox.dispatchEvent(new Event('change'));
+            }
             
             // Trigger form validity check
             checkFormValidity();
@@ -1252,8 +1307,13 @@
             const pakNumber = document.getElementById('pakNumber').value;
             const pakNumberRequired = hasPak && !pakNumber;
 
+            // Check if matol number is required (only if matol checkbox is checked)
+            const hasMatol = document.getElementById('hasMatol').checked;
+            const matolNumber = document.getElementById('matolNumber').value;
+            const matolNumberRequired = hasMatol && !matolNumber;
+
             // Don't require signature for button enabling - only validate on submit
-            const isValid = fullName && personalNumber && phone && email && unit && weaponType && weaponNumber && !nvdNumberRequired && !zayinNumberRequired && !pakNumberRequired;
+            const isValid = fullName && personalNumber && phone && email && unit && weaponType && weaponNumber && !nvdNumberRequired && !zayinNumberRequired && !pakNumberRequired && !matolNumberRequired;
 
             if (isValid) {
                 submitBtn.disabled = false;
@@ -1267,7 +1327,7 @@
         }
 
         // Add input event listeners
-        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(fieldName => {
+        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber', 'matolNumber'].forEach(fieldName => {
             const input = document.getElementById(fieldName);
             input.addEventListener('input', () => {
                 clearError(fieldName);
@@ -1392,6 +1452,15 @@
                 if (!firstErrorField) firstErrorField = 'pakNumber';
             }
 
+            // Validate matol number (only if matol checkbox is checked)
+            const hasMatol = document.getElementById('hasMatol').checked;
+            const matolNumber = document.getElementById('matolNumber').value;
+            if (hasMatol && !matolNumber) {
+                showError('matolNumber', 'שדה חובה כאשר נבחר מטול');
+                hasErrors = true;
+                if (!firstErrorField) firstErrorField = 'matolNumber';
+            }
+
             // Validate signature
             if (!hasSignature) {
                 signatureError.textContent = 'יש לחתום לפני שליחה';
@@ -1459,6 +1528,8 @@
                 zayinNumber: document.getElementById('zayinNumber').value,
                 hasPak: document.getElementById('hasPak').checked,
                 pakNumber: document.getElementById('pakNumber').value,
+                hasMatol: document.getElementById('hasMatol').checked,
+                matolNumber: document.getElementById('matolNumber').value,
                 signature: signatureData,
                 timestamp: new Date().toISOString()
             };
@@ -1539,6 +1610,10 @@
             // Hide pak number field
             pakNumberContainer.classList.add('hidden');
             pakNumberInput.required = false;
+
+            // Hide matol number field
+            matolNumberContainer.classList.add('hidden');
+            matolNumberInput.required = false;
 
             // Clear signature
             ctx.fillStyle = 'white';

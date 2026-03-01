@@ -34,7 +34,8 @@ const WEAPONS_ITEM_NAMES_HE = {
   binoculars: 'משקפה',
   compass:    'מצפן',
   zayin:      'ציין',
-  pak:        'פק'
+  pak:        'פק',
+  matol:      'מטול'
 };
 
 // מיפוי מפתחות פריטים לעמודות (0-indexed) בגיליון הנשקים
@@ -53,7 +54,8 @@ const WEAPONS_ITEM_COLUMN_MAP = {
   binoculars: [18],    // S  - משקפה
   compass:    [19],    // T  - מצפן
   zayin:      [20],    // U  - ציין
-  pak:        [21]     // V  - פק
+  pak:        [21],    // V  - פק
+  matol:      [22]     // W  - מטול
 };
 
 // ================================================================
@@ -96,7 +98,8 @@ function weapons_checkPersonalNumber(personalNumber, callback) {
           binoculars:     rows[i][18] == 1,
           compass:        rows[i][19] == 1,
           zayin:          rows[i][20],
-          pak:            rows[i][21]
+          pak:            rows[i][21],
+          matol:          rows[i][22] || ''
         }
       }, callback);
     }
@@ -156,7 +159,7 @@ function weapons_createUnitSheet(ss, sheetName) {
   const headers = [
     'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת',
     'סוג נשק', 'מספר נשק', "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
-    'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק'
+    'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק', 'מטול'
   ];
   sheet.appendRow(headers);
   const hr = sheet.getRange(1, 1, 1, headers.length);
@@ -194,7 +197,8 @@ function weapons_prepareRowData(data, timestamp) {
     data.hasBinoculars ? '1' : '',
     data.hasCompass    ? '1' : '',
     data.hasZayin ? (data.zayinNumber || '') : '',
-    data.hasPak   ? (data.pakNumber   || '') : ''
+    data.hasPak   ? (data.pakNumber   || '') : '',
+    data.hasMatol ? (data.matolNumber || '') : ''
   ];
 }
 
@@ -226,7 +230,7 @@ function weapons_getOrCreateCreditSheet(ss) {
     const headers = [
       'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת',
       'סוג נשק', 'מספר נשק', "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
-      'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק',
+      'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק', 'מטול',
       'פריטים שזוכו', 'תאריך זיכוי', 'זוכה על ידי'
     ];
     sheet.appendRow(headers);
@@ -364,14 +368,14 @@ function weapons_handlePartialCredit(data) {
         });
       }
     });
-    // עמודה W (23): מיזוג רשימת פריטים
-    const prev = creditSheet.getRange(existingCreditRow, 23).getValue() || '';
-    creditSheet.getRange(existingCreditRow, 23).setValue(
+    // עמודה X (24): מיזוג רשימת פריטים (W=מטול הוסר, X=פריטים שזוכו)
+    const prev = creditSheet.getRange(existingCreditRow, 24).getValue() || '';
+    creditSheet.getRange(existingCreditRow, 24).setValue(
       prev ? prev + ', ' + selectedItems.join(', ') : selectedItems.join(', ')
     );
-    // עמודות X (24), Y (25): עדכון תאריך ומבצע
-    creditSheet.getRange(existingCreditRow, 24).setValue(creditAt || new Date().toISOString());
-    creditSheet.getRange(existingCreditRow, 25).setValue(creditBy || 'unknown');
+    // עמודות Y (25), Z (26): עדכון תאריך ומבצע
+    creditSheet.getRange(existingCreditRow, 25).setValue(creditAt || new Date().toISOString());
+    creditSheet.getRange(existingCreditRow, 26).setValue(creditBy || 'unknown');
     Logger.log('✓ Existing credit row updated for ' + personalNumber);
   }
 

@@ -265,7 +265,8 @@ function handleGetExisting(data, request) {
           binoculars:     rows[i][18] == 1,
           compass:        rows[i][19] == 1,
           zayin:          rows[i][20],
-          pak:            rows[i][21]
+          pak:            rows[i][21],
+          matol:          rows[i][22] || ''
         };
       }
       break;
