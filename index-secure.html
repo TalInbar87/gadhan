@@ -306,17 +306,17 @@
             </a>
         </div>
 
-        <div class="section-title">דוחות ומעקב</div>
-        <div class="nav-grid">
+        <div class="section-title" id="reportsSection" style="display: none;">דוחות ומעקב</div>
+        <div class="nav-grid" id="reportsCards" style="display: none;">
             <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
-                <div class="permission-badge">נדרש: צפייה בדוחות</div>
+                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">⬛</div>
                 <h2>דוח צלם</h2>
                 <p>מעקב אחר ציוד צילום ומצלמות</p>
             </a>
 
             <a href="#" id="radioReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1jUDDvC2PPYOcEWHgb2fc5Jds_K_YYhjveHYIgAurEBc/edit?usp=sharing', event, true)">
-                <div class="permission-badge">נדרש: צפייה בדוחות</div>
+                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">⬛</div>
                 <h2>דוח קשר</h2>
                 <p>דוח מרכז לאמצעי קשר</p>
@@ -421,23 +421,18 @@
         function setupPermissions(user) {
             // Check each permission
             const hasWrite = authClient.hasPermission('write');
-            const hasViewReports = authClient.hasPermission('view_reports');
             const isAdmin = authClient.hasPermission('manage_users');
-            
+
             // Weapons & Radio forms
             if (!hasWrite) {
                 disableCard('weaponsLink');
                 disableCard('radioLink');
             }
-            
-            // Reports
-            if (!hasViewReports) {
-                disableCard('weaponsReportLink');
-                disableCard('radioReportLink');
-            }
-            
-            // Admin section
+
+            // Reports + Admin section — מנהלים בלבד
             if (isAdmin) {
+                document.getElementById('reportsSection').style.display = 'block';
+                document.getElementById('reportsCards').style.display = 'grid';
                 document.getElementById('adminSection').style.display = 'block';
                 document.getElementById('adminCards').style.display = 'grid';
             }

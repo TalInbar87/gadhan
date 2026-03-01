@@ -257,19 +257,25 @@ function radio_handleCredit(data) {
         .map(e => '• ' + e.label + ': ' + e.val)
         .join('\n');
 
+      const html = radio_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts);
+      const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
+      const pdf  = blob.getAs('application/pdf');
+      pdf.setName('אישור_זיכוי_קשר_' + personalNumber + '_' + Date.now() + '.pdf');
       MailApp.sendEmail({
-        to:      email,
-        subject: 'אישור זיכוי ציוד קשר - ' + fullName,
-        body:    'שלום ' + fullName + ',\n\n' +
-                 'ציוד הקשר שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
-                 (equipmentLines ? 'ציוד שהוחזר:\n' + equipmentLines + '\n\n' : '') +
-                 'מספר אישי: ' + personalNumber + '\n' +
-                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                 'תאריך: ' + ts + '\n\n' +
-                 'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219'
+        to:          email,
+        subject:     'אישור זיכוי ציוד קשר - ' + fullName,
+        body:        'שלום ' + fullName + ',\n\n' +
+                     'ציוד הקשר שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
+                     (equipmentLines ? 'ציוד שהוחזר:\n' + equipmentLines + '\n\n' : '') +
+                     'מספר אישי: ' + personalNumber + '\n' +
+                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                     'תאריך: ' + ts + '\n\n' +
+                     'מצורף אישור PDF מפורט.\n\n' +
+                     'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
+        attachments: [pdf]
       });
-      Logger.log('✅ [Radio] Credit email sent to: ' + email);
+      Logger.log('✅ [Radio] Credit email with PDF sent to: ' + email);
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Radio] Credit email failed: ' + emailErr);
@@ -281,6 +287,59 @@ function radio_handleCredit(data) {
 // ================================================================
 // PDF & Email
 // ================================================================
+
+/**
+ * מייצר HTML לPDF זיכוי קשר — בנוי מנתוני rowData של הגיליון
+ */
+function radio_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
+  var equipmentDefs = [
+    { label: 'קשר 624',    col: 6  }, { label: 'קשר 91',     col: 7  },
+    { label: 'עמוד',       col: 8, extraCol: 9 },
+    { label: 'מגבר',       col: 10 }, { label: 'מתאם קשיח',  col: 11 },
+    { label: 'אנטנה לונג', col: 12 }, { label: 'מעד',        col: 13 },
+    { label: 'מתאם גמיש',  col: 14 }, { label: 'אנטנה שורט', col: 15 },
+    { label: 'רמקול',      col: 16 }, { label: 'מדונה',      col: 17 },
+    { label: 'תפוח',       col: 18 }, { label: 'אגס',        col: 19 }
+  ];
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  var equipRows = equipmentDefs.map(function(d) {
+    var val = rowData[d.col];
+    if (!val || val === '' || val == 0) return '';
+    // עמוד — מציג מספר סידורי אם קיים
+    var display = (d.extraCol && rowData[d.extraCol]) ? 'כן — ' + rowData[d.extraCol] : String(val);
+    return f(d.label, display);
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #8B0000; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.header p { font-size: 14px; opacity: 0.9; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #8B0000; }' +
+    '.field-value { flex: 1; }' +
+    '.sig { margin-top: 20px; text-align: center; }' +
+    '.sig img { max-width: 250px; border: 1px solid #ccc; padding: 3px; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>✓ אישור זיכוי ציוד קשר</h1>' +
+    '<p>מערכת ניהול מכשירי קשר - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך זיכוי', ts) +
+    f('שם מלא',      rowData[2]) +
+    f('מספר אישי',   String(rowData[0])) +
+    f('מסגרת',       rowData[5]) +
+    equipRows +
+    f('זוכה על ידי', creditBy || '') +
+    '</div>' +
+    (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
+}
 
 function radio_generateAndSendPDF(data) {
   const ts = formatTimestamp();

@@ -329,24 +329,30 @@ function weapons_handleCredit(data) {
     }
   }
 
-  // שלח מייל אישור זיכוי לחייל
+  // שלח מייל אישור זיכוי לחייל עם PDF מצורף
   try {
     const email    = rowData[4];
     const fullName = rowData[1];
     if (email) {
-      const ts = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+      const ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+      const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts);
+      const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
+      const pdf  = blob.getAs('application/pdf');
+      pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
       MailApp.sendEmail({
-        to:      email,
-        subject: 'אישור זיכוי ציוד - ' + fullName,
-        body:    'שלום ' + fullName + ',\n\n' +
-                 'כל הציוד שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
-                 'מספר אישי: ' + personalNumber + '\n' +
-                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                 'תאריך: ' + ts + '\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+        to:          email,
+        subject:     'אישור זיכוי ציוד - ' + fullName,
+        body:        'שלום ' + fullName + ',\n\n' +
+                     'כל הציוד שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
+                     'מספר אישי: ' + personalNumber + '\n' +
+                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                     'תאריך: ' + ts + '\n\n' +
+                     'מצורף אישור PDF מפורט.\n\n' +
+                     'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        attachments: [pdf]
       });
-      Logger.log('✅ [Weapons] Credit email sent to: ' + email);
+      Logger.log('✅ [Weapons] Credit email with PDF sent to: ' + email);
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Credit email failed: ' + emailErr);
@@ -446,25 +452,31 @@ function weapons_handlePartialCredit(data) {
     }
   }
 
-  // שלח מייל אישור זיכוי חלקי לחייל
+  // שלח מייל אישור זיכוי חלקי לחייל עם PDF מצורף
   try {
     const email    = rowData[4];
     const fullName = rowData[1];
     if (email) {
       const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
       const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
+      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, data.creditSignature, ts);
+      const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
+      const pdf     = blob.getAs('application/pdf');
+      pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
       MailApp.sendEmail({
-        to:      email,
-        subject: 'אישור זיכוי חלקי - ' + fullName,
-        body:    'שלום ' + fullName + ',\n\n' +
-                 'הציוד הבא זוכה ממשקך:\n' + itemsHe + '\n\n' +
-                 'מספר אישי: ' + personalNumber + '\n' +
-                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                 'תאריך: ' + ts + '\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+        to:          email,
+        subject:     'אישור זיכוי חלקי - ' + fullName,
+        body:        'שלום ' + fullName + ',\n\n' +
+                     'הציוד הבא זוכה ממשקך:\n' + itemsHe + '\n\n' +
+                     'מספר אישי: ' + personalNumber + '\n' +
+                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                     'תאריך: ' + ts + '\n\n' +
+                     'מצורף אישור PDF מפורט.\n\n' +
+                     'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        attachments: [pdf]
       });
-      Logger.log('✅ [Weapons] Partial credit email sent to: ' + email);
+      Logger.log('✅ [Weapons] Partial credit email with PDF sent to: ' + email);
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Partial credit email failed: ' + emailErr);
@@ -638,6 +650,127 @@ function weapons_handleTransferItems(data) {
 // ================================================================
 // PDF & Email
 // ================================================================
+
+// ────────────────────────────────────────────────────────────────
+// Credit PDF helpers (full + partial)
+// ────────────────────────────────────────────────────────────────
+
+/**
+ * מייצר HTML לPDF זיכוי מלא — בנוי מנתוני rowData של הגיליון
+ */
+function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
+  const sightDefs = [
+    { label: "טריג׳", col: 8  }, { label: 'ליאור', col: 9  },
+    { label: 'פגיון',  col: 10 }, { label: 'זאבון', col: 11 }, { label: 'm5', col: 12 }
+  ];
+  const nvdDefs = [
+    { label: 'שח"ע', col: 13 }, { label: 'עכבר', col: 14 },
+    { label: 'עדי',   col: 15 }, { label: 'עידו', col: 16 }, { label: 'קירו', col: 17 }
+  ];
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  var sightRows = sightDefs.filter(function(s) { return rowData[s.col]; })
+    .map(function(s) { return f('כוונת', s.label + ' — ' + rowData[s.col]); }).join('');
+  var nvdRows = nvdDefs.filter(function(n) { return rowData[n.col]; })
+    .map(function(n) { return f('אמרל', n.label + ' — ' + rowData[n.col]); }).join('');
+
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #8B0000; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.header p { font-size: 14px; opacity: 0.9; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #8B0000; }' +
+    '.field-value { flex: 1; }' +
+    '.sig { margin-top: 20px; text-align: center; }' +
+    '.sig img { max-width: 250px; border: 1px solid #ccc; padding: 3px; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>✓ אישור זיכוי ציוד - נשקים</h1>' +
+    '<p>מערכת דוח צלם מקוון - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך זיכוי', ts) +
+    f('שם מלא',      rowData[1]) +
+    f('מספר אישי',   String(rowData[2])) +
+    f('מסגרת',       rowData[5]) +
+    f('סוג נשק',     rowData[6]) +
+    f('מספר נשק',    rowData[7]) +
+    sightRows + nvdRows +
+    (rowData[18] ? f('משקפה', 'כן') : '') +
+    (rowData[19] ? f('מצפן',  'כן') : '') +
+    (rowData[20] ? f('ציין',  rowData[20]) : '') +
+    (rowData[21] ? f('פק',    rowData[21]) : '') +
+    (rowData[22] ? f('מטול',  rowData[22]) : '') +
+    f('זוכה על ידי', creditBy || '') +
+    '</div>' +
+    (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
+}
+
+/**
+ * מייצר HTML לPDF זיכוי חלקי — מציג רק את הפריטים שנבחרו
+ */
+function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, creditSignature, ts) {
+  var ITEM_DEFS = {
+    weapon:     { label: 'נשק',         cols: [6, 7]  },
+    trig:       { label: "טריג׳ כוונת", cols: [8]     },
+    lior:       { label: 'ליאור כוונת', cols: [9]     },
+    pagion:     { label: 'פגיון כוונת', cols: [10]    },
+    zavon:      { label: 'זאבון כוונת', cols: [11]    },
+    m5:         { label: 'm5 כוונת',    cols: [12]    },
+    shacha:     { label: 'שח"ע אמרל',   cols: [13]    },
+    achbar:     { label: 'עכבר אמרל',   cols: [14]    },
+    adi:        { label: 'עדי אמרל',    cols: [15]    },
+    ido:        { label: 'עידו אמרל',   cols: [16]    },
+    kiro:       { label: 'קירו אמרל',   cols: [17]    },
+    binoculars: { label: 'משקפה',       cols: [18]    },
+    compass:    { label: 'מצפן',        cols: [19]    },
+    zayin:      { label: 'ציין',        cols: [20]    },
+    pak:        { label: 'פק',          cols: [21]    },
+    matol:      { label: 'מטול',        cols: [22]    }
+  };
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  var itemRows = selectedItems.map(function(key) {
+    var def = ITEM_DEFS[key];
+    if (!def) return '';
+    var vals = def.cols.map(function(c) { return rowData[c]; }).filter(function(v) { return v && v !== '' && v != 0; });
+    return f(def.label, vals.length > 0 ? vals.join(' — ') : 'כן');
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #7B3F00; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.header p { font-size: 14px; opacity: 0.9; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #7B3F00; }' +
+    '.field-value { flex: 1; }' +
+    '.sig { margin-top: 20px; text-align: center; }' +
+    '.sig img { max-width: 250px; border: 1px solid #ccc; padding: 3px; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>✓ אישור זיכוי חלקי - נשקים</h1>' +
+    '<p>מערכת דוח צלם מקוון - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך זיכוי', ts) +
+    f('שם מלא',      rowData[1]) +
+    f('מספר אישי',   String(rowData[2])) +
+    f('מסגרת',       rowData[5]) +
+    itemRows +
+    f('זוכה על ידי', creditBy || '') +
+    '</div>' +
+    (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
+}
 
 function weapons_generateAndSendPDF(data) {
   const ts = formatTimestamp();
