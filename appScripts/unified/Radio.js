@@ -229,6 +229,52 @@ function radio_handleCredit(data) {
     }
   }
 
+  // שלח מייל אישור זיכוי לחייל
+  try {
+    const email    = rowData[4];           // עמודה E
+    const fullName = rowData[2];           // עמודה C
+    if (email) {
+      const ts = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+
+      // בנה רשימת ציוד שהוחזר
+      const equipmentMap = [
+        { label: 'קשר 624',    val: rowData[6]  },
+        { label: 'קשר 91',     val: rowData[7]  },
+        { label: 'עמוד',       val: (rowData[8] == '1' || rowData[8] == 1) ? ('כן — מספר ' + (rowData[9] || '')) : '' },
+        { label: 'מגבר',       val: rowData[10] },
+        { label: 'מתאם קשיח',  val: rowData[11] },
+        { label: 'אנטנה לונג', val: rowData[12] },
+        { label: 'מעד',        val: rowData[13] },
+        { label: 'מתאם גמיש',  val: rowData[14] },
+        { label: 'אנטנה שורט', val: rowData[15] },
+        { label: 'רמקול',      val: rowData[16] },
+        { label: 'מדונה',      val: rowData[17] },
+        { label: 'תפוח',       val: rowData[18] },
+        { label: 'אגס',        val: rowData[19] }
+      ];
+      const equipmentLines = equipmentMap
+        .filter(e => e.val && e.val !== '' && e.val !== '0')
+        .map(e => '• ' + e.label + ': ' + e.val)
+        .join('\n');
+
+      MailApp.sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי ציוד קשר - ' + fullName,
+        body:    'שלום ' + fullName + ',\n\n' +
+                 'ציוד הקשר שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
+                 (equipmentLines ? 'ציוד שהוחזר:\n' + equipmentLines + '\n\n' : '') +
+                 'מספר אישי: ' + personalNumber + '\n' +
+                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219'
+      });
+      Logger.log('✅ [Radio] Credit email sent to: ' + email);
+    }
+  } catch (emailErr) {
+    Logger.log('⚠️ [Radio] Credit email failed: ' + emailErr);
+  }
+
   return { success: true, message: 'Credit completed' };
 }
 

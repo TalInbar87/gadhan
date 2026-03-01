@@ -18,6 +18,25 @@
  * ================================================================
  */
 
+// מיפוי מפתחות פריטים לשמות עבריים (לשימוש במיילים)
+const WEAPONS_ITEM_NAMES_HE = {
+  weapon:     'נשק',
+  trig:       "טריג'",
+  lior:       'ליאור',
+  pagion:     'פגיון',
+  zavon:      'זאבון',
+  m5:         'm5',
+  shacha:     'שח"ע',
+  achbar:     'עכבר',
+  adi:        'עדי',
+  ido:        'עידו',
+  kiro:       'קירו',
+  binoculars: 'משקפה',
+  compass:    'מצפן',
+  zayin:      'ציין',
+  pak:        'פק'
+};
+
 // מיפוי מפתחות פריטים לעמודות (0-indexed) בגיליון הנשקים
 const WEAPONS_ITEM_COLUMN_MAP = {
   weapon:     [6, 7],  // G, H - סוג נשק + מספר נשק
@@ -269,6 +288,29 @@ function weapons_handleCredit(data) {
     }
   }
 
+  // שלח מייל אישור זיכוי לחייל
+  try {
+    const email    = rowData[4];
+    const fullName = rowData[1];
+    if (email) {
+      const ts = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+      MailApp.sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי ציוד - ' + fullName,
+        body:    'שלום ' + fullName + ',\n\n' +
+                 'כל הציוד שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
+                 'מספר אישי: ' + personalNumber + '\n' +
+                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+      });
+      Logger.log('✅ [Weapons] Credit email sent to: ' + email);
+    }
+  } catch (emailErr) {
+    Logger.log('⚠️ [Weapons] Credit email failed: ' + emailErr);
+  }
+
   return { success: true, message: 'Credit completed' };
 }
 
@@ -361,6 +403,30 @@ function weapons_handlePartialCredit(data) {
         }
       }
     }
+  }
+
+  // שלח מייל אישור זיכוי חלקי לחייל
+  try {
+    const email    = rowData[4];
+    const fullName = rowData[1];
+    if (email) {
+      const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+      const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
+      MailApp.sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי חלקי - ' + fullName,
+        body:    'שלום ' + fullName + ',\n\n' +
+                 'הציוד הבא זוכה ממשקך:\n' + itemsHe + '\n\n' +
+                 'מספר אישי: ' + personalNumber + '\n' +
+                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+      });
+      Logger.log('✅ [Weapons] Partial credit email sent to: ' + email);
+    }
+  } catch (emailErr) {
+    Logger.log('⚠️ [Weapons] Partial credit email failed: ' + emailErr);
   }
 
   return { success: true, message: 'Partial credit completed' };
@@ -468,6 +534,42 @@ function weapons_handleTransferItems(data) {
     selectedItems.join(', '),
     transferBy || 'unknown'
   ]);
+
+  // שלח מיילים למקור וליעד
+  try {
+    const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
+
+    if (sourceData[4]) {
+      MailApp.sendEmail({
+        to:      sourceData[4],
+        subject: 'אישור העברת ציוד - ' + sourceData[1],
+        body:    'שלום ' + sourceData[1] + ',\n\n' +
+                 'הציוד הבא הועבר ממשקך לחייל ' + targetData[1] +
+                 ' (מ"א ' + targetPersonalNumber + '):\n' + itemsHe + '\n\n' +
+                 'בוצע על ידי: ' + (transferBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+      });
+      Logger.log('✅ [Weapons] Transfer email sent to source: ' + sourceData[4]);
+    }
+
+    if (targetData[4]) {
+      MailApp.sendEmail({
+        to:      targetData[4],
+        subject: 'קבלת ציוד מועבר - ' + targetData[1],
+        body:    'שלום ' + targetData[1] + ',\n\n' +
+                 'הציוד הבא הועבר אליך מחייל ' + sourceData[1] +
+                 ' (מ"א ' + sourcePersonalNumber + '):\n' + itemsHe + '\n\n' +
+                 'בוצע על ידי: ' + (transferBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+      });
+      Logger.log('✅ [Weapons] Transfer email sent to target: ' + targetData[4]);
+    }
+  } catch (emailErr) {
+    Logger.log('⚠️ [Weapons] Transfer email failed: ' + emailErr);
+  }
 
   Logger.log('✓ Transfer completed');
   return { success: true, message: 'Transfer completed' };
