@@ -964,9 +964,6 @@ function displayUserInfo() {
         let isDrawing = false;
         let hasSignature = false;
 
-        // Google Script URL - replace with your actual URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz02Y5pbNUJkvBsZolM0nM7ZyaBqGDQZaaDCF0W5dbZqliP1xiuNUGABX6dhQawcid/exec';
-
         // Validation functions - defined early so they can be used anywhere
         function validatePersonalNumber(number) {
             return /^\d{7}$/.test(number);
@@ -1003,146 +1000,94 @@ function displayUserInfo() {
             }
         }
 
-        // Check for existing record
+        // Fill form with existing record data
+        function fillFormWithData(data) {
+            document.getElementById('fullName').value = data.fullName || '';
+            document.getElementById('phone').value = data.phone || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('unit').value = data.unit || '';
+
+            // Fill radio type
+            if (data.radio624) {
+                document.getElementById('radioType').value = '624';
+                document.getElementById('radioNumber').value = data.radio624;
+            } else if (data.radio91) {
+                document.getElementById('radioType').value = '91';
+                document.getElementById('radioNumber').value = data.radio91;
+            }
+
+            // Fill column
+            if (data.hasColumn) {
+                document.getElementById('hasColumn').checked = true;
+                columnNumberContainer.classList.remove('hidden');
+                columnNumberInput.required = true;
+                document.getElementById('columnNumber').value = data.columnNumber || '';
+            }
+
+            // Fill equipment quantities
+            document.getElementById('amplifier').value = data.amplifier || '';
+            document.getElementById('rigidAdapter').value = data.rigidAdapter || '';
+            document.getElementById('longAntenna').value = data.longAntenna || '';
+            document.getElementById('mad').value = data.mad || '';
+            document.getElementById('flexibleAdapter').value = data.flexibleAdapter || '';
+            document.getElementById('shortAntenna').value = data.shortAntenna || '';
+            document.getElementById('speaker').value = data.speaker || '';
+            document.getElementById('madona').value = data.madona || '';
+            document.getElementById('apple').value = data.apple || '';
+            document.getElementById('pear').value = data.pear || '';
+        }
+
+        // Check for existing record - uses secure authClient (same as weapons form)
         checkExistingBtn.addEventListener('click', async () => {
-            
             const personalNumber = document.getElementById('personalNumber').value;
-            
-            
+
             if (!personalNumber || !validatePersonalNumber(personalNumber)) {
                 showError('personalNumber', 'נא להזין מספר אישי תקין (7 ספרות)');
                 return;
             }
-            
-            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
-                alert('⚠️ שגיאה: יש להגדיר את ה-URL של Google Apps Script בקוד!\n\nחפש את השורה:\nconst GOOGLE_SCRIPT_URL = \'YOUR_GOOGLE_SCRIPT_URL_HERE\';\n\nוהחלף אותה ב-URL של ה-Web App שלך.');
-                return;
-            }
-            
+
             // Clear previous messages
             existingRecordMessage.classList.add('hidden');
             notFoundMessage.classList.add('hidden');
             clearError('personalNumber');
-            
+
             // Show loader and disable button
             checkExistingBtn.disabled = true;
             checkBtnText.textContent = 'בודק...';
             checkLoader.classList.remove('hidden');
-            
+
             try {
-                // Create JSONP request
-                const callbackName = 'jsonpCallback' + Date.now();
-                const script = document.createElement('script');
-                
-                window[callbackName] = function(response) {
-                    if (response.exists && response.data) {
-                        // Unlock form fields first
-                        unlockFormFields();
-                        existingDataFound = true;
+                const result = await authClient.getExistingData(personalNumber, 'radio');
 
-                        // Found existing record - show success message
-                        existingRecordMessage.classList.remove('hidden');
-                        notFoundMessage.classList.add('hidden');
-
-                        // Enable credit button if admin
-                        if (authClient.hasPermission('manage_users')) {
-                            document.getElementById('creditBtn').disabled = false;
-                        }
-                        
-                        const data = response.data;
-                        
-                        // Fill basic fields
-                        document.getElementById('fullName').value = data.fullName || '';
-                        document.getElementById('phone').value = data.phone || '';
-                        document.getElementById('email').value = data.email || '';
-                        document.getElementById('unit').value = data.unit || '';
-                        
-                        // Fill radio type
-                        if (data.radio624) {
-                            document.getElementById('radioType').value = '624';
-                            document.getElementById('radioNumber').value = data.radio624;
-                        } else if (data.radio91) {
-                            document.getElementById('radioType').value = '91';
-                            document.getElementById('radioNumber').value = data.radio91;
-                        }
-                        
-                        // Fill column
-                        if (data.hasColumn) {
-                            document.getElementById('hasColumn').checked = true;
-                            columnNumberContainer.classList.remove('hidden');
-                            columnNumberInput.required = true;
-                            document.getElementById('columnNumber').value = data.columnNumber || '';
-                        }
-                        
-                        // Fill equipment quantities
-                        document.getElementById('amplifier').value = data.amplifier || '';
-                        document.getElementById('rigidAdapter').value = data.rigidAdapter || '';
-                        document.getElementById('longAntenna').value = data.longAntenna || '';
-                        document.getElementById('mad').value = data.mad || '';
-                        document.getElementById('flexibleAdapter').value = data.flexibleAdapter || '';
-                        document.getElementById('shortAntenna').value = data.shortAntenna || '';
-                        document.getElementById('speaker').value = data.speaker || '';
-                        document.getElementById('madona').value = data.madona || '';
-                        document.getElementById('apple').value = data.apple || '';
-                        document.getElementById('pear').value = data.pear || '';
-                        
-                        // Scroll to show the success message
-                        existingRecordMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        // Check form validity after filling
-                        checkFormValidity();
-                    } else {
-                        // Unlock form fields
-                        unlockFormFields();
-                        existingDataFound = false;
-
-                        // Disable credit button - no data to credit
-                        if (document.getElementById('creditBtn')) {
-                            document.getElementById('creditBtn').disabled = true;
-                        }
-
-                        // No existing record found - show info message
-                        existingRecordMessage.classList.add('hidden');
-                        notFoundMessage.classList.remove('hidden');
-
-                        // Scroll to show the message
-                        notFoundMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    
-                    // Cleanup
-                    document.body.removeChild(script);
-                    delete window[callbackName];
-                    
-                    // Reset button
-                    checkExistingBtn.disabled = false;
-                    checkBtnText.textContent = 'בדוק קיים';
-                    checkLoader.classList.add('hidden');
-                };
-                
-                // Make JSONP request
-                script.src = `${GOOGLE_SCRIPT_URL}?action=checkPersonalNumber&personalNumber=${encodeURIComponent(personalNumber)}&callback=${callbackName}`;
-                script.onerror = function() {
-                    // Show error message
-                    existingRecordMessage.classList.add('hidden');
+                if (result.success && result.data) {
+                    unlockFormFields();
+                    existingDataFound = true;
+                    existingRecordMessage.classList.remove('hidden');
                     notFoundMessage.classList.add('hidden');
-                    showError('personalNumber', 'שגיאה בבדיקת רשומה קיימת. נא לנסות שוב.');
-                    
-                    document.body.removeChild(script);
-                    delete window[callbackName];
-                    
-                    // Reset button
-                    checkExistingBtn.disabled = false;
-                    checkBtnText.textContent = 'בדוק קיים';
-                    checkLoader.classList.add('hidden');
-                };
-                
-                document.body.appendChild(script);
-                
+
+                    if (authClient.hasPermission('manage_users')) {
+                        document.getElementById('creditBtn').disabled = false;
+                    }
+
+                    fillFormWithData(result.data);
+                    existingRecordMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    checkFormValidity();
+                } else {
+                    unlockFormFields();
+                    existingDataFound = false;
+
+                    if (document.getElementById('creditBtn')) {
+                        document.getElementById('creditBtn').disabled = true;
+                    }
+
+                    existingRecordMessage.classList.add('hidden');
+                    notFoundMessage.classList.remove('hidden');
+                    notFoundMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             } catch (error) {
                 console.error('Error checking existing record:', error);
-                showError('personalNumber', 'שגיאה בבדיקת רשומה קיימת');
-                
-                // Reset button
+                showError('personalNumber', 'שגיאה בבדיקת רשומה קיימת: ' + (error.message || 'נסה שוב'));
+            } finally {
                 checkExistingBtn.disabled = false;
                 checkBtnText.textContent = 'בדוק קיים';
                 checkLoader.classList.add('hidden');
@@ -1430,19 +1375,6 @@ function displayUserInfo() {
             // Scroll to loading message
             loadingMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Check if Google Script URL is configured
-            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
-                loadingMessage.classList.add('hidden');
-                submitLoader.classList.add('hidden');
-                submitBtn.disabled = false;
-                submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
-                submitBtn.classList.remove('bg-stone-400', 'cursor-not-allowed');
-                submitBtnText.textContent = 'שלח';
-                
-                alert('⚠️ שגיאה: יש להגדיר את ה-URL של Google Apps Script בקוד!\n\nחפש את השורה:\nconst GOOGLE_SCRIPT_URL = \'YOUR_GOOGLE_SCRIPT_URL_HERE\';\n\nוהחלף אותה ב-URL של ה-Web App שלך.');
-                return;
-            }
-
             // Prepare data object - separate column for each equipment type
             const data = {
                 fullName: fullName,
@@ -1471,23 +1403,38 @@ function displayUserInfo() {
                 timestamp: new Date().toISOString()
             };
 
-            // TODO: Replace with your Google Apps Script URL
-            // const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; // Already defined at top
-            
             try {
-                // Send data to Google Sheets
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                
+                // Submit using authenticated client
+                const result = await authClient.submitData(data, 'radio');
+
+                if (!result.success) {
+                    throw new Error(result.error || 'שגיאה בשליחת הנתונים');
+                }
             } catch (error) {
-                console.error('Error sending to Google Sheets:', error);
+                console.error('❌ Submit error:', error);
+
+                // Hide loader
+                loadingMessage.classList.add('hidden');
+                submitLoader.classList.add('hidden');
+
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-stone-400', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800', 'cursor-pointer', 'transform', 'hover:scale-105');
+                submitBtnText.textContent = 'שלח';
+
+                let errorMessage = 'שגיאה בשליחת הנתונים';
+                if (error.message === 'Session expired') {
+                    errorMessage = 'פג תוקף ההתחברות. אנא התחבר שוב.';
+                    setTimeout(() => authClient.logout(), 2000);
+                } else if (error.message === 'Insufficient permissions') {
+                    errorMessage = 'אין לך הרשאה לבצע פעולה זו.';
+                } else if (error.message) {
+                    errorMessage += ': ' + error.message;
+                }
+
+                alert(errorMessage);
+                return;
             }
 
             // Hide loader
