@@ -53,7 +53,7 @@ const CONFIG = {
   
   // URLs של הסקריפטים המקוריים (להעברת נתונים אחרי Authentication)
   ORIGINAL_SCRIPTS: {
-    WEAPONS: 'https://script.google.com/macros/s/AKfycby_vOgDCI8ZHR3sH42fMkXpDuCljYrpgZ3SO7YgnC97Yg0Rsm3y0P_uj0VNpnYo12Xg/exec',
+    WEAPONS: 'https://script.google.com/macros/s/AKfycbzSPA80PUuYUE3VgP7U3WT6GcxSoi5ss7dv49VIAHN10jH4U0gXB38gB5J_PBdPxtMS/exec',
     RADIO: 'https://script.google.com/macros/s/AKfycbxG1ymau8BHFFzIyqPqqe-jSIEZgc00SHoV4LMANhQbBRDm45U0RK1Ajh6m0Xcn099X/exec'
   },
   
@@ -523,27 +523,56 @@ function doPost(e) {
       return createResponse(400, 'No request data received', null);
     }
     
-    // פענוח הנתונים
+    // פענוח הנתונים - ניסיון עם מספר שיטות
     let data;
-    if (e.postData && e.postData.contents) {
-      // JSON ישיר מ-postData
-      Logger.log('📦 Parsing from postData.contents');
-      data = JSON.parse(e.postData.contents);
-    } else if (e.parameter && e.parameter.data) {
-      // URL-encoded JSON מ-parameter
-      Logger.log('📦 Parsing from parameter.data');
-      const decodedData = decodeURIComponent(e.parameter.data);
-      data = JSON.parse(decodedData);
-    } else if (e.parameters && e.parameters.data && e.parameters.data[0]) {
-      // Array של parameters
-      Logger.log('📦 Parsing from parameters.data array');
-      const decodedData = decodeURIComponent(e.parameters.data[0]);
-      data = JSON.parse(decodedData);
-    } else {
-      Logger.log('❌ No data in request');
-      Logger.log('e.postData: ' + JSON.stringify(e.postData));
-      Logger.log('e.parameter: ' + JSON.stringify(e.parameter));
-      Logger.log('e.parameters: ' + JSON.stringify(e.parameters));
+    let parsed = false;
+
+    // שיטה 1: postData.contents כ-JSON ישיר
+    if (!parsed && e.postData && e.postData.contents) {
+      try {
+        data = JSON.parse(e.postData.contents);
+        parsed = true;
+        Logger.log('📦 Parsed from postData.contents (JSON)');
+      } catch (e1) {
+        // שיטה 1b: postData.contents הוא URL-encoded (data=%7B%22...)
+        try {
+          const raw = e.postData.contents;
+          const val = raw.startsWith('data=') ? raw.slice(5) : raw;
+          data = JSON.parse(decodeURIComponent(val));
+          parsed = true;
+          Logger.log('📦 Parsed from postData.contents (URL-encoded)');
+        } catch (e2) {
+          Logger.log('⚠️ postData.contents failed: ' + e2.toString());
+        }
+      }
+    }
+
+    // שיטה 2: e.parameter.data
+    if (!parsed && e.parameter && e.parameter.data) {
+      try {
+        data = JSON.parse(decodeURIComponent(e.parameter.data));
+        parsed = true;
+        Logger.log('📦 Parsed from parameter.data');
+      } catch (e3) {
+        Logger.log('⚠️ parameter.data failed: ' + e3.toString());
+      }
+    }
+
+    // שיטה 3: e.parameters.data[0]
+    if (!parsed && e.parameters && e.parameters.data && e.parameters.data[0]) {
+      try {
+        data = JSON.parse(decodeURIComponent(e.parameters.data[0]));
+        parsed = true;
+        Logger.log('📦 Parsed from parameters.data[0]');
+      } catch (e4) {
+        Logger.log('⚠️ parameters.data[0] failed: ' + e4.toString());
+      }
+    }
+
+    if (!parsed) {
+      Logger.log('❌ All parse attempts failed');
+      Logger.log('postData: ' + JSON.stringify(e.postData));
+      Logger.log('parameter: ' + JSON.stringify(e.parameter));
       return createResponse(400, 'No data provided', null);
     }
     
