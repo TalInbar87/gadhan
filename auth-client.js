@@ -76,9 +76,9 @@
     
     async logout() {
         this.clearAuth();
-        window.location.href = 'login.html';
+        window.location.href = '/';
     }
-    
+
     async verifyToken() {
         if (!this.token) {
             return false;
@@ -190,7 +190,7 @@
             
             if (result.statusCode === 401) {
                 this.clearAuth();
-                window.location.href = 'login.html';
+                window.location.href = '/';
                 throw new Error('Session expired');
             }
             
@@ -232,7 +232,7 @@
             
             if (result.statusCode === 401) {
                 this.clearAuth();
-                window.location.href = 'login.html';
+                window.location.href = '/';
                 throw new Error('Session expired');
             }
             
@@ -336,7 +336,7 @@ class AuthGuard {
                     <h1 style="color: #ef4444; font-size: 3rem; margin-bottom: 1rem;">🚫</h1>
                     <h2 style="color: #1f2937; margin-bottom: 0.5rem;">אין הרשאה</h2>
                     <p style="color: #6b7280; margin-bottom: 1.5rem;">אין לך הרשאה לגשת לדף זה</p>
-                    <button onclick="window.location.href='index.html'" 
+                    <button onclick="window.location.href='/'"
                             style="padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
                         חזרה לדף הבית
                     </button>

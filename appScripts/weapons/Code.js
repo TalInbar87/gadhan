@@ -159,9 +159,15 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     Logger.log('✅ Data parsed successfully');
 
-    // בדיקה אם זו בקשת זיכוי
+    // ניתוב לפי פעולה
     if (data.action === 'credit') {
       return handleCredit(data);
+    }
+    if (data.action === 'partial_credit') {
+      return handlePartialCredit(data);
+    }
+    if (data.action === 'transfer_items') {
+      return handleTransferItems(data);
     }
 
     Logger.log('📥 Personal Number: ' + data.personalNumber);
@@ -189,7 +195,44 @@ function doPost(e) {
 }
 
 /**
+ * מחזיר את מספר השורה (1-indexed) של מספר אישי בגיליון זיכויים, או -1 אם לא קיים
+ */
+function findCreditRow(creditSheet, personalNumber) {
+  if (creditSheet.getLastRow() < 2) return -1;
+  const data = creditSheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][2] == personalNumber) return i + 1;
+  }
+  return -1;
+}
+
+/**
+ * מחזיר/יוצר גיליון זיכויים עם כותרות אחידות
+ * עמודות: A-V (נתוני חייל) + W (פריטים שזוכו) + X (תאריך זיכוי) + Y (זוכה על ידי)
+ */
+function getOrCreateCreditSheet(ss) {
+  let creditSheet = ss.getSheetByName('זיכויים');
+  if (!creditSheet) {
+    creditSheet = ss.insertSheet('זיכויים');
+    const headers = [
+      "תאריך ושעה", "שם מלא", "מספר אישי", "טלפון", "מייל", "מסגרת",
+      "סוג נשק", "מספר נשק", "טריג׳", "ליאור", "פגיון", "זאבון", "m5",
+      'שח"ע', "עכבר", "עדי", "עידו", "קירו", "משקפה", "מצפן", "ציין", "פק",
+      "פריטים שזוכו", "תאריך זיכוי", "זוכה על ידי"
+    ];
+    creditSheet.appendRow(headers);
+    const hr = creditSheet.getRange(1, 1, 1, headers.length);
+    hr.setBackground("#8B0000");
+    hr.setFontColor("#FFFFFF");
+    hr.setFontWeight("bold");
+    hr.setHorizontalAlignment("right");
+  }
+  return creditSheet;
+}
+
+/**
  * טיפול בזיכוי - העברת רשומה לגיליון זיכויים ומחיקה מהגיליונות
+ * אם מספר אישי כבר קיים בגיליון זיכויים - לא מוסיף שורה חדשה
  */
 function handleCredit(data) {
   const personalNumber = data.personalNumber;
@@ -208,8 +251,8 @@ function handleCredit(data) {
   let rowData = null;
 
   for (let i = 1; i < allData.length; i++) {
-    if (allData[i][2] == personalNumber) { // עמודה C = מספר אישי
-      foundRow = i + 1; // +1 כי getValues מתחיל מ-0 אבל שורות מ-1
+    if (allData[i][2] == personalNumber) {
+      foundRow = i + 1;
       rowData = allData[i];
       break;
     }
@@ -219,36 +262,24 @@ function handleCredit(data) {
     return createJsonResponse({ success: false, error: 'Record not found' });
   }
 
-  // יצירת/קבלת גיליון זיכויים
-  let creditSheet = ss.getSheetByName('זיכויים');
-  if (!creditSheet) {
-    creditSheet = ss.insertSheet('זיכויים');
-    // כותרות - אותן כותרות + עמודות זיכוי
-    const headers = [
-      "תאריך ושעה", "שם מלא", "מספר אישי", "טלפון", "מייל", "מסגרת",
-      "סוג נשק", "מספר נשק", "טריג׳", "ליאור", "פגיון", "זאבון", "m5",
-      'שח"ע', "עכבר", "עדי", "עידו", "קירו", "משקפה", "מצפן", "ציין", "פק",
-      "תאריך זיכוי", "זוכה על ידי"
-    ];
-    creditSheet.appendRow(headers);
-    const headerRange = creditSheet.getRange(1, 1, 1, headers.length);
-    headerRange.setBackground("#8B0000");
-    headerRange.setFontColor("#FFFFFF");
-    headerRange.setFontWeight("bold");
-    headerRange.setHorizontalAlignment("right");
-  }
+  const creditSheet = getOrCreateCreditSheet(ss);
 
-  // הוספת השורה לזיכויים עם metadata
-  const creditRow = [...rowData, data.creditAt || new Date().toISOString(), data.creditBy || 'unknown'];
-  creditSheet.appendRow(creditRow);
-  Logger.log('✓ Record added to credits sheet');
+  // הוסף לגיליון זיכויים רק אם מספר אישי לא קיים שם עדיין
+  const existingCreditRow = findCreditRow(creditSheet, personalNumber);
+  if (existingCreditRow === -1) {
+    const creditRow = [...rowData, 'הכל', data.creditAt || new Date().toISOString(), data.creditBy || 'unknown'];
+    creditSheet.appendRow(creditRow);
+    Logger.log('✓ Record added to credits sheet');
+  } else {
+    Logger.log('⚠️ Personal number already exists in credits sheet - skipping duplicate');
+  }
 
   // מחיקה מהגיליון הראשי
   mainSheet.deleteRow(foundRow);
   Logger.log('✓ Record deleted from main sheet');
 
   // מחיקה מגיליון המסגרת (אם קיים)
-  const unit = rowData[5]; // עמודה F = מסגרת
+  const unit = rowData[5];
   if (unit) {
     const unitSheet = ss.getSheetByName(unit);
     if (unitSheet) {
@@ -266,6 +297,253 @@ function handleCredit(data) {
   return createJsonResponse({
     success: true,
     message: 'Credit completed - record moved to credits sheet'
+  });
+}
+
+// ================================================================
+// מיפוי מפתחות פריטים לעמודות בגיליון
+// ================================================================
+
+const ITEM_COLUMN_MAP = {
+  weapon:     [6, 7],   // G, H - סוג נשק + מספר נשק
+  trig:       [8],      // I  - טריג׳
+  lior:       [9],      // J  - ליאור
+  pagion:     [10],     // K  - פגיון
+  zavon:      [11],     // L  - זאבון
+  m5:         [12],     // M  - m5
+  shacha:     [13],     // N  - שח"ע
+  achbar:     [14],     // O  - עכבר
+  adi:        [15],     // P  - עדי
+  ido:        [16],     // Q  - עידו
+  kiro:       [17],     // R  - קירו
+  binoculars: [18],     // S  - משקפה
+  compass:    [19],     // T  - מצפן
+  zayin:      [20],     // U  - ציין
+  pak:        [21]      // V  - פק
+};
+
+/**
+ * זיכוי חלקי - זיכוי פריטים נבחרים בלבד
+ * אם כל הפריטים נבחרו - מבצע זיכוי מלא (מוחק שורה)
+ * אחרת - מנקה את העמודות שנבחרו ומוסיף ערך לגיליון זיכויים
+ */
+function handlePartialCredit(data) {
+  const { personalNumber, selectedItems, creditBy, creditAt, creditSignature } = data;
+  Logger.log('💳 Partial credit for: ' + personalNumber + ', items: ' + JSON.stringify(selectedItems));
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const mainSheet = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
+  if (!mainSheet) {
+    return createJsonResponse({ success: false, error: 'Main sheet not found' });
+  }
+
+  const allData = mainSheet.getDataRange().getValues();
+  let foundRow = -1, rowData = null;
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][2] == personalNumber) {
+      foundRow = i + 1;
+      rowData = allData[i];
+      break;
+    }
+  }
+  if (foundRow === -1) {
+    return createJsonResponse({ success: false, error: 'Record not found' });
+  }
+
+  const creditSheet = getOrCreateCreditSheet(ss);
+  const existingCreditRow = findCreditRow(creditSheet, personalNumber);
+
+  if (existingCreditRow === -1) {
+    // שורה חדשה: העתק נתונים בסיסיים, נקה פריטים שלא נבחרו
+    const creditRowData = [...rowData];
+    Object.keys(ITEM_COLUMN_MAP).forEach(key => {
+      if (!selectedItems.includes(key)) {
+        ITEM_COLUMN_MAP[key].forEach(col => { creditRowData[col] = ''; });
+      }
+    });
+    creditSheet.appendRow([
+      ...creditRowData,
+      selectedItems.join(', '),
+      creditAt || new Date().toISOString(),
+      creditBy || 'unknown'
+    ]);
+    Logger.log('✓ New credit row added for ' + personalNumber);
+  } else {
+    // שורה קיימת: עדכן ערכי פריטים שנבחרו + מיזוג עמודת "פריטים שזוכו"
+    selectedItems.forEach(key => {
+      if (ITEM_COLUMN_MAP[key]) {
+        ITEM_COLUMN_MAP[key].forEach(colIdx => {
+          creditSheet.getRange(existingCreditRow, colIdx + 1).setValue(rowData[colIdx]);
+        });
+      }
+    });
+    // עמודה W (23) = פריטים שזוכו — מיזוג עם קיים
+    const existingItems = creditSheet.getRange(existingCreditRow, 23).getValue() || '';
+    const mergedItems = existingItems
+      ? existingItems + ', ' + selectedItems.join(', ')
+      : selectedItems.join(', ');
+    creditSheet.getRange(existingCreditRow, 23).setValue(mergedItems);
+    // עמודות X, Y — עדכן תאריך ומבצע
+    creditSheet.getRange(existingCreditRow, 24).setValue(creditAt || new Date().toISOString());
+    creditSheet.getRange(existingCreditRow, 25).setValue(creditBy || 'unknown');
+    Logger.log('✓ Existing credit row updated for ' + personalNumber);
+  }
+
+  // נקה את הפריטים שנבחרו מהשורה המקורית
+  selectedItems.forEach(key => {
+    if (ITEM_COLUMN_MAP[key]) {
+      ITEM_COLUMN_MAP[key].forEach(colIdx => {
+        mainSheet.getRange(foundRow, colIdx + 1).setValue('');
+      });
+    }
+  });
+
+  // עדכן גם בגיליון המסגרת אם קיים
+  const unit = rowData[5];
+  if (unit) {
+    const unitSheet = ss.getSheetByName(unit);
+    if (unitSheet) {
+      const unitData = unitSheet.getDataRange().getValues();
+      for (let i = 1; i < unitData.length; i++) {
+        if (unitData[i][2] == personalNumber) {
+          selectedItems.forEach(key => {
+            if (ITEM_COLUMN_MAP[key]) {
+              ITEM_COLUMN_MAP[key].forEach(colIdx => {
+                unitSheet.getRange(i + 1, colIdx + 1).setValue('');
+              });
+            }
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  Logger.log('✓ Partial credit completed for ' + personalNumber + ', items: ' + selectedItems.join(', '));
+  return createJsonResponse({
+    success: true,
+    message: 'Partial credit completed'
+  });
+}
+
+/**
+ * העברת פריטים - מנקה פריטים נבחרים מחייל המקור ומוסיף לחייל היעד
+ */
+function handleTransferItems(data) {
+  const { sourcePersonalNumber, targetPersonalNumber, selectedItems, transferBy, transferAt } = data;
+  Logger.log('🔄 Transfer from ' + sourcePersonalNumber + ' to ' + targetPersonalNumber + ', items: ' + JSON.stringify(selectedItems));
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const mainSheet = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
+  if (!mainSheet) {
+    return createJsonResponse({ success: false, error: 'Main sheet not found' });
+  }
+
+  const allData = mainSheet.getDataRange().getValues();
+
+  // מצא שורת מקור
+  let sourceRow = -1, sourceData = null;
+  // מצא שורת יעד
+  let targetRow = -1, targetData = null;
+
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][2] == sourcePersonalNumber) { sourceRow = i + 1; sourceData = allData[i]; }
+    if (allData[i][2] == targetPersonalNumber) { targetRow = i + 1; targetData = allData[i]; }
+  }
+
+  if (sourceRow === -1) {
+    return createJsonResponse({ success: false, error: 'חייל המקור לא נמצא במערכת' });
+  }
+  if (targetRow === -1) {
+    return createJsonResponse({ success: false, error: 'חייל היעד לא נמצא במערכת — יש להוסיפו תחילה דרך טופס הנשק' });
+  }
+
+  // העבר כל פריט שנבחר: נקה מהמקור, הגדר ביעד
+  selectedItems.forEach(key => {
+    const cols = ITEM_COLUMN_MAP[key];
+    if (!cols) return;
+
+    cols.forEach(colIdx => {
+      const val = sourceData[colIdx];
+      // הגדר ביעד
+      mainSheet.getRange(targetRow, colIdx + 1).setValue(val);
+      // נקה מהמקור
+      mainSheet.getRange(sourceRow, colIdx + 1).setValue('');
+    });
+  });
+
+  // עדכן גיליון מסגרת המקור אם קיים
+  const sourceUnit = sourceData[5];
+  if (sourceUnit) {
+    const srcUnitSheet = ss.getSheetByName(sourceUnit);
+    if (srcUnitSheet) {
+      const srcUnitData = srcUnitSheet.getDataRange().getValues();
+      for (let i = 1; i < srcUnitData.length; i++) {
+        if (srcUnitData[i][2] == sourcePersonalNumber) {
+          selectedItems.forEach(key => {
+            if (ITEM_COLUMN_MAP[key]) {
+              ITEM_COLUMN_MAP[key].forEach(colIdx => {
+                srcUnitSheet.getRange(i + 1, colIdx + 1).setValue('');
+              });
+            }
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  // עדכן גיליון מסגרת היעד אם קיים
+  const targetUnit = targetData[5];
+  if (targetUnit) {
+    const tgtUnitSheet = ss.getSheetByName(targetUnit);
+    if (tgtUnitSheet) {
+      const tgtUnitData = tgtUnitSheet.getDataRange().getValues();
+      for (let i = 1; i < tgtUnitData.length; i++) {
+        if (tgtUnitData[i][2] == targetPersonalNumber) {
+          selectedItems.forEach(key => {
+            const cols = ITEM_COLUMN_MAP[key];
+            if (!cols) return;
+            cols.forEach(colIdx => {
+              tgtUnitSheet.getRange(i + 1, colIdx + 1).setValue(sourceData[colIdx]);
+            });
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  // רשום בגיליון העברות (צור אם לא קיים)
+  let transferSheet = ss.getSheetByName('העברות');
+  if (!transferSheet) {
+    transferSheet = ss.insertSheet('העברות');
+    const headers = [
+      "תאריך העברה", "מספר אישי מקור", "שם מקור", "מספר אישי יעד", "שם יעד",
+      "פריטים שהועברו", "בוצע על ידי"
+    ];
+    transferSheet.appendRow(headers);
+    const hr = transferSheet.getRange(1, 1, 1, headers.length);
+    hr.setBackground("#1e3a5f");
+    hr.setFontColor("#FFFFFF");
+    hr.setFontWeight("bold");
+    hr.setHorizontalAlignment("right");
+  }
+
+  transferSheet.appendRow([
+    transferAt || new Date().toISOString(),
+    sourcePersonalNumber,
+    sourceData[1],       // שם מלא מקור
+    targetPersonalNumber,
+    targetData[1],       // שם מלא יעד
+    selectedItems.join(', '),
+    transferBy || 'unknown'
+  ]);
+
+  Logger.log('✓ Transfer completed: ' + selectedItems.join(', ') + ' from ' + sourcePersonalNumber + ' to ' + targetPersonalNumber);
+  return createJsonResponse({
+    success: true,
+    message: 'Transfer completed'
   });
 }
 
