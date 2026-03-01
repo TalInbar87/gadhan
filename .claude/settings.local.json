@@ -28,7 +28,10 @@
       "Bash(git add user-management.html index-secure.html audit-log.html index.html weapons-transfer.html radio-checkout-secure.html weapons-checkout-secure.html)",
       "Bash(git add appScripts/unified/Weapons.js weapons-checkout-secure.html)",
       "Bash(brew install gh)",
-      "Bash(/opt/homebrew/bin/gh pr:*)"
+      "Bash(/opt/homebrew/bin/gh pr:*)",
+      "Bash(/opt/homebrew/bin/gh auth status)",
+      "Bash(git add appScripts/unified/Weapons.js appScripts/unified/Radio.js index-secure.html)",
+      "Bash(python3 -c \":*)"
     ]
   }
 }
