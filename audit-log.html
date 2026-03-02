@@ -287,8 +287,10 @@
                 return { label: 'חתימת נשק', bg: 'bg-blue-100', text: 'text-blue-800', key: 'weapons' };
             if (entry.action === 'DATA_SUBMITTED' && entry.resource === 'radio')
                 return { label: 'חתימת קשר', bg: 'bg-indigo-100', text: 'text-indigo-800', key: 'radio' };
-            if (entry.action === 'DATA_CREDITED' || entry.action === 'DATA_PARTIAL_CREDITED')
-                return { label: 'זיכוי', bg: 'bg-red-100', text: 'text-red-800', key: 'credit' };
+            if (entry.action === 'DATA_CREDITED')
+                return { label: 'זיכוי מלא', bg: 'bg-red-100', text: 'text-red-800', key: 'credit' };
+            if (entry.action === 'DATA_PARTIAL_CREDITED')
+                return { label: 'זיכוי חלקי', bg: 'bg-orange-100', text: 'text-orange-800', key: 'credit' };
             return null;
         }
 
