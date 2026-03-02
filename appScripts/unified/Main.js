@@ -127,11 +127,12 @@ function handleLogin(data, request) {
   return createResponse(200, 'Login successful', {
     token,
     user: {
-      username:    user.username,
-      role:        user.role,
-      fullName:    user.fullName,
-      email:       user.email,
-      permissions: Authorization.getPermissions(user.role)
+      username:       user.username,
+      role:           user.role,
+      personalNumber: user.personalNumber,
+      fullName:       user.fullName,
+      email:          user.email,
+      permissions:    Authorization.getPermissions(user.role)
     }
   });
 }
