@@ -605,6 +605,9 @@
                 return;
             }
 
+            const totalItems = document.querySelectorAll('.item-checkbox').length;
+            const isFullCredit = selectedItems.length === totalItems;
+
             const personalNumber = sourceInput.value.trim();
             const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
             const btn = document.getElementById('submitCreditBtn');
@@ -615,7 +618,7 @@
             try {
                 const postData = new URLSearchParams();
                 postData.append('data', JSON.stringify({
-                    action: 'partial_credit',
+                    action: isFullCredit ? 'credit_data' : 'partial_credit',
                     token: authClient.token,
                     formType: FORM_TYPE,
                     creditData: {

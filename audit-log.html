@@ -294,6 +294,29 @@
             return null;
         }
 
+        const WEAPONS_KEY_LABELS = {
+            weapon: 'נשק', trig: "טריג׳", lior: 'ליאור', pagion: 'פגיון',
+            zavon: 'זאבון', m5: 'M5', shacha: 'שח"ע', achbar: 'עכבר',
+            adi: 'עדי', ido: 'עידו', kiro: 'קירו', binoculars: 'משקפה',
+            compass: 'מצפן', zayin: 'ציין', pak: 'פק', matol: 'מטול'
+        };
+
+        function getEntryDetailsSummary(entry, action) {
+            if (!action) return '';
+            const parts = [];
+            if (entry.personalNumber) parts.push('מ.א: ' + entry.personalNumber);
+            if (action.key === 'credit') {
+                const items = entry.details && entry.details.items;
+                if (items && items.length > 0) {
+                    const labels = items.map(k => WEAPONS_KEY_LABELS[k] || k);
+                    parts.push('פריטים: ' + labels.join(', '));
+                } else if (entry.action === 'DATA_CREDITED') {
+                    parts.push('כל הפריטים');
+                }
+            }
+            return parts.join(' | ');
+        }
+
         function renderAuditTable() {
             const tbody = document.getElementById('auditTableBody');
             const emptyState = document.getElementById('emptyState');
@@ -325,8 +348,8 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs font-bold rounded-full ${action.bg} ${action.text}">${action.label}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <button class="text-orange-600 hover:text-orange-800 font-bold">צפה</button>
+                    <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate" title="${getEntryDetailsSummary(entry, action)}">
+                        ${getEntryDetailsSummary(entry, action) || '<span class="text-gray-400">—</span>'}
                     </td>
                 `;
 
@@ -418,10 +441,18 @@
                             <p class="text-sm font-bold text-gray-600">פעולה</p>
                             <p class="text-gray-900">${action ? action.label : entry.action}</p>
                         </div>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-gray-600 mb-2">פרטים נוספים</p>
-                        <pre class="text-xs text-gray-700 bg-gray-100 p-3 rounded overflow-auto">${JSON.stringify(entry.details, null, 2)}</pre>
+                        ${entry.personalNumber ? `<div>
+                            <p class="text-sm font-bold text-gray-600">מספר אישי (מזוכה)</p>
+                            <p class="text-gray-900">${entry.personalNumber}</p>
+                        </div>` : ''}
+                        ${(action && action.key === 'credit') ? `<div class="col-span-2">
+                            <p class="text-sm font-bold text-gray-600">פריטים שזוכו</p>
+                            <p class="text-gray-900">${
+                                (entry.details && entry.details.items && entry.details.items.length > 0)
+                                    ? entry.details.items.map(k => WEAPONS_KEY_LABELS[k] || k).join(', ')
+                                    : 'כל הפריטים'
+                            }</p>
+                        </div>` : ''}
                     </div>
                 </div>
             `;
