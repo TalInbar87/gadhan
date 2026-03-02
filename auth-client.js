@@ -114,6 +114,26 @@
         }
         return this.user.permissions.includes(permission);
     }
+
+    getPersonalNumber() {
+        // נסה קודם מ-user object
+        if (this.user && this.user.personalNumber) {
+            return String(this.user.personalNumber);
+        }
+        // פענח מה-JWT token
+        if (this.token) {
+            try {
+                const base64 = this.token.split('.')[1]
+                    .replace(/-/g, '+')
+                    .replace(/_/g, '/');
+                const payload = JSON.parse(atob(base64));
+                return payload.personalNumber ? String(payload.personalNumber) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
     
     // ============================================================
     // ENCRYPTION UTILITIES

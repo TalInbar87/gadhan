@@ -658,6 +658,19 @@
             if (isAuthenticated) {
                 document.getElementById('authLoadingOverlay').remove();
                 displayUserInfo();
+
+                // אם תפקיד 'user' — מלא מספר אישי אוטומטית ובדוק
+                if (authClient.user.role === 'user') {
+                    const pn = authClient.getPersonalNumber();
+                    if (pn && pn.length === 7) {
+                        const pnInput = document.getElementById('personalNumber');
+                        const checkBtn = document.getElementById('checkExistingButton');
+                        pnInput.value = pn;
+                        pnInput.readOnly = true;
+                        checkBtn.disabled = false;
+                        setTimeout(() => checkBtn.click(), 300);
+                    }
+                }
             }
         });
         
