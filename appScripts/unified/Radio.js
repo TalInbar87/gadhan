@@ -266,15 +266,10 @@ function radio_handleCredit(data) {
       MailApp.sendEmail({
         to:          email,
         subject:     'אישור זיכוי ציוד קשר - ' + fullName,
-        body:        'שלום ' + fullName + ',\n\n' +
-                     'ציוד הקשר שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
-                     (equipmentLines ? 'ציוד שהוחזר:\n' + equipmentLines + '\n\n' : '') +
-                     'מספר אישי: ' + personalNumber + '\n' +
-                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                     'תאריך: ' + ts + '\n\n' +
-                     'מצורף אישור PDF מפורט.\n\n' +
-                     'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
+        body:        'שלום ' + fullName + ',\n' +
+                     'הציוד זוכה במערכת\n' +
+                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                     'מצ"ב קובץ אישור חתום',
         attachments: [pdf]
       });
       Logger.log('✅ [Radio] Credit email with PDF sent to: ' + email);
@@ -492,14 +487,10 @@ function radio_handlePartialCredit(data) {
       MailApp.sendEmail({
         to:      email,
         subject: 'אישור זיכוי חלקי ציוד קשר - ' + fullName,
-        body:    'שלום ' + fullName + ',\n\n' +
-                 'הציוד הבא זוכה ממשקך:\n' + itemsStr + '\n\n' +
-                 'מספר אישי: ' + personalNumber + '\n' +
-                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                 'תאריך: ' + ts + '\n\n' +
-                 'מצורף אישור PDF מפורט.\n\n' +
-                 'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
         attachments: [pdf]
       });
       Logger.log('✅ [Radio] Partial credit email sent to: ' + email);

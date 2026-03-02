@@ -108,7 +108,7 @@
                     
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="personalNumber"></p>
                     
-                    <p class="text-amber-700 text-sm flex items-start gap-2">
+                    <p id="adminWarning" class="hidden text-amber-700 text-sm flex items-start gap-2">
                         <span class="text-amber-600 font-bold">⚠️</span>
                         <span><strong>חשוב:</strong> אנא בדוק האם קיימים כבר פריטים שחתמת עליהם, אחרת המידע יידרס!</span>
                     </p>
@@ -656,6 +656,10 @@
                 </div>
             `);
 
+            // Show admin warning for admin users only
+            if (authClient.hasPermission('manage_users')) {
+                document.getElementById('adminWarning').classList.remove('hidden');
+            }
         }
 
         // ============================================================

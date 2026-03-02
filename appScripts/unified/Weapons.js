@@ -342,14 +342,10 @@ function weapons_handleCredit(data) {
       MailApp.sendEmail({
         to:          email,
         subject:     'אישור זיכוי ציוד - ' + fullName,
-        body:        'שלום ' + fullName + ',\n\n' +
-                     'כל הציוד שלך הוחזר ורשומך זוכתה במערכת.\n\n' +
-                     'מספר אישי: ' + personalNumber + '\n' +
-                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                     'תאריך: ' + ts + '\n\n' +
-                     'מצורף אישור PDF מפורט.\n\n' +
-                     'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        body:        'שלום ' + fullName + ',\n' +
+                     'הציוד זוכה במערכת\n' +
+                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                     'מצ"ב קובץ אישור חתום',
         attachments: [pdf]
       });
       Logger.log('✅ [Weapons] Credit email with PDF sent to: ' + email);
@@ -466,14 +462,10 @@ function weapons_handlePartialCredit(data) {
       MailApp.sendEmail({
         to:          email,
         subject:     'אישור זיכוי חלקי - ' + fullName,
-        body:        'שלום ' + fullName + ',\n\n' +
-                     'הציוד הבא זוכה ממשקך:\n' + itemsHe + '\n\n' +
-                     'מספר אישי: ' + personalNumber + '\n' +
-                     (unit ? 'מסגרת: ' + unit + '\n' : '') +
-                     'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
-                     'תאריך: ' + ts + '\n\n' +
-                     'מצורף אישור PDF מפורט.\n\n' +
-                     'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        body:        'שלום ' + fullName + ',\n' +
+                     'הציוד זוכה במערכת\n' +
+                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                     'מצ"ב קובץ אישור חתום',
         attachments: [pdf]
       });
       Logger.log('✅ [Weapons] Partial credit email with PDF sent to: ' + email);
