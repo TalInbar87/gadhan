@@ -250,37 +250,42 @@
         // ============================================================
         
         async function loadAuditData() {
-            // Note: In production, implement a proper API endpoint to fetch audit data
-            // For now, this is a placeholder showing how the data would be displayed
-            
-            // Simulate loading audit data
             document.getElementById('loadingState').classList.remove('hidden');
-            
-            // In production, fetch from your backend:
-            // const response = await fetch(API_URL + '/audit', { ... });
-            // auditData = await response.json();
-            
-            // Demo data for illustration
-            auditData = [
-                {
-                    timestamp: new Date().toISOString(),
-                    username: 'admin',
-                    action: 'LOGIN_SUCCESS',
-                    resource: 'AUTH',
-                    personalNumber: '',
-                    details: { role: 'admin' },
-                    ipAddress: '192.168.1.100',
-                    userAgent: 'Mozilla/5.0...'
+            document.getElementById('auditTableBody').innerHTML = '';
+
+            try {
+                const postData = new URLSearchParams();
+                postData.append('data', JSON.stringify({
+                    action: 'get_audit_log',
+                    token: authClient.token,
+                    limit: 500
+                }));
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: postData
+                });
+
+                const result = await response.json();
+
+                if (result.statusCode === 200 && result.data && result.data.entries) {
+                    auditData = result.data.entries.map(e => ({
+                        ...e,
+                        details: (() => { try { return typeof e.details === 'string' ? JSON.parse(e.details) : e.details; } catch { return e.details; } })()
+                    }));
+                } else {
+                    console.error('Audit log error:', result.message);
+                    auditData = [];
                 }
-            ];
-            
+            } catch (err) {
+                console.error('Failed to load audit log:', err);
+                auditData = [];
+            }
+
             filteredData = [...auditData];
-            
-            setTimeout(() => {
-                renderAuditTable();
-                updateStatistics();
-                document.getElementById('loadingState').classList.add('hidden');
-            }, 1000);
+            renderAuditTable();
+            updateStatistics();
+            document.getElementById('loadingState').classList.add('hidden');
         }
         
         // ============================================================

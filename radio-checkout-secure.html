@@ -137,6 +137,10 @@
                 </div>
             `);
 
+            // Show credit button for admin users
+            if (authClient.hasPermission('manage_users')) {
+                document.getElementById('creditButtonContainer').classList.remove('hidden');
+            }
         }
     </script>
 
@@ -652,6 +656,19 @@
                     </p>
                 </div>
 
+                <!-- Credit Button (Admin only) -->
+                <div id="creditButtonContainer" class="hidden mb-4">
+                    <button
+                        type="button"
+                        id="creditBtn"
+                        class="w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-200 shadow-lg bg-red-600 hover:bg-red-700 text-white transform hover:scale-105"
+                        onclick="openCreditPopup()"
+                        disabled
+                    >
+                        זיכוי
+                    </button>
+                </div>
+
                 <!-- Submit Button -->
                 <button
                     type="submit"
@@ -730,9 +747,41 @@
         </div>
     </div>
 
+    <!-- Credit Popup -->
+    <div id="creditOverlay" class="credit-overlay hidden">
+        <div class="credit-popup">
+            <h3 style="font-size: 1.5rem; font-weight: bold; color: #dc2626; margin-bottom: 1rem; text-align: center;">זיכוי ציוד</h3>
+            <p style="color: #57534e; margin-bottom: 1.5rem; text-align: center;">האם לזכות את כל הציוד של חייל זה?</p>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                    <input type="checkbox" id="creditConfirmCheckbox" style="width: 1.25rem; height: 1.25rem;" onchange="updateCreditSubmitState()">
+                    <span style="font-weight: bold; color: #1c1917;">כן, אני מאשר/ת זיכוי</span>
+                </label>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: bold; color: #44403c; margin-bottom: 0.5rem;">חתימת מאשר:</label>
+                <div style="border: 2px solid #d6d3d1; border-radius: 0.75rem; overflow: hidden; background: white;">
+                    <canvas id="creditSignatureCanvas" width="400" height="150" style="width: 100%; display: block; cursor: crosshair; touch-action: none;"></canvas>
+                </div>
+                <button type="button" onclick="clearCreditSignature()" style="margin-top: 0.5rem; background: #78716c; color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.85rem;">נקה חתימה</button>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" id="creditSubmitBtn" onclick="submitCredit()" disabled style="flex: 1; background: #dc2626; color: white; border: none; padding: 0.75rem; border-radius: 0.75rem; font-weight: bold; font-size: 1.1rem; cursor: not-allowed; opacity: 0.5;">
+                    אישור זיכוי
+                </button>
+                <button type="button" onclick="closeCreditPopup()" style="flex: 1; background: #e7e5e4; color: #44403c; border: none; padding: 0.75rem; border-radius: 0.75rem; font-weight: bold; font-size: 1.1rem; cursor: pointer;">
+                    ביטול
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
-        // FORM FIELD LOCKING
+        // FORM FIELD LOCKING & CREDIT LOGIC
         // ============================================================
 
         let personalNumberChecked = false;
@@ -751,6 +800,160 @@
             });
             personalNumberChecked = false;
             existingDataFound = false;
+        }
+
+        // Credit signature
+        let creditHasSignature = false;
+
+        function setupCreditSignatureCanvas() {
+            const creditCanvas = document.getElementById('creditSignatureCanvas');
+            const creditCtx = creditCanvas.getContext('2d');
+            creditCtx.fillStyle = 'white';
+            creditCtx.fillRect(0, 0, creditCanvas.width, creditCanvas.height);
+            creditCtx.strokeStyle = '#000';
+            creditCtx.lineWidth = 2;
+            creditCtx.lineCap = 'round';
+            creditCtx.lineJoin = 'round';
+
+            let drawing = false;
+
+            creditCanvas.addEventListener('mousedown', (e) => {
+                drawing = true;
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.beginPath();
+                creditCtx.moveTo((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+            });
+            creditCanvas.addEventListener('mousemove', (e) => {
+                if (!drawing) return;
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.lineTo((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+                creditCtx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            });
+            creditCanvas.addEventListener('mouseup', () => { drawing = false; });
+            creditCanvas.addEventListener('mouseout', () => { drawing = false; });
+
+            creditCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                drawing = true;
+                const touch = e.touches[0];
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.beginPath();
+                creditCtx.moveTo((touch.clientX - rect.left) * sx, (touch.clientY - rect.top) * sy);
+            }, { passive: false });
+            creditCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!drawing) return;
+                const touch = e.touches[0];
+                const rect = creditCanvas.getBoundingClientRect();
+                const sx = creditCanvas.width / rect.width;
+                const sy = creditCanvas.height / rect.height;
+                creditCtx.lineTo((touch.clientX - rect.left) * sx, (touch.clientY - rect.top) * sy);
+                creditCtx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            }, { passive: false });
+            creditCanvas.addEventListener('touchend', () => { drawing = false; });
+        }
+
+        function clearCreditSignature() {
+            const creditCanvas = document.getElementById('creditSignatureCanvas');
+            const creditCtx = creditCanvas.getContext('2d');
+            creditCtx.fillStyle = 'white';
+            creditCtx.fillRect(0, 0, creditCanvas.width, creditCanvas.height);
+            creditCtx.strokeStyle = '#000';
+            creditCtx.lineWidth = 2;
+            creditCtx.lineCap = 'round';
+            creditCtx.lineJoin = 'round';
+            creditHasSignature = false;
+            updateCreditSubmitState();
+        }
+
+        function updateCreditSubmitState() {
+            const checkbox = document.getElementById('creditConfirmCheckbox');
+            const btn = document.getElementById('creditSubmitBtn');
+            const isValid = checkbox.checked && creditHasSignature;
+            btn.disabled = !isValid;
+            btn.style.opacity = isValid ? '1' : '0.5';
+            btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+        }
+
+        function openCreditPopup() {
+            const pn = document.getElementById('personalNumber').value.trim();
+            if (!pn || !existingDataFound) {
+                alert('יש לבדוק מספר אישי עם נתונים קיימים לפני זיכוי');
+                return;
+            }
+            document.getElementById('creditOverlay').classList.remove('hidden');
+            document.getElementById('creditConfirmCheckbox').checked = false;
+            clearCreditSignature();
+            setupCreditSignatureCanvas();
+            updateCreditSubmitState();
+        }
+
+        function closeCreditPopup() {
+            document.getElementById('creditOverlay').classList.add('hidden');
+        }
+
+        async function submitCredit() {
+            const personalNumber = document.getElementById('personalNumber').value.trim();
+            const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
+
+            const creditBtnEl = document.getElementById('creditSubmitBtn');
+            creditBtnEl.disabled = true;
+            creditBtnEl.textContent = 'מזכה...';
+
+            try {
+                const creditData = {
+                    personalNumber: personalNumber,
+                    creditSignature: creditSignature,
+                    creditBy: authClient.user.username,
+                    creditAt: new Date().toISOString()
+                };
+
+                const postData = new URLSearchParams();
+                postData.append('data', JSON.stringify({
+                    action: 'credit_data',
+                    token: authClient.token,
+                    formType: 'radio',
+                    creditData: creditData
+                }));
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: postData
+                });
+
+                const result = await response.json();
+
+                if (result.statusCode === 200) {
+                    closeCreditPopup();
+                    alert('הזיכוי בוצע בהצלחה! הפריטים הועברו לגיליון זיכויים.');
+                    form.reset();
+                    lockFormFields();
+                    setupCanvas();
+                    hasSignature = false;
+                    checkFormValidity();
+                    existingRecordMessage.classList.add('hidden');
+                    notFoundMessage.classList.add('hidden');
+                } else {
+                    alert('שגיאה בזיכוי: ' + (result.message || 'נסה שוב'));
+                }
+            } catch (error) {
+                console.error('Credit error:', error);
+                alert('שגיאה בזיכוי: ' + error.message);
+            } finally {
+                creditBtnEl.disabled = false;
+                creditBtnEl.textContent = 'אישור זיכוי';
+                updateCreditSubmitState();
+            }
         }
 
     </script>
@@ -882,12 +1085,20 @@
                     existingRecordMessage.classList.remove('hidden');
                     notFoundMessage.classList.add('hidden');
 
+                    if (authClient.hasPermission('manage_users')) {
+                        document.getElementById('creditBtn').disabled = false;
+                    }
+
                     fillFormWithData(result.data);
                     existingRecordMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     checkFormValidity();
                 } else {
                     unlockFormFields();
                     existingDataFound = false;
+
+                    if (document.getElementById('creditBtn')) {
+                        document.getElementById('creditBtn').disabled = true;
+                    }
 
                     existingRecordMessage.classList.add('hidden');
                     notFoundMessage.classList.remove('hidden');
@@ -1291,6 +1502,11 @@
 
             // Re-lock form fields
             lockFormFields();
+
+            // Disable credit button
+            if (document.getElementById('creditBtn')) {
+                document.getElementById('creditBtn').disabled = true;
+            }
 
             checkFormValidity();
             successContainer.classList.add('hidden');

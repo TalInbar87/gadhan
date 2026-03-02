@@ -86,6 +86,7 @@ function doPost(e) {
       case 'credit_data':    return handleCreditData(data, e);
       case 'partial_credit': return handlePartialCredit(data, e);
       case 'transfer_items': return handleTransferItems(data, e);
+      case 'get_audit_log':  return handleGetAuditLog(data, e);
       default:               return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -417,6 +418,52 @@ function handleTransferItems(data, request) {
     return createResponse(200, 'Transfer completed successfully', null);
   }
   return createResponse(500, result.error || 'Transfer failed', null);
+}
+
+/**
+ * יומן ביקורת - מנהלים בלבד
+ */
+function handleGetAuditLog(data, request) {
+  const { token, limit } = data;
+
+  const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (payload.role !== 'admin') return createResponse(403, 'Only admins can view audit log', null);
+
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SHEETS.AUDIT_LOG);
+    const sheet = ss.getSheetByName('Audit Log');
+    if (!sheet) return createResponse(200, 'No audit data', { entries: [] });
+
+    const rows = sheet.getDataRange().getValues();
+    const entries = [];
+
+    for (let i = 1; i < rows.length; i++) {
+      entries.push({
+        timestamp:      rows[i][0] ? new Date(rows[i][0]).toISOString() : '',
+        username:       rows[i][1] || '',
+        action:         rows[i][2] || '',
+        resource:       rows[i][3] || '',
+        personalNumber: rows[i][4] || '',
+        details:        rows[i][5] || '',
+        ip:             rows[i][6] || ''
+      });
+    }
+
+    // החדש ביותר קודם
+    entries.reverse();
+
+    // הגבלת כמות רשומות (ברירת מחדל 500)
+    const maxEntries = limit || 500;
+    const limited = entries.slice(0, maxEntries);
+
+    AuditLogger.log(payload.username, 'AUDIT_LOG_READ', 'AUDIT', null, { count: limited.length }, request);
+    return createResponse(200, 'Audit log retrieved', { entries: limited });
+
+  } catch (e) {
+    Logger.log('❌ getAuditLog error: ' + e);
+    return createResponse(500, 'Error reading audit log: ' + e.toString(), null);
+  }
 }
 
 // ================================================================
