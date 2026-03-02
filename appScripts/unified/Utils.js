@@ -68,10 +68,11 @@ function parsePostData(e) {
     } catch (_) {}
 
     // Method 1b: URL-encoded (data=%7B%22action%22...)
+    // Note: URLSearchParams encodes spaces as '+', decodeURIComponent alone doesn't handle that
     try {
       const raw = e.postData.contents;
       const val = raw.startsWith('data=') ? raw.slice(5) : raw;
-      const d = JSON.parse(decodeURIComponent(val));
+      const d = JSON.parse(decodeURIComponent(val.replace(/\+/g, ' ')));
       Logger.log('📦 Parsed: URL-encoded body');
       return d;
     } catch (_) {}
@@ -80,7 +81,7 @@ function parsePostData(e) {
   // Method 2: e.parameter.data
   if (e.parameter && e.parameter.data) {
     try {
-      const d = JSON.parse(decodeURIComponent(e.parameter.data));
+      const d = JSON.parse(decodeURIComponent(e.parameter.data.replace(/\+/g, ' ')));
       Logger.log('📦 Parsed: parameter.data');
       return d;
     } catch (_) {}
@@ -89,7 +90,7 @@ function parsePostData(e) {
   // Method 3: e.parameters.data[0]
   if (e.parameters && e.parameters.data && e.parameters.data[0]) {
     try {
-      const d = JSON.parse(decodeURIComponent(e.parameters.data[0]));
+      const d = JSON.parse(decodeURIComponent(e.parameters.data[0].replace(/\+/g, ' ')));
       Logger.log('📦 Parsed: parameters.data[0]');
       return d;
     } catch (_) {}
