@@ -3,6 +3,12 @@
 # init.sh — אשף התקנה אינטראקטיבי
 # מדריך את המשתמש שלב אחר שלב בהגדרת המערכת
 # ================================================================
+# דרישות:
+#   Mac/Linux  — הרץ ישירות: bash init.sh
+#   Windows    — התקן Git for Windows ואז הרץ ב-Git Bash:
+#                https://git-scm.com/download/win
+#                לחץ ימני על התיקייה → "Git Bash Here" → bash init.sh
+# ================================================================
 
 set -e
 
@@ -99,6 +105,11 @@ echo -e "    8️⃣  הגדרת Hosting"
 echo ""
 echo -e "  ${YELLOW}⏱️  זמן משוער: כ-10-15 דקות${NC}"
 echo ""
+# זיהוי Windows
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+  echo -e "  ${YELLOW}💻 Windows זוהה — אתה רץ ב-Git Bash. מצוין!${NC}"
+fi
+echo ""
 
 if ! confirm "האם אתה מוכן להתחיל?"; then
   echo ""
@@ -124,6 +135,17 @@ if command -v node &>/dev/null; then
   print_success "Node.js מותקן ($(node --version))"
 else
   print_error "Node.js לא מותקן. התקן אותו מ: https://nodejs.org"
+  exit 1
+fi
+
+# python3
+if command -v python3 &>/dev/null; then
+  print_success "Python3 מותקן ($(python3 --version))"
+else
+  print_error "Python3 לא מותקן. התקן אותו מ: https://www.python.org/downloads"
+  if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    print_info "Windows: הורד Python מ-https://python.org ⚠️ סמן 'Add Python to PATH'"
+  fi
   exit 1
 fi
 
