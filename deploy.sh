@@ -55,12 +55,20 @@ bash build.sh
 echo "🔍 Checking for GAS changes..."
 
 GAS_CHANGED=false
+# בדוק שינויים בקבצים מוטרקים
 if ! git -C "$REPO_DIR" diff --quiet appScripts/unified/ 2>/dev/null; then
   GAS_CHANGED=true
 fi
 if git -C "$REPO_DIR" diff --cached --name-only | grep -q "^appScripts/unified/"; then
   GAS_CHANGED=true
 fi
+# בדוק שינויים ב-Config.js (gitignored) — השווה לפלייסהולדרים
+if grep -q "YOUR_" "$GAS_CONFIG_JS" 2>/dev/null; then
+  echo "⚠️  Config.js עדיין מכיל placeholders — הרץ init.sh תחילה"
+  exit 1
+fi
+# Config.js תמיד נוזרק ונדחף — ייתכן שהוא שונה
+GAS_CHANGED=true
 
 if [ "$GAS_CHANGED" = false ]; then
   echo "✅ No GAS changes — skipping clasp"
