@@ -468,6 +468,9 @@ function radio_handlePartialCredit(data) {
     return (typeof i === 'object') ? i.label + ': ' + i.value : i;
   }).join(', ');
 
+  // מצא את שורת הנתונים המקורית (לפני האיפוס) לשליחת המייל
+  var rowData = allData[foundRow - 1];
+
   partialSheet.appendRow([
     personalNumber,
     creditAt || new Date().toISOString(),
@@ -475,6 +478,77 @@ function radio_handlePartialCredit(data) {
     creditBy || 'unknown'
   ]);
 
+  // שלח מייל אישור זיכוי חלקי עם PDF
+  try {
+    var email    = rowData[4]; // עמודה E
+    var fullName = rowData[2]; // עמודה C
+    var unit     = rowData[5]; // עמודה F
+    if (email) {
+      var ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+      var html = radio_createPartialCreditPdfHtml(rowData, itemsArr, creditBy, data.creditSignature, ts);
+      var blob = Utilities.newBlob(html, 'text/html', 'partial_credit_radio.html');
+      var pdf  = blob.getAs('application/pdf');
+      pdf.setName('אישור_זיכוי_חלקי_קשר_' + personalNumber + '_' + Date.now() + '.pdf');
+      MailApp.sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי חלקי ציוד קשר - ' + fullName,
+        body:    'שלום ' + fullName + ',\n\n' +
+                 'הציוד הבא זוכה ממשקך:\n' + itemsStr + '\n\n' +
+                 'מספר אישי: ' + personalNumber + '\n' +
+                 (unit ? 'מסגרת: ' + unit + '\n' : '') +
+                 'בוצע על ידי: ' + (creditBy || 'לא ידוע') + '\n' +
+                 'תאריך: ' + ts + '\n\n' +
+                 'מצורף אישור PDF מפורט.\n\n' +
+                 'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
+        attachments: [pdf]
+      });
+      Logger.log('✅ [Radio] Partial credit email sent to: ' + email);
+    }
+  } catch (emailErr) {
+    Logger.log('⚠️ [Radio] Partial credit email failed: ' + emailErr);
+  }
+
   Logger.log('✅ [Radio] Partial credit saved for: ' + personalNumber);
   return { success: true, message: 'Partial credit completed' };
+}
+
+function radio_createPartialCreditPdfHtml(rowData, itemsArr, creditBy, creditSignature, ts) {
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  var itemRows = itemsArr.map(function(i) {
+    var label = (typeof i === 'object') ? i.label : i;
+    var val   = (typeof i === 'object') ? i.value : '';
+    return f(label, val || 'זוכה');
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #1e40af; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.header p { font-size: 14px; opacity: 0.9; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #1e40af; }' +
+    '.field-value { flex: 1; }' +
+    '.section-title { font-weight: bold; color: #1e40af; margin: 12px 0 6px; font-size: 14px; }' +
+    '.sig { margin-top: 20px; text-align: center; }' +
+    '.sig img { max-width: 250px; border: 1px solid #ccc; padding: 3px; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>✓ אישור זיכוי חלקי ציוד קשר</h1>' +
+    '<p>מערכת ניהול מכשירי קשר - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך זיכוי', ts) +
+    f('שם מלא',      rowData[2]) +
+    f('מספר אישי',   String(rowData[0])) +
+    f('מסגרת',       rowData[5]) +
+    '<div class="section-title">פריטים שזוכו:</div>' +
+    itemRows +
+    f('זוכה על ידי', creditBy || '') +
+    '</div>' +
+    (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
 }
