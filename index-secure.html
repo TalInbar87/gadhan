@@ -392,7 +392,7 @@
             const user = authClient.user;
             
             // Display user info
-            document.getElementById('userName').textContent = user.fullName || user.username;
+            document.getElementById('userName').textContent = (user.fullName || user.username).replace(/\+/g, ' ');
             document.getElementById('userRole').textContent = getRoleDisplayName(user.role);
             
             // Set up permissions

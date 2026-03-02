@@ -685,7 +685,7 @@
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 24px;">👤</span>
                         <div>
-                            <div style="font-weight: bold; color: #15803d; font-size: 16px;">${user.fullName || user.username}</div>
+                            <div style="font-weight: bold; color: #15803d; font-size: 16px;">${(user.fullName || user.username).replace(/\+/g, ' ')}</div>
                             <div style="opacity: 0.7; font-size: 13px; color: #166534;">🔒 חיבור מאובטח</div>
                         </div>
                     </div>
