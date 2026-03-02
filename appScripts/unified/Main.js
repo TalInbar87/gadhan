@@ -186,7 +186,8 @@ function handleSubmitData(data, request) {
   }
 
   AuditLogger.log(payload.username, 'DATA_SUBMITTED', formType,
-                 decryptedData.personalNumber, { action: 'submit' }, request);
+                 decryptedData.personalNumber,
+                 { signedBy: payload.fullName || payload.username }, request);
 
   return createResponse(200, 'Data submitted successfully', {
     submittedBy: payload.username,

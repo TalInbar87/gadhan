@@ -17,7 +17,8 @@
 class JWTUtil {
 
   static base64UrlEncode(str) {
-    return Utilities.base64Encode(str)
+    // שימוש ב-Blob כדי להבטיח קידוד UTF-8 נכון לתווים עבריים
+    return Utilities.base64Encode(Utilities.newBlob(str, MimeType.TEXT_PLAIN).getBytes())
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 

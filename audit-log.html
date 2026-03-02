@@ -318,7 +318,7 @@
                         ${formatDateTime(entry.timestamp)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium text-gray-900">${(entry.username || '').replace(/\+/g, ' ')}</span>
+                        <span class="text-sm font-medium text-gray-900">${((entry.action === 'DATA_SUBMITTED' && entry.details && entry.details.signedBy) ? entry.details.signedBy : (entry.username || '')).replace(/\+/g, ' ')}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs font-bold rounded-full ${action.bg} ${action.text}">${action.label}</span>
@@ -410,7 +410,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-bold text-gray-600">משתמש</p>
-                            <p class="text-gray-900">${(entry.username || '').replace(/\+/g, ' ')}</p>
+                            <p class="text-gray-900">${((entry.action === 'DATA_SUBMITTED' && entry.details && entry.details.signedBy) ? entry.details.signedBy : (entry.username || '')).replace(/\+/g, ' ')}</p>
                         </div>
                         <div>
                             <p class="text-sm font-bold text-gray-600">פעולה</p>
