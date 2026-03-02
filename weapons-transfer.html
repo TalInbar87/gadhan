@@ -443,7 +443,7 @@
                     const row = document.createElement('label');
                     row.className = 'item-row';
                     row.innerHTML = `
-                        <input type="checkbox" class="item-checkbox" data-key="${def.key}" onchange="onItemCheckChange()" />
+                        <input type="checkbox" class="item-checkbox" data-key="${def.key}" data-label="${def.label}" data-value="${val}" onchange="onItemCheckChange()" />
                         <span class="font-bold text-stone-700">${def.label}</span>
                         <span class="text-stone-500 mr-auto text-sm">${val}</span>
                     `;
@@ -470,6 +470,22 @@
 
         function getSelectedKeys() {
             return [...document.querySelectorAll('.item-checkbox:checked')].map(cb => cb.dataset.key);
+        }
+
+        function getSelectedItemsWithValues() {
+            return [...document.querySelectorAll('.item-checkbox:checked')].map(cb => ({
+                key:   cb.dataset.key,
+                label: cb.dataset.label,
+                value: cb.dataset.value
+            }));
+        }
+
+        function getAllItemsWithValues() {
+            return [...document.querySelectorAll('.item-checkbox')].map(cb => ({
+                key:   cb.dataset.key,
+                label: cb.dataset.label,
+                value: cb.dataset.value
+            }));
         }
 
         // ============================================================
@@ -624,6 +640,7 @@
                     creditData: {
                         personalNumber,
                         selectedItems,
+                        itemsWithValues: isFullCredit ? getAllItemsWithValues() : getSelectedItemsWithValues(),
                         creditSignature,
                         creditBy: authClient.user.username,
                         creditAt: new Date().toISOString()

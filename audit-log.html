@@ -301,18 +301,23 @@
             compass: 'מצפן', zayin: 'ציין', pak: 'פק', matol: 'מטול'
         };
 
+        function formatItems(items) {
+            if (!items || items.length === 0) return 'כל הפריטים';
+            return items.map(item => {
+                if (typeof item === 'object' && item.label) {
+                    return item.value ? item.label + ': ' + item.value : item.label;
+                }
+                return WEAPONS_KEY_LABELS[item] || item;
+            }).join(', ');
+        }
+
         function getEntryDetailsSummary(entry, action) {
             if (!action) return '';
             const parts = [];
             if (entry.personalNumber) parts.push('מ.א: ' + entry.personalNumber);
             if (action.key === 'credit') {
                 const items = entry.details && entry.details.items;
-                if (items && items.length > 0) {
-                    const labels = items.map(k => WEAPONS_KEY_LABELS[k] || k);
-                    parts.push('פריטים: ' + labels.join(', '));
-                } else if (entry.action === 'DATA_CREDITED') {
-                    parts.push('כל הפריטים');
-                }
+                parts.push('פריטים: ' + formatItems(items));
             }
             return parts.join(' | ');
         }
@@ -447,11 +452,7 @@
                         </div>` : ''}
                         ${(action && action.key === 'credit') ? `<div class="col-span-2">
                             <p class="text-sm font-bold text-gray-600">פריטים שזוכו</p>
-                            <p class="text-gray-900">${
-                                (entry.details && entry.details.items && entry.details.items.length > 0)
-                                    ? entry.details.items.map(k => WEAPONS_KEY_LABELS[k] || k).join(', ')
-                                    : 'כל הפריטים'
-                            }</p>
+                            <p class="text-gray-900">${formatItems(entry.details && entry.details.items)}</p>
                         </div>` : ''}
                     </div>
                 </div>
