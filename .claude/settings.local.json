@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(clasp push:*)",
+      "Bash(clasp deployments:*)",
+      "Bash(clasp versions:*)",
+      "Bash(clasp version:*)",
+      "Bash(clasp deploy:*)",
+      "Bash(git add weapons-transfer.html)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin claude/amazing-goodall)",
+      "Bash(gh pr:*)",
+      "Bash(git add weapons-transfer.html weapons-checkout-secure.html radio-checkout-secure.html index-secure.html index.html user-management.html audit-log.html)",
+      "Bash(git push)",
+      "Bash(git add index-secure.html weapons-transfer.html)",
+      "Bash(git add appScripts/permissions/Code.js appScripts/files/permissionsAppScript-clean.js)",
+      "Bash(git add -A)",
+      "Bash(git restore --staged .claude/settings.local.json)",
+      "Bash(git add appScripts/unified/)",
+      "Bash(grep -n \"API_URL\\\\s*=\" /Users/talinbar/Desktop/gadhan/.claude/worktrees/amazing-goodall/*.html)",
+      "Bash(git add audit-log.html weapons-checkout-secure.html index-secure.html user-management.html weapons-transfer.html radio-checkout-secure.html index.html)",
+      "Bash(git remote get-url origin)",
+      "Bash(git add radio-checkout-secure.html)",
+      "Bash(git push origin claude/amazing-goodall)",
+      "Bash(git -C /Users/talinbar/Desktop/gadhan/.claude/worktrees/amazing-goodall add appScripts/unified/Weapons.js appScripts/unified/Radio.js)",
+      "Bash(git -C:*)",
+      "Bash(git -C /Users/talinbar/Desktop/gadhan/.claude/worktrees/amazing-goodall push origin claude/amazing-goodall)",
+      "Bash(git add user-management.html index-secure.html audit-log.html index.html weapons-transfer.html radio-checkout-secure.html weapons-checkout-secure.html)",
+      "Bash(git add appScripts/unified/Weapons.js weapons-checkout-secure.html)",
+      "Bash(brew install gh)",
+      "Bash(/opt/homebrew/bin/gh pr:*)",
+      "Bash(/opt/homebrew/bin/gh auth status)",
+      "Bash(git add appScripts/unified/Weapons.js appScripts/unified/Radio.js index-secure.html)",
+      "Bash(python3 -c \":*)",
+      "Bash(ls /Users/talinbar/Desktop/gadhan/.claude/worktrees/amazing-goodall/.*)"
+    ]
+  }
+}

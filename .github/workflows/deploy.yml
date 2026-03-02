@@ -1,0 +1,78 @@
+name: Deploy to Google Apps Script
+
+# מתי להריץ
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'appScripts/**'
+  workflow_dispatch: # אפשר להריץ ידנית
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Clone הפרויקט
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      # 2. Setup Node.js
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      # 3. התקנת clasp
+      - name: 📦 Install clasp
+        run: npm install -g @google/clasp@latest
+      
+      # 4. הגדרת credentials
+      - name: 🔐 Setup clasp credentials
+        run: |
+          mkdir -p ~/.config/clasp
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          
+          # Debug - show what we got (without sensitive data)
+          echo "Credential file created"
+          
+          # Try to extract and validate the format
+          if grep -q "tokens" ~/.clasprc.json; then
+            echo "New clasp format detected"
+          else
+            echo "Old clasp format detected"
+          fi
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      
+      # 5. Deploy Permissions Script
+      - name: 🔒 Deploy Permissions Script
+        run: |
+          cd appScripts/permissions
+          clasp push -f
+          clasp deploy --description "Auto deploy $(date)"
+        continue-on-error: true
+      
+      # 6. Deploy Weapons Script
+      - name: 🔫 Deploy Weapons Script
+        run: |
+          cd appScripts/weapons
+          clasp push -f
+          clasp deploy --description "Auto deploy $(date)"
+        continue-on-error: true
+      
+      # 7. Deploy Radio Script
+      - name: 📡 Deploy Radio Script
+        run: |
+          cd appScripts/radio
+          clasp push -f
+          clasp deploy --description "Auto deploy $(date)"
+        continue-on-error: true
+      
+      # 8. סיכום
+      - name: ✅ Deployment Summary
+        run: |
+          echo "🎉 Deployment completed!"
+          echo "📅 Date: $(date)"
+          echo "🌿 Branch: ${{ github.ref }}"
+          echo "👤 Triggered by: ${{ github.actor }}"

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>העברת/זיכוי ציוד - ניהול נשקים</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Heebo', sans-serif; }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #e7e5e4;
+            background: #fafaf9;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .item-row:hover { border-color: #a8a29e; background: #f5f5f4; }
+        .item-row.selected { border-color: #d97706; background: #fffbeb; }
+
+        .item-checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: #d97706;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active-credit {
+            background: #dc2626;
+            color: white;
+        }
+        .mode-btn.active-transfer {
+            background: #1d4ed8;
+            color: white;
+        }
+        .mode-btn.inactive {
+            background: #e7e5e4;
+            color: #78716c;
+        }
+        .mode-btn:hover.inactive { background: #d6d3d1; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-stone-100 to-stone-200 min-h-screen">
+    <script src="config.js"></script>
+    <script src="auth-client.js"></script>
+
+    <div id="pageContainer" class="py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+
+            <!-- Header -->
+            <div class="text-center mb-8 fade-in">
+                <div class="inline-block bg-amber-700 text-white px-6 py-3 rounded-t-2xl shadow-lg">
+                    <h1 class="text-3xl font-bold tracking-wide">העברת/זיכוי ציוד</h1>
+                </div>
+                <div class="bg-white rounded-b-2xl shadow-lg p-4 border-t-4 border-amber-600">
+                    <p class="text-stone-600 text-lg">ניהול נשקים — מנהלים בלבד</p>
+                </div>
+            </div>
+
+            <!-- Main Card -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8 space-y-6 fade-in" style="animation-delay: 0.1s">
+
+                <!-- Source person lookup -->
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-6 space-y-4">
+                    <label for="sourcePersonalNumber" class="block text-stone-700 font-bold text-lg">
+                        מספר אישי <span class="text-red-600">*</span>
+                    </label>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            id="sourcePersonalNumber"
+                            maxlength="7"
+                            inputmode="numeric"
+                            class="flex-1 px-4 py-3 text-lg border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-600"
+                            placeholder="7 ספרות"
+                        />
+                        <button
+                            type="button"
+                            id="importBtn"
+                            disabled
+                            class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none whitespace-nowrap sm:w-auto w-full"
+                        >
+                            ייבא
+                        </button>
+                    </div>
+
+                    <!-- Status messages -->
+                    <div id="importStatusError" class="hidden bg-red-50 border-2 border-red-300 rounded-lg p-3">
+                        <p class="text-red-700 font-bold text-sm" id="importErrorMessage">שגיאה</p>
+                    </div>
+                    <div id="importStatusNotFound" class="hidden bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3">
+                        <p class="text-yellow-700 font-bold text-sm">מספר אישי זה לא נמצא במערכת</p>
+                    </div>
+                </div>
+
+                <!-- Items section (shown after import) -->
+                <div id="itemsSection" class="hidden space-y-4 fade-in">
+
+                    <!-- Person info banner -->
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-wrap gap-4">
+                        <div>
+                            <span class="text-stone-500 text-sm">שם מלא</span>
+                            <p id="personName" class="font-bold text-stone-800 text-lg"></p>
+                        </div>
+                        <div>
+                            <span class="text-stone-500 text-sm">מסגרת</span>
+                            <p id="personUnit" class="font-bold text-stone-800 text-lg"></p>
+                        </div>
+                        <div>
+                            <span class="text-stone-500 text-sm">מספר אישי</span>
+                            <p id="personPN" class="font-bold text-stone-800 text-lg"></p>
+                        </div>
+                    </div>
+
+                    <!-- No items message -->
+                    <div id="noItemsMsg" class="hidden bg-stone-50 border-2 border-stone-200 rounded-xl p-6 text-center">
+                        <p class="text-stone-500 font-bold">לא נמצאו פריטים לחייל זה</p>
+                    </div>
+
+                    <!-- Items list -->
+                    <div id="itemsList" class="space-y-2"></div>
+
+                    <!-- Select all / clear -->
+                    <div id="selectionControls" class="hidden flex gap-2 pt-1">
+                        <button
+                            type="button"
+                            id="selectAllBtn"
+                            class="px-4 py-2 bg-stone-600 hover:bg-stone-700 text-white text-sm font-bold rounded-lg transition-all"
+                        >
+                            בחר הכל
+                        </button>
+                        <button
+                            type="button"
+                            id="clearSelectionBtn"
+                            class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 text-sm font-bold rounded-lg transition-all"
+                        >
+                            נקה בחירה
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="border-t-2 border-stone-200"></div>
+
+                    <!-- Action mode toggle -->
+                    <div id="actionSection">
+                        <p class="text-stone-700 font-bold text-lg mb-3">פעולה על הפריטים הנבחרים:</p>
+                        <div class="flex rounded-xl overflow-hidden border-2 border-stone-300">
+                            <button type="button" id="modeCreditBtn" class="mode-btn active-credit" onclick="setMode('credit')">זיכוי</button>
+                            <button type="button" id="modeTransferBtn" class="mode-btn inactive" onclick="setMode('transfer')">העברה</button>
+                        </div>
+
+                        <!-- Credit section -->
+                        <div id="creditSection" class="mt-5 space-y-4">
+                            <p class="text-stone-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
+                                <strong>שים לב:</strong> זיכוי יסיר את הפריטים הנבחרים מחייל זה ויעביר אותם לגיליון הזיכויים.
+                            </p>
+
+                            <label class="flex items-center gap-3 cursor-pointer p-3 bg-stone-50 rounded-xl border border-stone-200">
+                                <input
+                                    type="checkbox"
+                                    id="creditConfirmCheckbox"
+                                    class="w-5 h-5"
+                                    style="accent-color: #dc2626;"
+                                    onchange="updateCreditSubmitState()"
+                                />
+                                <span class="font-bold text-stone-800">אני מאשר/ת זיכוי פריטים אלה</span>
+                            </label>
+
+                            <div>
+                                <label class="block font-bold text-stone-700 mb-2">חתימת מאשר:</label>
+                                <div class="border-2 border-stone-300 rounded-xl overflow-hidden bg-white" style="touch-action: none; -webkit-user-select: none; user-select: none;">
+                                    <canvas
+                                        id="creditSignatureCanvas"
+                                        width="600"
+                                        height="160"
+                                        class="w-full cursor-crosshair max-w-full"
+                                        style="display: block; touch-action: none;"
+                                    ></canvas>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="clearCreditSignature()"
+                                    class="mt-2 px-4 py-2 bg-stone-500 hover:bg-stone-600 text-white text-sm rounded-lg transition-all"
+                                >
+                                    נקה חתימה
+                                </button>
+                            </div>
+
+                            <button
+                                type="button"
+                                id="submitCreditBtn"
+                                disabled
+                                onclick="submitCredit()"
+                                class="w-full py-4 bg-red-600 text-white font-bold text-xl rounded-xl transition-all shadow-lg"
+                                style="opacity: 0.5; cursor: not-allowed;"
+                            >
+                                אישור זיכוי
+                            </button>
+                        </div>
+
+                        <!-- Transfer section -->
+                        <div id="transferSection" class="hidden mt-5 space-y-4">
+                            <p class="text-stone-600 text-sm bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <strong>שים לב:</strong> ההעברה תסיר את הפריטים הנבחרים מחייל המקור ותוסיף אותם לחייל היעד.
+                            </p>
+
+                            <div>
+                                <label for="targetPersonalNumber" class="block text-stone-700 font-bold mb-2 text-lg">
+                                    מספר אישי להעברה <span class="text-red-600">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="targetPersonalNumber"
+                                    maxlength="7"
+                                    inputmode="numeric"
+                                    class="w-full px-4 py-3 text-lg border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                                    placeholder="7 ספרות"
+                                />
+                                <p id="targetErrorMsg" class="hidden text-red-600 text-sm mt-2 font-semibold"></p>
+                            </div>
+
+                            <button
+                                type="button"
+                                id="submitTransferBtn"
+                                onclick="submitTransfer()"
+                                class="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xl rounded-xl transition-all shadow-lg transform hover:scale-105"
+                            >
+                                העברה
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-8 text-stone-500 text-sm fade-in" style="animation-delay: 0.2s">
+                <p>ניהול העברת ציוד — מנהלים בלבד</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+
+        const FORM_TYPE = 'weapons';
+
+        // State
+        let currentSourceData = null;
+        let currentMode = 'credit';
+        let creditHasSignature = false;
+
+        // ============================================================
+        // AUTHENTICATION (Admin only)
+        // ============================================================
+
+        const authClient = new SecureAuthClient(API_URL);
+        const authGuard = new AuthGuard(authClient, 'manage_users');
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.body.insertAdjacentHTML('afterbegin', `
+                <div id="authLoadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                    <div style="text-align: center; color: white;">
+                        <div style="width: 50px; height: 50px; border: 5px solid rgba(217, 119, 6, 0.3); border-top-color: #d97706; border-radius: 50%; animation: authSpin 1s linear infinite; margin: 0 auto 20px;"></div>
+                        <p style="font-size: 18px; font-weight: bold;">מאמת זהות...</p>
+                    </div>
+                </div>
+                <style>@keyframes authSpin { to { transform: rotate(360deg); } }</style>
+            `);
+
+            const isAuthenticated = await authGuard.checkAuth();
+            if (isAuthenticated) {
+                document.getElementById('authLoadingOverlay').remove();
+                displayUserInfo();
+                setupSignatureCanvas();
+            }
+        });
+
+        function displayUserInfo() {
+            const user = authClient.user;
+            const container = document.querySelector('#pageContainer .max-w-2xl');
+            container.insertAdjacentHTML('afterbegin', `
+                <div style="background: rgba(217,119,6,0.1); padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border: 2px solid rgba(217,119,6,0.3);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">🔐</span>
+                        <div>
+                            <div style="font-weight: bold; color: #92400e; font-size: 16px;">${user.fullName || user.username}</div>
+                            <div style="opacity: 0.7; font-size: 13px; color: #78350f;">מנהל מערכת</div>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" style="background: #dc2626; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                        התנתק
+                    </button>
+                </div>
+            `);
+        }
+
+        async function handleLogout() {
+            if (confirm('האם אתה בטוח שברצונך להתנתק?')) {
+                await authClient.logout();
+            }
+        }
+
+        // ============================================================
+        // IMPORT FUNCTIONALITY
+        // ============================================================
+
+        const sourceInput = document.getElementById('sourcePersonalNumber');
+        const importBtn = document.getElementById('importBtn');
+
+        sourceInput.addEventListener('input', () => {
+            const val = sourceInput.value.trim();
+            importBtn.disabled = val.length !== 7 || !/^\d{7}$/.test(val);
+            // Reset if user changes the input after import
+            if (currentSourceData) {
+                resetImport();
+            }
+        });
+
+        importBtn.addEventListener('click', async () => {
+            const pn = sourceInput.value.trim();
+            hideImportStatus();
+
+            importBtn.disabled = true;
+            importBtn.textContent = '⏳ מייבא...';
+
+            try {
+                const result = await authClient.getExistingData(pn, FORM_TYPE);
+
+                if (result.success && result.data) {
+                    currentSourceData = result.data;
+                    showItemsSection(result.data);
+                } else if (result.success && !result.data) {
+                    showImportStatus('notFound');
+                } else {
+                    showImportStatus('error', result.error || 'שגיאה בייבוא נתונים');
+                }
+            } catch (err) {
+                console.error('Import error:', err);
+                showImportStatus('error', 'שגיאה בייבוא: ' + (err.message || 'נסה שוב'));
+            } finally {
+                importBtn.disabled = false;
+                importBtn.textContent = 'ייבא';
+            }
+        });
+
+        function hideImportStatus() {
+            document.getElementById('importStatusError').classList.add('hidden');
+            document.getElementById('importStatusNotFound').classList.add('hidden');
+        }
+
+        function showImportStatus(type, message) {
+            if (type === 'error') {
+                document.getElementById('importErrorMessage').textContent = message;
+                document.getElementById('importStatusError').classList.remove('hidden');
+            } else if (type === 'notFound') {
+                document.getElementById('importStatusNotFound').classList.remove('hidden');
+            }
+        }
+
+        function resetImport() {
+            currentSourceData = null;
+            document.getElementById('itemsSection').classList.add('hidden');
+            document.getElementById('itemsList').innerHTML = '';
+            hideImportStatus();
+        }
+
+        // ============================================================
+        // BUILD ITEMS LIST
+        // ============================================================
+
+        const ITEM_DEFINITIONS = [
+            { key: 'weapon',     label: 'נשק',      getValue: d => [d.weaponType, d.weaponNumber].filter(Boolean).join(' | ') },
+            { key: 'trig',       label: "טריג׳",    getValue: d => d.trig },
+            { key: 'lior',       label: 'ליאור',    getValue: d => d.lior },
+            { key: 'pagion',     label: 'פגיון',    getValue: d => d.pagion },
+            { key: 'zavon',      label: 'זאבון',    getValue: d => d.zavon },
+            { key: 'm5',         label: 'M5',        getValue: d => d.m5 },
+            { key: 'shacha',     label: 'שח"ע',     getValue: d => d.shacha },
+            { key: 'achbar',     label: 'עכבר',     getValue: d => d.achbar },
+            { key: 'adi',        label: 'עדי',      getValue: d => d.adi },
+            { key: 'ido',        label: 'עידו',     getValue: d => d.ido },
+            { key: 'kiro',       label: 'קירו',     getValue: d => d.kiro },
+            { key: 'binoculars', label: 'משקפה',    getValue: d => d.binoculars ? 'יש' : null },
+            { key: 'compass',    label: 'מצפן',     getValue: d => d.compass ? 'יש' : null },
+            { key: 'zayin',      label: 'ציין',     getValue: d => d.zayin },
+            { key: 'pak',        label: 'פק',       getValue: d => d.pak },
+            { key: 'matol',      label: 'מטול',     getValue: d => d.matol },
+        ];
+
+        function showItemsSection(data) {
+            document.getElementById('personName').textContent = data.fullName || '—';
+            document.getElementById('personUnit').textContent = data.unit || '—';
+            document.getElementById('personPN').textContent = data.personalNumber || sourceInput.value.trim();
+
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+
+            const availableItems = ITEM_DEFINITIONS.filter(def => {
+                const val = def.getValue(data);
+                return val !== null && val !== undefined && val !== '' && val !== false;
+            });
+
+            if (availableItems.length === 0) {
+                document.getElementById('noItemsMsg').classList.remove('hidden');
+                document.getElementById('selectionControls').classList.add('hidden');
+                document.getElementById('actionSection').classList.add('hidden');
+            } else {
+                document.getElementById('noItemsMsg').classList.add('hidden');
+                document.getElementById('selectionControls').classList.remove('hidden');
+                document.getElementById('actionSection').classList.remove('hidden');
+
+                availableItems.forEach(def => {
+                    const val = def.getValue(data);
+                    const row = document.createElement('label');
+                    row.className = 'item-row';
+                    row.innerHTML = `
+                        <input type="checkbox" class="item-checkbox" data-key="${def.key}" onchange="onItemCheckChange()" />
+                        <span class="font-bold text-stone-700">${def.label}</span>
+                        <span class="text-stone-500 mr-auto text-sm">${val}</span>
+                    `;
+                    itemsList.appendChild(row);
+
+                    const checkbox = row.querySelector('input[type=checkbox]');
+                    checkbox.addEventListener('change', () => {
+                        row.classList.toggle('selected', checkbox.checked);
+                    });
+                });
+            }
+
+            document.getElementById('itemsSection').classList.remove('hidden');
+            document.getElementById('itemsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Reset action state
+            setMode('credit');
+            resetCreditSection();
+        }
+
+        function onItemCheckChange() {
+            updateCreditSubmitState();
+        }
+
+        function getSelectedKeys() {
+            return [...document.querySelectorAll('.item-checkbox:checked')].map(cb => cb.dataset.key);
+        }
+
+        // ============================================================
+        // SELECT ALL / CLEAR
+        // ============================================================
+
+        document.getElementById('selectAllBtn').addEventListener('click', () => {
+            document.querySelectorAll('.item-checkbox').forEach(cb => {
+                cb.checked = true;
+                cb.closest('label').classList.add('selected');
+            });
+            updateCreditSubmitState();
+        });
+
+        document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+            document.querySelectorAll('.item-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.closest('label').classList.remove('selected');
+            });
+            updateCreditSubmitState();
+        });
+
+        // ============================================================
+        // MODE TOGGLE
+        // ============================================================
+
+        function setMode(mode) {
+            currentMode = mode;
+            const creditBtn = document.getElementById('modeCreditBtn');
+            const transferBtn = document.getElementById('modeTransferBtn');
+            const creditSection = document.getElementById('creditSection');
+            const transferSection = document.getElementById('transferSection');
+
+            if (mode === 'credit') {
+                creditBtn.className = 'mode-btn active-credit';
+                transferBtn.className = 'mode-btn inactive';
+                creditSection.classList.remove('hidden');
+                transferSection.classList.add('hidden');
+            } else {
+                creditBtn.className = 'mode-btn inactive';
+                transferBtn.className = 'mode-btn active-transfer';
+                creditSection.classList.add('hidden');
+                transferSection.classList.remove('hidden');
+            }
+        }
+
+        // ============================================================
+        // CREDIT (ZIKUI) FUNCTIONALITY
+        // ============================================================
+
+        function setupSignatureCanvas() {
+            const canvas = document.getElementById('creditSignatureCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            let drawing = false;
+
+            const getPos = (e, rect) => {
+                const sx = canvas.width / rect.width;
+                const sy = canvas.height / rect.height;
+                const src = e.touches ? e.touches[0] : e;
+                return [(src.clientX - rect.left) * sx, (src.clientY - rect.top) * sy];
+            };
+
+            canvas.addEventListener('mousedown', e => {
+                drawing = true;
+                const rect = canvas.getBoundingClientRect();
+                ctx.beginPath();
+                ctx.moveTo(...getPos(e, rect));
+            });
+            canvas.addEventListener('mousemove', e => {
+                if (!drawing) return;
+                ctx.lineTo(...getPos(e, canvas.getBoundingClientRect()));
+                ctx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            });
+            canvas.addEventListener('mouseup', () => { drawing = false; });
+            canvas.addEventListener('mouseout', () => { drawing = false; });
+
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault();
+                drawing = true;
+                const rect = canvas.getBoundingClientRect();
+                ctx.beginPath();
+                ctx.moveTo(...getPos(e, rect));
+            }, { passive: false });
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!drawing) return;
+                ctx.lineTo(...getPos(e, canvas.getBoundingClientRect()));
+                ctx.stroke();
+                creditHasSignature = true;
+                updateCreditSubmitState();
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => { drawing = false; });
+        }
+
+        function clearCreditSignature() {
+            const canvas = document.getElementById('creditSignatureCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            creditHasSignature = false;
+            updateCreditSubmitState();
+        }
+
+        function resetCreditSection() {
+            document.getElementById('creditConfirmCheckbox').checked = false;
+            clearCreditSignature();
+            updateCreditSubmitState();
+        }
+
+        function updateCreditSubmitState() {
+            const checkbox = document.getElementById('creditConfirmCheckbox');
+            const btn = document.getElementById('submitCreditBtn');
+            const hasSelection = getSelectedKeys().length > 0;
+            const isValid = checkbox.checked && creditHasSignature && hasSelection;
+            btn.disabled = !isValid;
+            btn.style.opacity = isValid ? '1' : '0.5';
+            btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+        }
+
+        async function submitCredit() {
+            const selectedItems = getSelectedKeys();
+            if (selectedItems.length === 0) {
+                alert('יש לבחור לפחות פריט אחד לזיכוי');
+                return;
+            }
+
+            const personalNumber = sourceInput.value.trim();
+            const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
+            const btn = document.getElementById('submitCreditBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'מזכה...';
+
+            try {
+                const postData = new URLSearchParams();
+                postData.append('data', JSON.stringify({
+                    action: 'partial_credit',
+                    token: authClient.token,
+                    formType: FORM_TYPE,
+                    creditData: {
+                        personalNumber,
+                        selectedItems,
+                        creditSignature,
+                        creditBy: authClient.user.username,
+                        creditAt: new Date().toISOString()
+                    }
+                }));
+
+                const response = await fetch(API_URL, { method: 'POST', body: postData });
+                const result = await response.json();
+
+                if (result.statusCode === 200) {
+                    alert(`זיכוי בוצע בהצלחה! ${selectedItems.length} פריטים הועברו לגיליון הזיכויים.`);
+                    resetImport();
+                    sourceInput.value = '';
+                    importBtn.disabled = true;
+                } else {
+                    alert('שגיאה בזיכוי: ' + (result.message || 'נסה שוב'));
+                }
+            } catch (err) {
+                console.error('Credit error:', err);
+                alert('שגיאה בזיכוי: ' + (err.message || 'נסה שוב'));
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'אישור זיכוי';
+                updateCreditSubmitState();
+            }
+        }
+
+        // ============================================================
+        // TRANSFER (HA'AVARA) FUNCTIONALITY
+        // ============================================================
+
+        async function submitTransfer() {
+            const selectedItems = getSelectedKeys();
+            if (selectedItems.length === 0) {
+                alert('יש לבחור לפחות פריט אחד להעברה');
+                return;
+            }
+
+            const targetPN = document.getElementById('targetPersonalNumber').value.trim();
+            const targetErrorMsg = document.getElementById('targetErrorMsg');
+            targetErrorMsg.classList.add('hidden');
+
+            if (!targetPN || targetPN.length !== 7 || !/^\d{7}$/.test(targetPN)) {
+                targetErrorMsg.textContent = 'יש להזין מספר אישי תקין (7 ספרות)';
+                targetErrorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const sourcePN = sourceInput.value.trim();
+            if (targetPN === sourcePN) {
+                targetErrorMsg.textContent = 'מספר אישי היעד זהה למקור';
+                targetErrorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const itemLabels = selectedItems.map(key => {
+                const def = ITEM_DEFINITIONS.find(d => d.key === key);
+                return def ? def.label : key;
+            }).join(', ');
+
+            if (!confirm(`להעביר ${selectedItems.length} פריטים (${itemLabels}) ממספר אישי ${sourcePN} למספר אישי ${targetPN}?`)) {
+                return;
+            }
+
+            const btn = document.getElementById('submitTransferBtn');
+            btn.disabled = true;
+            btn.textContent = 'מעביר...';
+
+            try {
+                const postData = new URLSearchParams();
+                postData.append('data', JSON.stringify({
+                    action: 'transfer_items',
+                    token: authClient.token,
+                    formType: FORM_TYPE,
+                    transferData: {
+                        sourcePersonalNumber: sourcePN,
+                        targetPersonalNumber: targetPN,
+                        selectedItems,
+                        transferBy: authClient.user.username,
+                        transferAt: new Date().toISOString()
+                    }
+                }));
+
+                const response = await fetch(API_URL, { method: 'POST', body: postData });
+                const result = await response.json();
+
+                if (result.statusCode === 200) {
+                    alert(`העברה בוצעה בהצלחה! ${selectedItems.length} פריטים הועברו לחייל ${targetPN}.`);
+                    resetImport();
+                    sourceInput.value = '';
+                    document.getElementById('targetPersonalNumber').value = '';
+                    importBtn.disabled = true;
+                } else {
+                    alert('שגיאה בהעברה: ' + (result.message || 'נסה שוב'));
+                }
+            } catch (err) {
+                console.error('Transfer error:', err);
+                alert('שגיאה בהעברה: ' + (err.message || 'נסה שוב'));
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'העברה';
+            }
+        }
+    </script>
+</body>
+</html>

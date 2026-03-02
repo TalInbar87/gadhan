@@ -1,0 +1,7 @@
+[build]
+  command = "bash build.sh"
+  publish = "."
+
+[build.environment]
+  # GAS_URL is set in the Netlify dashboard → Site Settings → Environment Variables
+  # Do NOT add it here

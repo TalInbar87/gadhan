@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יומן ביקורת - מערכת ניהול בגדחצ"מ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Heebo', sans-serif;
+        }
+        
+        .log-entry {
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-600 to-orange-700 shadow-2xl">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">📊 יומן ביקורת</h1>
+                        <p class="text-orange-200 mt-1">מעקב אחר כל הפעולות במערכת</p>
+                    </div>
+                    <button onclick="window.location.href='index-secure.html'" 
+                            class="bg-white text-orange-600 px-6 py-2 rounded-lg font-bold hover:bg-orange-50 transition-all">
+                        חזרה לדף הבית
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            
+            <!-- Filters -->
+            <div class="bg-white rounded-2xl shadow-2xl p-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">🔍 סינון רשומות</h2>
+                
+                <div class="grid md:grid-cols-4 gap-4">
+                    <!-- Action Filter -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2 text-sm">פעולה</label>
+                        <select id="actionFilter" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
+                            <option value="">הכל</option>
+                            <option value="LOGIN_SUCCESS">התחברות מוצלחת</option>
+                            <option value="LOGIN_FAILED">התחברות נכשלה</option>
+                            <option value="DATA_SUBMITTED">הזנת נתונים</option>
+                            <option value="DATA_RETRIEVED">קריאת נתונים</option>
+                            <option value="USER_CREATED">יצירת משתמש</option>
+                        </select>
+                    </div>
+
+                    <!-- User Filter -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2 text-sm">משתמש</label>
+                        <input type="text" id="userFilter" placeholder="שם משתמש..."
+                               class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
+                    </div>
+
+                    <!-- Resource Filter -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2 text-sm">משאב</label>
+                        <select id="resourceFilter" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
+                            <option value="">הכל</option>
+                            <option value="weapons">נשקים</option>
+                            <option value="radio">קשר</option>
+                            <option value="AUTH">אימות</option>
+                            <option value="USER_MANAGEMENT">ניהול משתמשים</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Filter -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2 text-sm">תאריך</label>
+                        <input type="date" id="dateFilter"
+                               class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="mt-4 flex gap-3">
+                    <button onclick="applyFilters()" 
+                            class="bg-orange-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-600 transition-all">
+                        סנן
+                    </button>
+                    <button onclick="clearFilters()" 
+                            class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-400 transition-all">
+                        נקה
+                    </button>
+                    <button onclick="exportToCSV()" 
+                            class="mr-auto bg-green-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-600 transition-all">
+                        📥 ייצא ל-CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm">סה"כ פעולות</p>
+                            <p class="text-3xl font-bold mt-1" id="totalActions">0</p>
+                        </div>
+                        <div class="text-4xl opacity-50">📊</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm">התחברויות מוצלחות</p>
+                            <p class="text-3xl font-bold mt-1" id="successLogins">0</p>
+                        </div>
+                        <div class="text-4xl opacity-50">✅</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-100 text-sm">ניסיונות נכשלים</p>
+                            <p class="text-3xl font-bold mt-1" id="failedAttempts">0</p>
+                        </div>
+                        <div class="text-4xl opacity-50">⚠️</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm">הזנות נתונים</p>
+                            <p class="text-3xl font-bold mt-1" id="dataSubmissions">0</p>
+                        </div>
+                        <div class="text-4xl opacity-50">📝</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Log Table -->
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">רשומות יומן</h2>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">תאריך ושעה</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">משתמש</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">פעולה</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">משאב</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">מ.אישי</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">כתובת IP</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">פרטים</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody" class="divide-y divide-gray-200">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden text-center py-12">
+                    <div class="text-6xl mb-4">📭</div>
+                    <p class="text-gray-600 text-lg font-bold">אין רשומות להצגה</p>
+                    <p class="text-gray-500 mt-2">נסה לשנות את הפילטרים</p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+                    <p class="text-gray-600 mt-4">טוען נתונים...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-auto">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-gray-800">פרטי רשומה</h3>
+                <button onclick="closeDetailsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="detailsContent" class="p-6">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Client Library -->
+    <script src="config.js"></script>
+    <script src="auth-client.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        const AUDIT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/16dqeWkWk3KQYJzQYB7AhUhgJsHhR_7wXjAGVScaQ7Ks/edit'; // Direct Google Sheets URL
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        const authClient = new SecureAuthClient(API_URL);
+        const authGuard = new AuthGuard(authClient, 'manage_users');
+        
+        let auditData = [];
+        let filteredData = [];
+        
+        // ============================================================
+        // PAGE LOAD
+        // ============================================================
+        
+        window.addEventListener('DOMContentLoaded', async () => {
+            const isAuthorized = await authGuard.checkAuth();
+            
+            if (isAuthorized) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.remove('hidden');
+                await loadAuditData();
+            }
+        });
+        
+        // ============================================================
+        // LOAD AUDIT DATA
+        // ============================================================
+        
+        async function loadAuditData() {
+            // Note: In production, implement a proper API endpoint to fetch audit data
+            // For now, this is a placeholder showing how the data would be displayed
+            
+            // Simulate loading audit data
+            document.getElementById('loadingState').classList.remove('hidden');
+            
+            // In production, fetch from your backend:
+            // const response = await fetch(API_URL + '/audit', { ... });
+            // auditData = await response.json();
+            
+            // Demo data for illustration
+            auditData = [
+                {
+                    timestamp: new Date().toISOString(),
+                    username: 'admin',
+                    action: 'LOGIN_SUCCESS',
+                    resource: 'AUTH',
+                    personalNumber: '',
+                    details: { role: 'admin' },
+                    ipAddress: '192.168.1.100',
+                    userAgent: 'Mozilla/5.0...'
+                }
+            ];
+            
+            filteredData = [...auditData];
+            
+            setTimeout(() => {
+                renderAuditTable();
+                updateStatistics();
+                document.getElementById('loadingState').classList.add('hidden');
+            }, 1000);
+        }
+        
+        // ============================================================
+        // RENDER TABLE
+        // ============================================================
+        
+        function renderAuditTable() {
+            const tbody = document.getElementById('auditTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            tbody.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            filteredData.forEach(entry => {
+                const row = document.createElement('tr');
+                row.className = 'log-entry hover:bg-gray-50 cursor-pointer';
+                row.onclick = () => showDetails(entry);
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${formatDateTime(entry.timestamp)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm font-medium text-gray-900">${entry.username}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getActionBadge(entry.action)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.resource}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.personalNumber || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${entry.ipAddress || 'Unknown'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button class="text-orange-600 hover:text-orange-800 font-bold">
+                            צפה
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('he-IL', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        function getActionBadge(action) {
+            const badges = {
+                'LOGIN_SUCCESS': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">התחברות מוצלחת</span>',
+                'LOGIN_FAILED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">התחברות נכשלה</span>',
+                'DATA_SUBMITTED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">הזנת נתונים</span>',
+                'DATA_RETRIEVED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800">קריאת נתונים</span>',
+                'USER_CREATED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">יצירת משתמש</span>',
+                'SUBMIT_DENIED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">נדחה</span>',
+                'READ_DENIED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">נדחה</span>'
+            };
+            return badges[action] || `<span class="px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">${action}</span>`;
+        }
+        
+        function updateStatistics() {
+            document.getElementById('totalActions').textContent = filteredData.length;
+            document.getElementById('successLogins').textContent = 
+                filteredData.filter(e => e.action === 'LOGIN_SUCCESS').length;
+            document.getElementById('failedAttempts').textContent = 
+                filteredData.filter(e => e.action === 'LOGIN_FAILED' || e.action.includes('DENIED')).length;
+            document.getElementById('dataSubmissions').textContent = 
+                filteredData.filter(e => e.action === 'DATA_SUBMITTED').length;
+        }
+        
+        // ============================================================
+        // FILTERS
+        // ============================================================
+        
+        function applyFilters() {
+            const actionFilter = document.getElementById('actionFilter').value;
+            const userFilter = document.getElementById('userFilter').value.toLowerCase();
+            const resourceFilter = document.getElementById('resourceFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            filteredData = auditData.filter(entry => {
+                if (actionFilter && entry.action !== actionFilter) return false;
+                if (userFilter && !entry.username.toLowerCase().includes(userFilter)) return false;
+                if (resourceFilter && entry.resource !== resourceFilter) return false;
+                if (dateFilter) {
+                    const entryDate = new Date(entry.timestamp).toISOString().split('T')[0];
+                    if (entryDate !== dateFilter) return false;
+                }
+                return true;
+            });
+            
+            renderAuditTable();
+            updateStatistics();
+        }
+        
+        function clearFilters() {
+            document.getElementById('actionFilter').value = '';
+            document.getElementById('userFilter').value = '';
+            document.getElementById('resourceFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filteredData = [...auditData];
+            renderAuditTable();
+            updateStatistics();
+        }
+        
+        // ============================================================
+        // DETAILS MODAL
+        // ============================================================
+        
+        function showDetails(entry) {
+            const modal = document.getElementById('detailsModal');
+            const content = document.getElementById('detailsContent');
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">תאריך ושעה</p>
+                            <p class="text-gray-900">${formatDateTime(entry.timestamp)}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">משתמש</p>
+                            <p class="text-gray-900">${entry.username}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">פעולה</p>
+                            <p class="text-gray-900">${entry.action}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">משאב</p>
+                            <p class="text-gray-900">${entry.resource}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">מספר אישי</p>
+                            <p class="text-gray-900">${entry.personalNumber || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-600">כתובת IP</p>
+                            <p class="text-gray-900">${entry.ipAddress || 'Unknown'}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-600 mb-2">User Agent</p>
+                        <p class="text-xs text-gray-700 bg-gray-100 p-3 rounded">${entry.userAgent || 'Unknown'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-600 mb-2">פרטים נוספים</p>
+                        <pre class="text-xs text-gray-700 bg-gray-100 p-3 rounded overflow-auto">${JSON.stringify(entry.details, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+        }
+        
+        // ============================================================
+        // EXPORT TO CSV
+        // ============================================================
+        
+        function exportToCSV() {
+            const headers = ['תאריך ושעה', 'משתמש', 'פעולה', 'משאב', 'מספר אישי', 'כתובת IP', 'פרטים'];
+            const rows = filteredData.map(entry => [
+                formatDateTime(entry.timestamp),
+                entry.username,
+                entry.action,
+                entry.resource,
+                entry.personalNumber || '',
+                entry.ipAddress || '',
+                JSON.stringify(entry.details)
+            ]);
+            
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>

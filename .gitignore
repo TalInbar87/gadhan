@@ -1,0 +1,32 @@
+# Google Apps Script
+Code.gs
+
+# Node
+node_modules/
+package-lock.json
+
+# Secrets
+.clasprc.json
+*.secret
+*.key
+.env
+config.js
+appScripts/unified/Config.js
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude
+# Temporary
+*.tmp
+.cache/
