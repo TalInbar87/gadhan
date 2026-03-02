@@ -357,19 +357,18 @@ function handlePartialCredit(data, request) {
     return createResponse(403, 'Only admins can credit equipment', null);
   }
 
-  if (formType !== 'weapons') {
-    return createResponse(400, 'Partial credit is only supported for weapons', null);
-  }
-
   const creditPayload = {
     personalNumber:  creditData.personalNumber,
     selectedItems:   creditData.selectedItems,
+    itemsWithValues: creditData.itemsWithValues,
     creditBy:        creditData.creditBy,
     creditAt:        creditData.creditAt,
     creditSignature: creditData.creditSignature
   };
 
-  const result = weapons_handlePartialCredit(creditPayload);
+  const result = formType === 'weapons'
+    ? weapons_handlePartialCredit(creditPayload)
+    : radio_handlePartialCredit(creditPayload);
 
   if (result.success) {
     AuditLogger.log(payload.username, 'DATA_PARTIAL_CREDITED', formType,

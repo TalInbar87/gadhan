@@ -215,6 +215,19 @@
                             לא נמצאה רשומה קיימת למספר אישי זה - ניתן להמשיך למילוי טופס חדש
                         </p>
                     </div>
+
+                    <!-- Credit Button (Admin only, shown after data found) -->
+                    <div id="creditButtonContainer" class="hidden mt-3">
+                        <button
+                            type="button"
+                            id="creditBtn"
+                            class="w-full py-3 px-6 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg bg-red-600 hover:bg-red-700 text-white transform hover:scale-105"
+                            onclick="openCreditPopup()"
+                            disabled
+                        >
+                            זיכוי ציוד
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Full Name -->
@@ -656,19 +669,6 @@
                     </p>
                 </div>
 
-                <!-- Credit Button (Admin only) -->
-                <div id="creditButtonContainer" class="hidden mb-4">
-                    <button
-                        type="button"
-                        id="creditBtn"
-                        class="w-full py-4 px-6 rounded-xl font-bold text-xl transition-all duration-200 shadow-lg bg-red-600 hover:bg-red-700 text-white transform hover:scale-105"
-                        onclick="openCreditPopup()"
-                        disabled
-                    >
-                        זיכוי
-                    </button>
-                </div>
-
                 <!-- Submit Button -->
                 <button
                     type="submit"
@@ -749,10 +749,19 @@
 
     <!-- Credit Popup -->
     <div id="creditOverlay" class="credit-overlay hidden">
-        <div class="credit-popup">
-            <h3 style="font-size: 1.5rem; font-weight: bold; color: #dc2626; margin-bottom: 1rem; text-align: center;">זיכוי ציוד</h3>
-            <p style="color: #57534e; margin-bottom: 1.5rem; text-align: center;">האם לזכות את כל הציוד של חייל זה?</p>
+        <div class="credit-popup" style="max-height:90vh; overflow-y:auto; direction:rtl;">
+            <h3 style="font-size: 1.5rem; font-weight: bold; color: #dc2626; margin-bottom: 1rem; text-align: center;">זיכוי ציוד קשר</h3>
 
+            <!-- Select all / clear -->
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                <button type="button" onclick="selectAllCreditItems()" style="padding:0.3rem 0.75rem; background:#e7e5e4; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.85rem;">בחר הכל</button>
+                <button type="button" onclick="clearCreditItems()" style="padding:0.3rem 0.75rem; background:#e7e5e4; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.85rem;">נקה הכל</button>
+            </div>
+
+            <!-- Dynamic items list -->
+            <div id="creditItemsList" style="margin-bottom:1rem; border:1px solid #d6d3d1; border-radius:0.75rem; padding:0.5rem; max-height:200px; overflow-y:auto;"></div>
+
+            <!-- Confirm checkbox -->
             <div style="margin-bottom: 1rem;">
                 <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
                     <input type="checkbox" id="creditConfirmCheckbox" style="width: 1.25rem; height: 1.25rem;" onchange="updateCreditSubmitState()">
@@ -760,6 +769,7 @@
                 </label>
             </div>
 
+            <!-- Signature -->
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-weight: bold; color: #44403c; margin-bottom: 0.5rem;">חתימת מאשר:</label>
                 <div style="border: 2px solid #d6d3d1; border-radius: 0.75rem; overflow: hidden; background: white;">
@@ -802,8 +812,53 @@
             existingDataFound = false;
         }
 
-        // Credit signature
+        // Credit
         let creditHasSignature = false;
+        let currentRadioData = null;
+
+        const RADIO_ITEM_DEFS = [
+            { key: 'radio',          label: 'רדיו',         getValue: d => d.radio624 ? '624: ' + d.radio624 : (d.radio91 ? '91: ' + d.radio91 : null) },
+            { key: 'column',         label: 'עמוד',          getValue: d => d.hasColumn ? (d.columnNumber || 'יש') : null },
+            { key: 'amplifier',      label: 'מגבר',          getValue: d => (d.amplifier && +d.amplifier > 0) ? d.amplifier : null },
+            { key: 'rigidAdapter',   label: 'מתאם קשיח',     getValue: d => (d.rigidAdapter && +d.rigidAdapter > 0) ? d.rigidAdapter : null },
+            { key: 'longAntenna',    label: 'אנטנה לונג',    getValue: d => (d.longAntenna && +d.longAntenna > 0) ? d.longAntenna : null },
+            { key: 'mad',            label: 'מעד',           getValue: d => (d.mad && +d.mad > 0) ? d.mad : null },
+            { key: 'flexibleAdapter',label: 'מתאם גמיש',     getValue: d => (d.flexibleAdapter && +d.flexibleAdapter > 0) ? d.flexibleAdapter : null },
+            { key: 'shortAntenna',   label: 'אנטנה שורט',    getValue: d => (d.shortAntenna && +d.shortAntenna > 0) ? d.shortAntenna : null },
+            { key: 'speaker',        label: 'רמק',           getValue: d => (d.speaker && +d.speaker > 0) ? d.speaker : null },
+            { key: 'madona',         label: 'מדונה',         getValue: d => (d.madona && +d.madona > 0) ? d.madona : null },
+            { key: 'apple',          label: 'תפוח',          getValue: d => (d.apple && +d.apple > 0) ? d.apple : null },
+            { key: 'pear',           label: 'אגס',           getValue: d => (d.pear && +d.pear > 0) ? d.pear : null },
+        ];
+
+        function buildCreditItemsList(data) {
+            const container = document.getElementById('creditItemsList');
+            container.innerHTML = '';
+            RADIO_ITEM_DEFS.forEach(def => {
+                const val = def.getValue(data);
+                if (val === null || val === undefined) return;
+                const lbl = document.createElement('label');
+                lbl.style.cssText = 'display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.5rem; border-bottom:1px solid #f5f5f4; cursor:pointer;';
+                lbl.innerHTML = `
+                    <input type="checkbox" class="credit-item-checkbox"
+                           data-key="${def.key}" data-label="${def.label}" data-value="${val}"
+                           onchange="updateCreditSubmitState()" checked
+                           style="width:1.1rem; height:1.1rem;">
+                    <span style="font-weight:bold; color:#1c1917;">${def.label}</span>
+                    <span style="color:#78716c; margin-right:auto; font-size:0.9rem;">${val}</span>`;
+                container.appendChild(lbl);
+            });
+        }
+
+        function selectAllCreditItems() {
+            document.querySelectorAll('.credit-item-checkbox').forEach(cb => cb.checked = true);
+            updateCreditSubmitState();
+        }
+
+        function clearCreditItems() {
+            document.querySelectorAll('.credit-item-checkbox').forEach(cb => cb.checked = false);
+            updateCreditSubmitState();
+        }
 
         function setupCreditSignatureCanvas() {
             const creditCanvas = document.getElementById('creditSignatureCanvas');
@@ -878,8 +933,9 @@
 
         function updateCreditSubmitState() {
             const checkbox = document.getElementById('creditConfirmCheckbox');
+            const hasItems = [...document.querySelectorAll('.credit-item-checkbox:checked')].length > 0;
             const btn = document.getElementById('creditSubmitBtn');
-            const isValid = checkbox.checked && creditHasSignature;
+            const isValid = checkbox.checked && creditHasSignature && hasItems;
             btn.disabled = !isValid;
             btn.style.opacity = isValid ? '1' : '0.5';
             btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
@@ -891,11 +947,12 @@
                 alert('יש לבדוק מספר אישי עם נתונים קיימים לפני זיכוי');
                 return;
             }
-            document.getElementById('creditOverlay').classList.remove('hidden');
+            buildCreditItemsList(currentRadioData || {});
             document.getElementById('creditConfirmCheckbox').checked = false;
             clearCreditSignature();
             setupCreditSignatureCanvas();
             updateCreditSubmitState();
+            document.getElementById('creditOverlay').classList.remove('hidden');
         }
 
         function closeCreditPopup() {
@@ -903,39 +960,39 @@
         }
 
         async function submitCredit() {
+            const selectedItems = [...document.querySelectorAll('.credit-item-checkbox:checked')]
+                .map(cb => ({ key: cb.dataset.key, label: cb.dataset.label, value: cb.dataset.value }));
+            const totalItems = document.querySelectorAll('.credit-item-checkbox').length;
+            const isFullCredit = selectedItems.length === totalItems;
+
             const personalNumber = document.getElementById('personalNumber').value.trim();
             const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
-
             const creditBtnEl = document.getElementById('creditSubmitBtn');
             creditBtnEl.disabled = true;
             creditBtnEl.textContent = 'מזכה...';
 
             try {
-                const creditData = {
-                    personalNumber: personalNumber,
-                    creditSignature: creditSignature,
-                    creditBy: authClient.user.username,
-                    creditAt: new Date().toISOString()
-                };
-
                 const postData = new URLSearchParams();
                 postData.append('data', JSON.stringify({
-                    action: 'credit_data',
+                    action: isFullCredit ? 'credit_data' : 'partial_credit',
                     token: authClient.token,
                     formType: 'radio',
-                    creditData: creditData
+                    creditData: {
+                        personalNumber,
+                        selectedItems: selectedItems.map(i => i.key),
+                        itemsWithValues: selectedItems,
+                        creditSignature,
+                        creditBy: authClient.user.username,
+                        creditAt: new Date().toISOString()
+                    }
                 }));
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: postData
-                });
-
+                const response = await fetch(API_URL, { method: 'POST', body: postData });
                 const result = await response.json();
 
                 if (result.statusCode === 200) {
                     closeCreditPopup();
-                    alert('הזיכוי בוצע בהצלחה! הפריטים הועברו לגיליון זיכויים.');
+                    alert('הזיכוי בוצע בהצלחה!');
                     form.reset();
                     lockFormFields();
                     setupCanvas();
@@ -943,6 +1000,9 @@
                     checkFormValidity();
                     existingRecordMessage.classList.add('hidden');
                     notFoundMessage.classList.add('hidden');
+                    document.getElementById('creditButtonContainer').classList.add('hidden');
+                    document.getElementById('creditBtn').disabled = true;
+                    currentRadioData = null;
                 } else {
                     alert('שגיאה בזיכוי: ' + (result.message || 'נסה שוב'));
                 }
@@ -1088,6 +1148,7 @@
                     if (authClient.hasPermission('manage_users')) {
                         document.getElementById('creditBtn').disabled = false;
                     }
+                    currentRadioData = result.data;
 
                     fillFormWithData(result.data);
                     existingRecordMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1099,6 +1160,7 @@
                     if (document.getElementById('creditBtn')) {
                         document.getElementById('creditBtn').disabled = true;
                     }
+                    currentRadioData = null;
 
                     existingRecordMessage.classList.add('hidden');
                     notFoundMessage.classList.remove('hidden');
@@ -1504,9 +1566,9 @@
             lockFormFields();
 
             // Disable credit button
-            if (document.getElementById('creditBtn')) {
-                document.getElementById('creditBtn').disabled = true;
-            }
+            document.getElementById('creditButtonContainer').classList.add('hidden');
+            document.getElementById('creditBtn').disabled = true;
+            currentRadioData = null;
 
             checkFormValidity();
             successContainer.classList.add('hidden');

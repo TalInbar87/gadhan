@@ -410,3 +410,71 @@ function radio_sendEmail(data, pdf, timestamp) {
   });
   Logger.log('✅ [Radio] Email sent to: ' + data.email);
 }
+
+// ================================================================
+// Radio Partial Credit
+// ================================================================
+
+function radio_handlePartialCredit(data) {
+  const { personalNumber, selectedItems, creditAt, creditBy, itemsWithValues } = data;
+  Logger.log('💳 [Radio] Partial credit: ' + personalNumber + ', items: ' + JSON.stringify(selectedItems));
+
+  // מפת key → עמודה (1-indexed) לפי מבנה גיליון הקשר
+  const COLUMN_MAP = {
+    radio:           7,  // G = 624 or 91
+    column:          9,  // I = עמוד
+    amplifier:      11,  // K = מגבר
+    rigidAdapter:   12,  // L = מתאם קשיח
+    longAntenna:    13,  // M = אנטנה לונג
+    mad:            14,  // N = מעד
+    flexibleAdapter:15,  // O = מתאם גמיש
+    shortAntenna:   16,  // P = אנטנה שורט
+    speaker:        17,  // Q = רמק
+    madona:         18,  // R = מדונה
+    apple:          19,  // S = תפוח
+    pear:           20   // T = אגס
+  };
+
+  const ss = SpreadsheetApp.openById(CONFIG.SHEETS.RADIO);
+  const mainSheet = ss.getSheetByName(CONFIG.RADIO.MAIN_SHEET_NAME);
+  if (!mainSheet) return { success: false, error: 'Main sheet not found' };
+
+  const allData = mainSheet.getDataRange().getValues();
+  let foundRow = -1;
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] == personalNumber) { foundRow = i + 1; break; }
+  }
+  if (foundRow === -1) return { success: false, error: 'Record not found' };
+
+  // אפס פריטים שנבחרו בגיליון הראשי
+  selectedItems.forEach(function(key) {
+    var col = COLUMN_MAP[key];
+    if (col) mainSheet.getRange(foundRow, col).setValue('');
+  });
+
+  // שמור ב"זיכויים חלקיים"
+  var partialSheet = ss.getSheetByName('זיכויים חלקיים');
+  if (!partialSheet) {
+    partialSheet = ss.insertSheet('זיכויים חלקיים');
+    var hdr = partialSheet.getRange(1, 1, 1, 4);
+    partialSheet.appendRow(['מספר אישי', 'תאריך זיכוי', 'פריטים שזוכו', 'זוכה על ידי']);
+    hdr.setBackground('#1e40af');
+    hdr.setFontColor('#FFFFFF');
+    hdr.setFontWeight('bold');
+  }
+
+  var itemsArr = itemsWithValues || selectedItems;
+  var itemsStr = itemsArr.map(function(i) {
+    return (typeof i === 'object') ? i.label + ': ' + i.value : i;
+  }).join(', ');
+
+  partialSheet.appendRow([
+    personalNumber,
+    creditAt || new Date().toISOString(),
+    itemsStr,
+    creditBy || 'unknown'
+  ]);
+
+  Logger.log('✅ [Radio] Partial credit saved for: ' + personalNumber);
+  return { success: true, message: 'Partial credit completed' };
+}

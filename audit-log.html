@@ -301,13 +301,20 @@
             compass: 'מצפן', zayin: 'ציין', pak: 'פק', matol: 'מטול'
         };
 
+        const RADIO_KEY_LABELS = {
+            radio: 'רדיו', column: 'עמוד', amplifier: 'מגבר',
+            rigidAdapter: 'מתאם קשיח', longAntenna: 'אנטנה לונג', mad: 'מעד',
+            flexibleAdapter: 'מתאם גמיש', shortAntenna: 'אנטנה שורט',
+            speaker: 'רמק', madona: 'מדונה', apple: 'תפוח', pear: 'אגס'
+        };
+
         function formatItems(items) {
             if (!items || items.length === 0) return 'כל הפריטים';
             return items.map(item => {
                 if (typeof item === 'object' && item.label) {
                     return item.value ? item.label + ': ' + item.value : item.label;
                 }
-                return WEAPONS_KEY_LABELS[item] || item;
+                return WEAPONS_KEY_LABELS[item] || RADIO_KEY_LABELS[item] || item;
             }).join(', ');
         }
 
