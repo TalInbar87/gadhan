@@ -53,18 +53,17 @@
             <!-- Filters -->
             <div class="bg-white rounded-2xl shadow-2xl p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">🔍 סינון רשומות</h2>
-                
-                <div class="grid md:grid-cols-4 gap-4">
+
+                <div class="grid md:grid-cols-3 gap-4">
                     <!-- Action Filter -->
                     <div>
                         <label class="block text-gray-700 font-bold mb-2 text-sm">פעולה</label>
                         <select id="actionFilter" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
                             <option value="">הכל</option>
-                            <option value="LOGIN_SUCCESS">התחברות מוצלחת</option>
-                            <option value="LOGIN_FAILED">התחברות נכשלה</option>
-                            <option value="DATA_SUBMITTED">הזנת נתונים</option>
-                            <option value="DATA_RETRIEVED">קריאת נתונים</option>
-                            <option value="USER_CREATED">יצירת משתמש</option>
+                            <option value="login">התחברות מוצלחת</option>
+                            <option value="weapons">חתימת נשק</option>
+                            <option value="radio">חתימת קשר</option>
+                            <option value="credit">זיכוי</option>
                         </select>
                     </div>
 
@@ -73,18 +72,6 @@
                         <label class="block text-gray-700 font-bold mb-2 text-sm">משתמש</label>
                         <input type="text" id="userFilter" placeholder="שם משתמש..."
                                class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
-                    </div>
-
-                    <!-- Resource Filter -->
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2 text-sm">משאב</label>
-                        <select id="resourceFilter" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 transition-all">
-                            <option value="">הכל</option>
-                            <option value="weapons">נשקים</option>
-                            <option value="radio">קשר</option>
-                            <option value="AUTH">אימות</option>
-                            <option value="USER_MANAGEMENT">ניהול משתמשים</option>
-                        </select>
                     </div>
 
                     <!-- Date Filter -->
@@ -136,10 +123,10 @@
                 <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-xl">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-red-100 text-sm">ניסיונות נכשלים</p>
+                            <p class="text-red-100 text-sm">זיכויים</p>
                             <p class="text-3xl font-bold mt-1" id="failedAttempts">0</p>
                         </div>
-                        <div class="text-4xl opacity-50">⚠️</div>
+                        <div class="text-4xl opacity-50">♻️</div>
                     </div>
                 </div>
 
@@ -168,9 +155,6 @@
                                 <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">תאריך ושעה</th>
                                 <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">משתמש</th>
                                 <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">פעולה</th>
-                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">משאב</th>
-                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">מ.אישי</th>
-                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">כתובת IP</th>
                                 <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase">פרטים</th>
                             </tr>
                         </thead>
@@ -268,11 +252,14 @@
 
                 const result = await response.json();
 
+                const RELEVANT = ['LOGIN_SUCCESS', 'DATA_SUBMITTED', 'DATA_CREDITED', 'DATA_PARTIAL_CREDITED'];
                 if (result.statusCode === 200 && result.data && result.data.entries) {
-                    auditData = result.data.entries.map(e => ({
-                        ...e,
-                        details: (() => { try { return typeof e.details === 'string' ? JSON.parse(e.details) : e.details; } catch { return e.details; } })()
-                    }));
+                    auditData = result.data.entries
+                        .filter(e => RELEVANT.includes(e.action))
+                        .map(e => ({
+                            ...e,
+                            details: (() => { try { return typeof e.details === 'string' ? JSON.parse(e.details) : e.details; } catch { return e.details; } })()
+                        }));
                 } else {
                     console.error('Audit log error:', result.message);
                     auditData = [];
@@ -292,50 +279,55 @@
         // RENDER TABLE
         // ============================================================
         
+        // Maps a raw entry to a Hebrew action label + color, or null if not relevant
+        function getHebrewAction(entry) {
+            if (entry.action === 'LOGIN_SUCCESS')
+                return { label: 'התחברות מוצלחת', bg: 'bg-green-100', text: 'text-green-800', key: 'login' };
+            if (entry.action === 'DATA_SUBMITTED' && entry.resource === 'weapons')
+                return { label: 'חתימת נשק', bg: 'bg-blue-100', text: 'text-blue-800', key: 'weapons' };
+            if (entry.action === 'DATA_SUBMITTED' && entry.resource === 'radio')
+                return { label: 'חתימת קשר', bg: 'bg-indigo-100', text: 'text-indigo-800', key: 'radio' };
+            if (entry.action === 'DATA_CREDITED' || entry.action === 'DATA_PARTIAL_CREDITED')
+                return { label: 'זיכוי', bg: 'bg-red-100', text: 'text-red-800', key: 'credit' };
+            return null;
+        }
+
         function renderAuditTable() {
             const tbody = document.getElementById('auditTableBody');
             const emptyState = document.getElementById('emptyState');
-            
+
             tbody.innerHTML = '';
-            
+
             if (filteredData.length === 0) {
                 emptyState.classList.remove('hidden');
                 return;
             }
-            
+
             emptyState.classList.add('hidden');
-            
+
             filteredData.forEach(entry => {
+                const action = getHebrewAction(entry);
+                if (!action) return;
+
                 const row = document.createElement('tr');
                 row.className = 'log-entry hover:bg-gray-50 cursor-pointer';
                 row.onclick = () => showDetails(entry);
-                
+
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${formatDateTime(entry.timestamp)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium text-gray-900">${entry.username}</span>
+                        <span class="text-sm font-medium text-gray-900">${(entry.username || '').replace(/\+/g, ' ')}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        ${getActionBadge(entry.action)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${entry.resource}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${entry.personalNumber || '-'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${entry.ipAddress || 'Unknown'}
+                        <span class="px-2 py-1 text-xs font-bold rounded-full ${action.bg} ${action.text}">${action.label}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <button class="text-orange-600 hover:text-orange-800 font-bold">
-                            צפה
-                        </button>
+                        <button class="text-orange-600 hover:text-orange-800 font-bold">צפה</button>
                     </td>
                 `;
-                
+
                 tbody.appendChild(row);
             });
         }
@@ -356,26 +348,13 @@
             });
         }
         
-        function getActionBadge(action) {
-            const badges = {
-                'LOGIN_SUCCESS': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">התחברות מוצלחת</span>',
-                'LOGIN_FAILED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">התחברות נכשלה</span>',
-                'DATA_SUBMITTED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">הזנת נתונים</span>',
-                'DATA_RETRIEVED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800">קריאת נתונים</span>',
-                'USER_CREATED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">יצירת משתמש</span>',
-                'SUBMIT_DENIED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">נדחה</span>',
-                'READ_DENIED': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">נדחה</span>'
-            };
-            return badges[action] || `<span class="px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">${action}</span>`;
-        }
-        
         function updateStatistics() {
             document.getElementById('totalActions').textContent = filteredData.length;
-            document.getElementById('successLogins').textContent = 
+            document.getElementById('successLogins').textContent =
                 filteredData.filter(e => e.action === 'LOGIN_SUCCESS').length;
-            document.getElementById('failedAttempts').textContent = 
-                filteredData.filter(e => e.action === 'LOGIN_FAILED' || e.action.includes('DENIED')).length;
-            document.getElementById('dataSubmissions').textContent = 
+            document.getElementById('failedAttempts').textContent =
+                filteredData.filter(e => e.action === 'DATA_CREDITED' || e.action === 'DATA_PARTIAL_CREDITED').length;
+            document.getElementById('dataSubmissions').textContent =
                 filteredData.filter(e => e.action === 'DATA_SUBMITTED').length;
         }
         
@@ -386,28 +365,27 @@
         function applyFilters() {
             const actionFilter = document.getElementById('actionFilter').value;
             const userFilter = document.getElementById('userFilter').value.toLowerCase();
-            const resourceFilter = document.getElementById('resourceFilter').value;
             const dateFilter = document.getElementById('dateFilter').value;
-            
+
             filteredData = auditData.filter(entry => {
-                if (actionFilter && entry.action !== actionFilter) return false;
-                if (userFilter && !entry.username.toLowerCase().includes(userFilter)) return false;
-                if (resourceFilter && entry.resource !== resourceFilter) return false;
+                const action = getHebrewAction(entry);
+                if (!action) return false;
+                if (actionFilter && action.key !== actionFilter) return false;
+                if (userFilter && !(entry.username || '').toLowerCase().replace(/\+/g, ' ').includes(userFilter)) return false;
                 if (dateFilter) {
                     const entryDate = new Date(entry.timestamp).toISOString().split('T')[0];
                     if (entryDate !== dateFilter) return false;
                 }
                 return true;
             });
-            
+
             renderAuditTable();
             updateStatistics();
         }
-        
+
         function clearFilters() {
             document.getElementById('actionFilter').value = '';
             document.getElementById('userFilter').value = '';
-            document.getElementById('resourceFilter').value = '';
             document.getElementById('dateFilter').value = '';
             filteredData = [...auditData];
             renderAuditTable();
@@ -422,6 +400,7 @@
             const modal = document.getElementById('detailsModal');
             const content = document.getElementById('detailsContent');
             
+            const action = getHebrewAction(entry);
             content.innerHTML = `
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
@@ -431,28 +410,12 @@
                         </div>
                         <div>
                             <p class="text-sm font-bold text-gray-600">משתמש</p>
-                            <p class="text-gray-900">${entry.username}</p>
+                            <p class="text-gray-900">${(entry.username || '').replace(/\+/g, ' ')}</p>
                         </div>
                         <div>
                             <p class="text-sm font-bold text-gray-600">פעולה</p>
-                            <p class="text-gray-900">${entry.action}</p>
+                            <p class="text-gray-900">${action ? action.label : entry.action}</p>
                         </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-600">משאב</p>
-                            <p class="text-gray-900">${entry.resource}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-600">מספר אישי</p>
-                            <p class="text-gray-900">${entry.personalNumber || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-600">כתובת IP</p>
-                            <p class="text-gray-900">${entry.ipAddress || 'Unknown'}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-gray-600 mb-2">User Agent</p>
-                        <p class="text-xs text-gray-700 bg-gray-100 p-3 rounded">${entry.userAgent || 'Unknown'}</p>
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-600 mb-2">פרטים נוספים</p>
@@ -473,16 +436,16 @@
         // ============================================================
         
         function exportToCSV() {
-            const headers = ['תאריך ושעה', 'משתמש', 'פעולה', 'משאב', 'מספר אישי', 'כתובת IP', 'פרטים'];
-            const rows = filteredData.map(entry => [
-                formatDateTime(entry.timestamp),
-                entry.username,
-                entry.action,
-                entry.resource,
-                entry.personalNumber || '',
-                entry.ipAddress || '',
-                JSON.stringify(entry.details)
-            ]);
+            const headers = ['תאריך ושעה', 'משתמש', 'פעולה', 'פרטים'];
+            const rows = filteredData.map(entry => {
+                const action = getHebrewAction(entry);
+                return [
+                    formatDateTime(entry.timestamp),
+                    (entry.username || '').replace(/\+/g, ' '),
+                    action ? action.label : entry.action,
+                    JSON.stringify(entry.details)
+                ];
+            });
             
             let csv = headers.join(',') + '\n';
             rows.forEach(row => {
