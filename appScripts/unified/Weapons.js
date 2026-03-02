@@ -341,7 +341,7 @@ function weapons_handleCredit(data) {
       pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
       MailApp.sendEmail({
         to:          email,
-        subject:     'אישור זיכוי ציוד - ' + fullName,
+        subject:     'אישור זיכוי נשק - ' + fullName,
         body:        'שלום ' + fullName + ',\n' +
                      'הציוד זוכה במערכת\n' +
                      'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
@@ -461,7 +461,7 @@ function weapons_handlePartialCredit(data) {
       pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
       MailApp.sendEmail({
         to:          email,
-        subject:     'אישור זיכוי חלקי - ' + fullName,
+        subject:     'אישור זיכוי נשק - ' + fullName,
         body:        'שלום ' + fullName + ',\n' +
                      'הציוד זוכה במערכת\n' +
                      'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
