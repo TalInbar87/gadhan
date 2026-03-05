@@ -263,14 +263,14 @@ function radio_handleCredit(data) {
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_קשר_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
-        to:          email,
-        subject:     'אישור זיכוי ציוד קשר - ' + fullName,
-        body:        'שלום ' + fullName + ',\n' +
-                     'הציוד זוכה במערכת\n' +
-                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
-                     'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+      sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי ציוד קשר - ' + fullName,
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
+        pdfBlob: pdf
       });
       Logger.log('✅ [Radio] Credit email with PDF sent to: ' + email);
     }
@@ -391,17 +391,17 @@ function radio_createPdfHtml(data, timestamp) {
 }
 
 function radio_sendEmail(data, pdf, timestamp) {
-  MailApp.sendEmail({
-    to:          data.email,
-    subject:     'אישור קבלת ציוד קשר - ' + data.fullName,
-    body:        'שלום ' + data.fullName + ',\n\n' +
-                 'אישור קבלת ציוד הקשר נקלט במערכת בהצלחה.\n\n' +
-                 'תאריך: ' + timestamp + '\n' +
-                 'מספר אישי: ' + data.personalNumber + '\n' +
-                 (data.unit ? 'מסגרת: ' + data.unit + '\n' : '') +
-                 '\nמצורף אישור PDF מפורט.\n\n' +
-                 'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
-    attachments: [pdf]
+  sendEmail({
+    to:      data.email,
+    subject: 'אישור קבלת ציוד קשר - ' + data.fullName,
+    body:    'שלום ' + data.fullName + ',\n\n' +
+             'אישור קבלת ציוד הקשר נקלט במערכת בהצלחה.\n\n' +
+             'תאריך: ' + timestamp + '\n' +
+             'מספר אישי: ' + data.personalNumber + '\n' +
+             (data.unit ? 'מסגרת: ' + data.unit + '\n' : '') +
+             '\nמצורף אישור PDF מפורט.\n\n' +
+             'בברכה,\nמערכת ניהול מכשירי קשר\nגדחה"ו קומנדו 8219',
+    pdfBlob: pdf
   });
   Logger.log('✅ [Radio] Email sent to: ' + data.email);
 }
@@ -484,14 +484,14 @@ function radio_handlePartialCredit(data) {
       var blob = Utilities.newBlob(html, 'text/html', 'partial_credit_radio.html');
       var pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_חלקי_קשר_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
+      sendEmail({
         to:      email,
         subject: 'אישור זיכוי חלקי ציוד קשר - ' + fullName,
         body:    'שלום ' + fullName + ',\n' +
                  'הציוד זוכה במערכת\n' +
                  'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
                  'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+        pdfBlob: pdf
       });
       Logger.log('✅ [Radio] Partial credit email sent to: ' + email);
     }

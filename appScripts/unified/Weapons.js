@@ -339,14 +339,14 @@ function weapons_handleCredit(data) {
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
-        to:          email,
-        subject:     'אישור זיכוי נשק - ' + fullName,
-        body:        'שלום ' + fullName + ',\n' +
-                     'הציוד זוכה במערכת\n' +
-                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
-                     'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+      sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי נשק - ' + fullName,
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
+        pdfBlob: pdf
       });
       Logger.log('✅ [Weapons] Credit email with PDF sent to: ' + email);
     }
@@ -459,14 +459,14 @@ function weapons_handlePartialCredit(data) {
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
-        to:          email,
-        subject:     'אישור זיכוי נשק - ' + fullName,
-        body:        'שלום ' + fullName + ',\n' +
-                     'הציוד זוכה במערכת\n' +
-                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
-                     'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+      sendEmail({
+        to:      email,
+        subject: 'אישור זיכוי נשק - ' + fullName,
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
+        pdfBlob: pdf
       });
       Logger.log('✅ [Weapons] Partial credit email with PDF sent to: ' + email);
     }
@@ -605,7 +605,7 @@ function weapons_handleTransferItems(data) {
     const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
 
     if (sourceData[4]) {
-      MailApp.sendEmail({
+      sendEmail({
         to:      sourceData[4],
         subject: 'אישור העברת ציוד - ' + sourceData[1],
         body:    'שלום ' + sourceData[1] + ',\n\n' +
@@ -619,7 +619,7 @@ function weapons_handleTransferItems(data) {
     }
 
     if (targetData[4]) {
-      MailApp.sendEmail({
+      sendEmail({
         to:      targetData[4],
         subject: 'קבלת ציוד מועבר - ' + targetData[1],
         body:    'שלום ' + targetData[1] + ',\n\n' +
@@ -816,18 +816,18 @@ function weapons_createPdfHtml(data, timestamp) {
 }
 
 function weapons_sendEmail(data, pdf, timestamp) {
-  MailApp.sendEmail({
-    to:          data.email,
-    subject:     'אישור חתימה על נשק - ' + data.fullName,
-    body:        'שלום ' + data.fullName + ',\n\n' +
-                 'אישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\n' +
-                 'תאריך: ' + timestamp + '\n' +
-                 'מספר אישי: ' + data.personalNumber + '\n' +
-                 (data.unit       ? 'מסגרת: ' + data.unit       + '\n' : '') +
-                 (data.weaponType ? 'סוג נשק: ' + data.weaponType + '\n' : '') +
-                 '\nמצורף אישור PDF מפורט.\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
-    attachments: [pdf]
+  sendEmail({
+    to:      data.email,
+    subject: 'אישור חתימה על נשק - ' + data.fullName,
+    body:    'שלום ' + data.fullName + ',\n\n' +
+             'אישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\n' +
+             'תאריך: ' + timestamp + '\n' +
+             'מספר אישי: ' + data.personalNumber + '\n' +
+             (data.unit       ? 'מסגרת: ' + data.unit       + '\n' : '') +
+             (data.weaponType ? 'סוג נשק: ' + data.weaponType + '\n' : '') +
+             '\nמצורף אישור PDF מפורט.\n\n' +
+             'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+    pdfBlob: pdf
   });
   Logger.log('✅ [Weapons] Email sent to: ' + data.email);
 }

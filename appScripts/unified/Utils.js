@@ -55,6 +55,60 @@ function findExistingRow(sheet, value, column) {
 }
 
 /**
+ * שליחת מייל — Brevo API אם BREVO_API_KEY מוגדר ב-Script Properties,
+ * אחרת fallback ל-MailApp.
+ *
+ * @param {Object}  opts
+ * @param {string}  opts.to       - כתובת נמען
+ * @param {string}  opts.subject  - נושא
+ * @param {string}  opts.body     - גוף המייל (טקסט)
+ * @param {Blob}   [opts.pdfBlob] - PDF מצורף (אופציונלי)
+ */
+function sendEmail(opts) {
+  const to      = opts.to;
+  const subject = opts.subject;
+  const body    = opts.body;
+  const pdfBlob = opts.pdfBlob || null;
+
+  const apiKey = PropertiesService.getScriptProperties().getProperty('BREVO_API_KEY');
+
+  if (apiKey) {
+    // ─── Brevo API ──────────────────────────────────────────────
+    const senderEmail = Session.getActiveUser().getEmail();
+    const payload = {
+      sender:      { name: 'מערכת ניהול ציוד', email: senderEmail },
+      to:          [{ email: to }],
+      subject:     subject,
+      textContent: body
+    };
+    if (pdfBlob) {
+      payload.attachment = [{
+        content: Utilities.base64Encode(pdfBlob.getBytes()),
+        name:    pdfBlob.getName()
+      }];
+    }
+    const response = UrlFetchApp.fetch('https://api.brevo.com/v3/smtp/email', {
+      method:             'post',
+      headers:            { 'api-key': apiKey, 'Content-Type': 'application/json' },
+      payload:            JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    const code = response.getResponseCode();
+    if (code !== 201) {
+      Logger.log('⚠️ Brevo error ' + code + ': ' + response.getContentText());
+      throw new Error('Brevo send failed: HTTP ' + code);
+    }
+    Logger.log('✅ Email sent via Brevo to: ' + to);
+  } else {
+    // ─── MailApp fallback ────────────────────────────────────────
+    const mailOpts = { to: to, subject: subject, body: body };
+    if (pdfBlob) mailOpts.attachments = [pdfBlob];
+    MailApp.sendEmail(mailOpts);
+    Logger.log('✅ Email sent via MailApp to: ' + to);
+  }
+}
+
+/**
  * פענוח נתוני POST - מנסה מספר שיטות לפי סוג ה-Content-Type
  * מחזיר אובייקט JS מפוענח, או null אם כל הניסיונות כשלו
  */
