@@ -215,159 +215,183 @@
                         <option value="פלוגה א׳">פלוגה א׳</option>
                         <option value="פלוגה ב׳">פלוגה ב׳</option>
                         <option value="פלוגה ג׳">פלוגה ג׳</option>
-                        <option value="מפקדה">מפקדה</option>
-                        <option value="ניוד">ניוד</option>
-                        <option value="מחסר">מחסר</option>
                         <option value="מפג״ד">מפג״ד</option>
+                        <option value='מחס"ר'>מחס"ר</option>
+                        <option value="ניוד">ניוד</option>
+                        <option value='תאג"ד'>תאג"ד</option>
+                        <option value="הדרכה">הדרכה</option>
                     </select>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="unit"></p>
                 </div>
 
-                <!-- Weapon Type -->
-                <div>
-                    <label for="weaponType" class="block text-stone-700 font-bold mb-2 text-lg">
-                        סוג נשק <span class="text-red-600">*</span>
+                <!-- Team (visible only for פלוגה א/ב/ג) -->
+                <div id="teamContainer" class="hidden">
+                    <label for="team" class="block text-stone-700 font-bold mb-2 text-lg">
+                        צוות <span class="text-red-600">*</span>
                     </label>
                     <select
-                        id="weaponType"
-                        name="weaponType"
+                        id="team"
+                        name="team"
                         class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
-                        required
                         disabled
                     >
-                        <option value="">בחר סוג נשק</option>
-                        <option value="נגב">נגב</option>
-                        <option value="M16">M16</option>
-                        <option value="M4">M4</option>
-                        <option value="מטול">מטול</option>
+                        <option value="">בחר צוות</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="מפלג">מפלג</option>
                     </select>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="team"></p>
+                </div>
+
+                <!-- Weapon Type (checkboxes - exclusive) -->
+                <div>
+                    <label class="block text-stone-700 font-bold mb-2 text-lg">
+                        סוג נשק <span class="text-red-600">*</span>
+                    </label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="weaponNegev" value="נגב"
+                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="weaponNegev" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">נגב</label>
+                            <input type="text" id="weaponNumberNegev"
+                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר נשק" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="weaponM16" value="M16"
+                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="weaponM16" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">M16</label>
+                            <input type="text" id="weaponNumberM16"
+                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר נשק" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="weaponM4" value="M4"
+                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="weaponM4" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">M4</label>
+                            <input type="text" id="weaponNumberM4"
+                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר נשק" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="weaponMatol" value="מטול"
+                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="weaponMatol" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">מטול</label>
+                            <input type="text" id="weaponNumberMatol"
+                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר נשק" maxlength="20" />
+                        </div>
+                    </div>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponType"></p>
                 </div>
 
-                <!-- Weapon Number -->
+                <!-- Sight Types (checkboxes) -->
                 <div>
-                    <label for="weaponNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר נשק <span class="text-red-600">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="weaponNumber"
-                        name="weaponNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
-                        placeholder="מספר סידורי"
-                        required
-                        disabled
-                    />
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponNumber"></p>
+                    <label class="block text-stone-700 font-bold mb-2 text-lg">כוונת</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="sightTrig" value="טריג׳"
+                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="sightTrig" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">טריג׳</label>
+                            <input type="text" id="sightNumberTrig"
+                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר כוונת" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="sightLior" value="ליאור"
+                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="sightLior" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">ליאור</label>
+                            <input type="text" id="sightNumberLior"
+                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר כוונת" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="sightPagion" value="פגיון"
+                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="sightPagion" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">פגיון</label>
+                            <input type="text" id="sightNumberPagion"
+                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר כוונת" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="sightZavon" value="זאבון"
+                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="sightZavon" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">זאבון</label>
+                            <input type="text" id="sightNumberZavon"
+                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר כוונת" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="sightM5" value="m5"
+                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="sightM5" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">m5</label>
+                            <input type="text" id="sightNumberM5"
+                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר כוונת" maxlength="20" />
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Sight Type -->
+                <!-- NVD Types (checkboxes) - אמצעי ראיית לילה -->
                 <div>
-                    <label for="sightType" class="block text-stone-700 font-bold mb-2 text-lg">
-                        סוג כוונת
-                    </label>
-                    <select
-                        id="sightType"
-                        name="sightType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
-                        disabled
-                    >
-                        <option value="">בחר סוג כוונת</option>
-                        <option value="טריג׳">טריג׳</option>
-                        <option value="ליאור">ליאור</option>
-                        <option value="פגיון">פגיון</option>
-                        <option value="זאבון">זאבון</option>
-                        <option value="m5">m5</option>
-                    </select>
-                </div>
-
-                <!-- Sight Number -->
-                <div>
-                    <label for="sightNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר כוונת
-                    </label>
-                    <input
-                        type="text"
-                        id="sightNumber"
-                        name="sightNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
-                        placeholder="מספר סידורי"
-                        disabled
-                    />
-                </div>
-
-                <!-- Additional Sight Type -->
-                <div>
-                    <label for="additionalSightType" class="block text-stone-700 font-bold mb-2 text-lg">
-                        סוג כוונת נוסף
-                    </label>
-                    <select
-                        id="additionalSightType"
-                        name="additionalSightType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
-                        disabled
-                    >
-                        <option value="">בחר סוג כוונת נוסף</option>
-                        <option value="טריג׳">טריג׳</option>
-                        <option value="ליאור">ליאור</option>
-                        <option value="פגיון">פגיון</option>
-                        <option value="זאבון">זאבון</option>
-                        <option value="m5">m5</option>
-                    </select>
-                </div>
-
-                <!-- Additional Sight Number -->
-                <div>
-                    <label for="additionalSightNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר כוונת נוסף
-                    </label>
-                    <input
-                        type="text"
-                        id="additionalSightNumber"
-                        name="additionalSightNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 form-field-lockable"
-                        placeholder="מספר סידורי"
-                        disabled
-                    />
-                </div>
-
-                <!-- NVD Type -->
-                <div>
-                    <label for="nvdType" class="block text-stone-700 font-bold mb-2 text-lg">
-                        סוג אמרל
-                    </label>
-                    <select
-                        id="nvdType"
-                        name="nvdType"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200 bg-white form-field-lockable"
-                        disabled
-                    >
-                        <option value="">בחר סוג אמרל</option>
-                        <option value='שח"ע'>שח"ע</option>
-                        <option value="עכבר">עכבר</option>
-                        <option value="עדי">עדי</option>
-                        <option value="עידו">עידו</option>
-                        <option value="קירו">קירו</option>
-                    </select>
-                </div>
-
-                <!-- NVD Number -->
-                <div id="nvdNumberContainer" class="hidden">
-                    <label for="nvdNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר אמרל <span class="text-red-600">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="nvdNumber"
-                        name="nvdNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
-                        placeholder="מספר סידורי"
-                    />
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="nvdNumber"></p>
+                    <label class="block text-stone-700 font-bold mb-2 text-lg">אמצעי ראיית לילה</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="nvdShacha" value='שח"ע'
+                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="nvdShacha" class='text-stone-700 font-bold text-lg cursor-pointer flex-1'>שח"ע</label>
+                            <input type="text" id="nvdNumberShacha"
+                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder='מספר שח"ע' maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="nvdAchbar" value="עכבר"
+                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="nvdAchbar" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עכבר</label>
+                            <input type="text" id="nvdNumberAchbar"
+                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר עכבר" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="nvdAdi" value="עדי"
+                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="nvdAdi" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עדי</label>
+                            <input type="text" id="nvdNumberAdi"
+                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר עדי" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="nvdIdo" value="עידו"
+                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="nvdIdo" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עידו</label>
+                            <input type="text" id="nvdNumberIdo"
+                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר עידו" maxlength="20" />
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
+                            <input type="checkbox" id="nvdKiro" value="קירו"
+                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
+                                disabled />
+                            <label for="nvdKiro" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">קירו</label>
+                            <input type="text" id="nvdNumberKiro"
+                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
+                                placeholder="מספר קירו" maxlength="20" />
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Binoculars Checkbox -->
@@ -456,22 +480,6 @@
                         placeholder="מספר סידורי"
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="pakNumber"></p>
-                </div>
-
-                <!-- Matol Number (hidden by default, shown when weapon type is מטול) -->
-                <div id="matolNumberContainer" class="hidden">
-                    <label for="matolNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר מטול <span class="text-red-600">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="matolNumber"
-                        name="matolNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
-                        placeholder="מספר סידורי"
-                    />
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="matolNumber"></p>
                 </div>
 
                 <!-- Divider -->
@@ -779,26 +787,71 @@
             checkFormValidity();
         });
         
-        // NVD Type change handler - show/hide NVD Number field
-        const nvdTypeSelect = document.getElementById('nvdType');
-        const nvdNumberContainer = document.getElementById('nvdNumberContainer');
-        const nvdNumberInput = document.getElementById('nvdNumber');
-        
-        nvdTypeSelect.addEventListener('change', () => {
-            if (nvdTypeSelect.value) {
-                // Show and require NVD number
-                nvdNumberContainer.classList.remove('hidden');
-                nvdNumberInput.required = true;
+        // Helper maps for checkbox id suffixes
+        function weaponCheckboxIdSuffix(value) {
+            return { 'נגב': 'Negev', 'M16': 'M16', 'M4': 'M4', 'מטול': 'Matol' }[value] || '';
+        }
+        function sightCheckboxIdSuffix(value) {
+            return { "טריג׳": 'Trig', 'ליאור': 'Lior', 'פגיון': 'Pagion', 'זאבון': 'Zavon', 'm5': 'M5' }[value] || '';
+        }
+        function nvdCheckboxIdSuffix(value) {
+            return { 'שח"ע': 'Shacha', 'עכבר': 'Achbar', 'עדי': 'Adi', 'עידו': 'Ido', 'קירו': 'Kiro' }[value] || '';
+        }
+
+        // Unit change handler - show/hide team dropdown
+        const unitSelect = document.getElementById('unit');
+        const teamContainer = document.getElementById('teamContainer');
+        const teamSelect = document.getElementById('team');
+
+        unitSelect.addEventListener('change', () => {
+            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
+            if (platoons.includes(unitSelect.value)) {
+                teamContainer.classList.remove('hidden');
+                teamSelect.required = true;
             } else {
-                // Hide and make optional
-                nvdNumberContainer.classList.add('hidden');
-                nvdNumberInput.required = false;
-                nvdNumberInput.value = '';
-                clearError('nvdNumber');
+                teamContainer.classList.add('hidden');
+                teamSelect.required = false;
+                teamSelect.value = '';
             }
             checkFormValidity();
         });
-        
+
+        // Weapon type checkboxes - show/hide number input
+        document.querySelectorAll('.weapon-type-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const numInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
+                if (numInput) {
+                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
+                    else { numInput.classList.add('hidden'); numInput.value = ''; }
+                }
+                checkFormValidity();
+            });
+        });
+
+        // Sight checkboxes - show/hide number input
+        document.querySelectorAll('.sight-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
+                if (numInput) {
+                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
+                    else { numInput.classList.add('hidden'); numInput.value = ''; }
+                }
+                checkFormValidity();
+            });
+        });
+
+        // NVD checkboxes - show/hide number input
+        document.querySelectorAll('.nvd-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
+                if (numInput) {
+                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
+                    else { numInput.classList.add('hidden'); numInput.value = ''; }
+                }
+                checkFormValidity();
+            });
+        });
+
         // Zayin checkbox handler
         const hasZayinCheckbox = document.getElementById('hasZayin');
         const zayinNumberContainer = document.getElementById('zayinNumberContainer');
@@ -839,26 +892,6 @@
             checkFormValidity();
         });
 
-        // Matol number visibility based on weapon type
-        const weaponTypeSelect = document.getElementById('weaponType');
-        const matolNumberContainer = document.getElementById('matolNumberContainer');
-        const matolNumberInput = document.getElementById('matolNumber');
-
-        function updateMatolVisibility() {
-            if (weaponTypeSelect.value === 'מטול') {
-                matolNumberContainer.classList.remove('hidden');
-                matolNumberInput.required = true;
-            } else {
-                matolNumberContainer.classList.add('hidden');
-                matolNumberInput.required = false;
-                matolNumberInput.value = '';
-                clearError('matolNumber');
-            }
-            checkFormValidity();
-        }
-
-        weaponTypeSelect.addEventListener('change', updateMatolVisibility);
-        
         // Personal number check functionality
         const personalNumberInput = document.getElementById('personalNumber');
         const checkExistingButton = document.getElementById('checkExistingButton');
@@ -933,74 +966,83 @@
             document.getElementById('phone').value = data.phone || '';
             document.getElementById('email').value = data.email || '';
             document.getElementById('unit').value = data.unit || '';
-            document.getElementById('weaponType').value = data.weaponType || '';
-            document.getElementById('weaponNumber').value = data.weaponNumber || '';
-            
-            // Fill sight fields based on which column has data
-            if (data.trig) {
-                document.getElementById('sightType').value = "טריג׳";
-                document.getElementById('sightNumber').value = data.trig;
-            } else if (data.lior) {
-                document.getElementById('sightType').value = "ליאור";
-                document.getElementById('sightNumber').value = data.lior;
-            } else if (data.pagion) {
-                document.getElementById('sightType').value = "פגיון";
-                document.getElementById('sightNumber').value = data.pagion;
-            } else if (data.zavon) {
-                document.getElementById('sightType').value = "זאבון";
-                document.getElementById('sightNumber').value = data.zavon;
-            } else if (data.m5) {
-                document.getElementById('sightType').value = "m5";
-                document.getElementById('sightNumber').value = data.m5;
+
+            // Show/hide team based on unit
+            unitSelect.dispatchEvent(new Event('change'));
+            if (data.team) {
+                document.getElementById('team').value = data.team;
             }
-            
-            // Fill additional sight (check remaining columns)
-            const sightTypes = ['trig', 'lior', 'pagion', 'zavon', 'm5'];
-            const mainSight = document.getElementById('sightType').value;
-            
-            for (let type of sightTypes) {
-                const hebrewName = {trig: "טריג׳", lior: "ליאור", pagion: "פגיון", zavon: "זאבון", m5: "m5"}[type];
-                if (data[type] && hebrewName !== mainSight) {
-                    document.getElementById('additionalSightType').value = hebrewName;
-                    document.getElementById('additionalSightNumber').value = data[type];
-                    break;
+
+            // Fill weapon checkboxes + numbers (each weapon has its own key)
+            const weaponFillMap = {
+                negev: { cbId: 'weaponNegev', numId: 'weaponNumberNegev' },
+                m16:   { cbId: 'weaponM16',   numId: 'weaponNumberM16'   },
+                m4:    { cbId: 'weaponM4',     numId: 'weaponNumberM4'    },
+                matol: { cbId: 'weaponMatol',  numId: 'weaponNumberMatol' }
+            };
+            Object.entries(weaponFillMap).forEach(([key, ids]) => {
+                if (data[key]) {
+                    const cb = document.getElementById(ids.cbId);
+                    const numInput = document.getElementById(ids.numId);
+                    if (cb && numInput) {
+                        cb.checked = true;
+                        numInput.classList.remove('hidden');
+                        numInput.value = data[key];
+                    }
                 }
-            }
-            
-            // Fill NVD fields
-            if (data.shacha) {
-                document.getElementById('nvdType').value = 'שח"ע';
-                document.getElementById('nvdNumber').value = data.shacha;
-                nvdTypeSelect.dispatchEvent(new Event('change'));
-            } else if (data.achbar) {
-                document.getElementById('nvdType').value = "עכבר";
-                document.getElementById('nvdNumber').value = data.achbar;
-                nvdTypeSelect.dispatchEvent(new Event('change'));
-            } else if (data.adi) {
-                document.getElementById('nvdType').value = "עדי";
-                document.getElementById('nvdNumber').value = data.adi;
-                nvdTypeSelect.dispatchEvent(new Event('change'));
-            } else if (data.ido) {
-                document.getElementById('nvdType').value = "עידו";
-                document.getElementById('nvdNumber').value = data.ido;
-                nvdTypeSelect.dispatchEvent(new Event('change'));
-            } else if (data.kiro) {
-                document.getElementById('nvdType').value = "קירו";
-                document.getElementById('nvdNumber').value = data.kiro;
-                nvdTypeSelect.dispatchEvent(new Event('change'));
-            }
-            
-            // Fill checkboxes
-            document.getElementById('hasBinoculars').checked = data.binoculars === "1";
-            document.getElementById('hasCompass').checked = data.compass === "1";
-            
+            });
+
+            // Fill sight checkboxes
+            const sightFillMap = {
+                trig:   { cbId: 'sightTrig',   numId: 'sightNumberTrig'   },
+                lior:   { cbId: 'sightLior',   numId: 'sightNumberLior'   },
+                pagion: { cbId: 'sightPagion', numId: 'sightNumberPagion' },
+                zavon:  { cbId: 'sightZavon',  numId: 'sightNumberZavon'  },
+                m5:     { cbId: 'sightM5',     numId: 'sightNumberM5'     }
+            };
+            Object.entries(sightFillMap).forEach(([key, ids]) => {
+                if (data[key]) {
+                    const cb = document.getElementById(ids.cbId);
+                    const numInput = document.getElementById(ids.numId);
+                    if (cb && numInput) {
+                        cb.checked = true;
+                        numInput.classList.remove('hidden');
+                        numInput.value = data[key];
+                    }
+                }
+            });
+
+            // Fill NVD checkboxes
+            const nvdFillMap = {
+                shacha: { cbId: 'nvdShacha', numId: 'nvdNumberShacha' },
+                achbar: { cbId: 'nvdAchbar', numId: 'nvdNumberAchbar' },
+                adi:    { cbId: 'nvdAdi',    numId: 'nvdNumberAdi'    },
+                ido:    { cbId: 'nvdIdo',    numId: 'nvdNumberIdo'    },
+                kiro:   { cbId: 'nvdKiro',   numId: 'nvdNumberKiro'   }
+            };
+            Object.entries(nvdFillMap).forEach(([key, ids]) => {
+                if (data[key]) {
+                    const cb = document.getElementById(ids.cbId);
+                    const numInput = document.getElementById(ids.numId);
+                    if (cb && numInput) {
+                        cb.checked = true;
+                        numInput.classList.remove('hidden');
+                        numInput.value = data[key];
+                    }
+                }
+            });
+
+            // Fill binoculars and compass
+            document.getElementById('hasBinoculars').checked = data.binoculars === true || data.binoculars === "1";
+            document.getElementById('hasCompass').checked = data.compass === true || data.compass === "1";
+
             // Fill zayin
             if (data.zayin) {
                 document.getElementById('hasZayin').checked = true;
                 document.getElementById('zayinNumber').value = data.zayin;
                 hasZayinCheckbox.dispatchEvent(new Event('change'));
             }
-            
+
             // Fill pak
             if (data.pak) {
                 document.getElementById('hasPak').checked = true;
@@ -1008,12 +1050,6 @@
                 hasPakCheckbox.dispatchEvent(new Event('change'));
             }
 
-            // Fill matol
-            if (data.matol) {
-                document.getElementById('matolNumber').value = data.matol;
-            }
-            updateMatolVisibility();
-            
             // Trigger form validity check
             checkFormValidity();
         }
@@ -1046,12 +1082,12 @@
         function showError(fieldName, message) {
             const input = document.getElementById(fieldName);
             const errorMsg = document.querySelector(`[data-field="${fieldName}"]`);
-            
-            if (!input) return; // Field doesn't exist
-            
-            input.classList.remove('border-stone-300', 'focus:border-green-600');
-            input.classList.add('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
-            
+
+            if (input) {
+                input.classList.remove('border-stone-300', 'focus:border-green-600');
+                input.classList.add('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
+            }
+
             if (errorMsg) {
                 errorMsg.textContent = message;
                 errorMsg.classList.remove('hidden');
@@ -1061,12 +1097,12 @@
         function clearError(fieldName) {
             const input = document.getElementById(fieldName);
             const errorMsg = document.querySelector(`[data-field="${fieldName}"]`);
-            
-            if (!input) return; // Field doesn't exist
-            
-            input.classList.remove('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
-            input.classList.add('border-stone-300', 'focus:border-green-600');
-            
+
+            if (input) {
+                input.classList.remove('border-red-500', 'bg-red-50', 'focus:border-red-500', 'focus:ring-red-200');
+                input.classList.add('border-stone-300', 'focus:border-green-600');
+            }
+
             if (errorMsg) {
                 errorMsg.classList.add('hidden');
             }
@@ -1078,30 +1114,42 @@
             const phone = document.getElementById('phone').value;
             const email = document.getElementById('email').value;
             const unit = document.getElementById('unit').value;
-            const weaponType = document.getElementById('weaponType').value;
-            const weaponNumber = document.getElementById('weaponNumber').value;
-            
-            // Check if NVD number is required (only if NVD type is selected)
-            const nvdType = document.getElementById('nvdType').value;
-            const nvdNumber = document.getElementById('nvdNumber').value;
-            const nvdNumberRequired = nvdType && !nvdNumber;
-            
+
+            // Team required for פלוגה
+            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
+            const teamRequired = platoons.includes(unit) && !document.getElementById('team').value;
+
+            // Weapon: at least one checkbox checked + each checked weapon has a number
+            const checkedWeapons = document.querySelectorAll('.weapon-type-checkbox:checked');
+            const weaponValid = checkedWeapons.length > 0 && Array.from(checkedWeapons).every(cb => {
+                const numInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
+                return numInput && numInput.value.trim();
+            });
+
+            // Sights: each checked sight must have a number
+            const sightValid = Array.from(document.querySelectorAll('.sight-checkbox:checked')).every(cb => {
+                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
+                return numInput && numInput.value.trim();
+            });
+
+            // NVDs: each checked NVD must have a number
+            const nvdValid = Array.from(document.querySelectorAll('.nvd-checkbox:checked')).every(cb => {
+                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
+                return numInput && numInput.value.trim();
+            });
+
             // Check if zayin number is required (only if zayin checkbox is checked)
             const hasZayin = document.getElementById('hasZayin').checked;
             const zayinNumber = document.getElementById('zayinNumber').value;
             const zayinNumberRequired = hasZayin && !zayinNumber;
-            
+
             // Check if pak number is required (only if pak checkbox is checked)
             const hasPak = document.getElementById('hasPak').checked;
             const pakNumber = document.getElementById('pakNumber').value;
             const pakNumberRequired = hasPak && !pakNumber;
 
-            // Check if matol number is required (only if weapon type is מטול)
-            const matolNumber = document.getElementById('matolNumber').value;
-            const matolNumberRequired = weaponType === 'מטול' && !matolNumber;
-
             // Don't require signature for button enabling - only validate on submit
-            const isValid = fullName && personalNumber && phone && email && unit && weaponType && weaponNumber && !nvdNumberRequired && !zayinNumberRequired && !pakNumberRequired && !matolNumberRequired;
+            const isValid = fullName && personalNumber && phone && email && unit && !teamRequired && weaponValid && sightValid && nvdValid && !zayinNumberRequired && !pakNumberRequired;
 
             if (isValid) {
                 submitBtn.disabled = false;
@@ -1115,13 +1163,14 @@
         }
 
         // Add input event listeners
-        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber', 'matolNumber'].forEach(fieldName => {
+        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'zayinNumber', 'pakNumber'].forEach(fieldName => {
             const input = document.getElementById(fieldName);
+            if (!input) return;
             input.addEventListener('input', () => {
                 clearError(fieldName);
                 checkFormValidity();
             });
-            
+
             // For select fields, also listen to change event
             if (input.tagName === 'SELECT') {
                 input.addEventListener('change', () => {
@@ -1131,12 +1180,17 @@
             }
         });
 
+        // Watch inline number inputs for form validity
+        document.querySelectorAll('.weapon-inline-number, .sight-inline-number, .nvd-inline-number').forEach(input => {
+            input.addEventListener('input', checkFormValidity);
+        });
+
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             // Clear all errors
-            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(clearError);
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'weaponType', 'zayinNumber', 'pakNumber'].forEach(clearError);
 
             let hasErrors = false;
             let firstErrorField = null;
@@ -1197,30 +1251,50 @@
                 if (!firstErrorField) firstErrorField = 'unit';
             }
 
-            // Validate weapon type
-            const weaponType = document.getElementById('weaponType').value;
-            if (!weaponType) {
-                showError('weaponType', 'שדה חובה');
+            // Validate team (required for פלוגה)
+            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
+            if (platoons.includes(unit) && !document.getElementById('team').value) {
+                showError('team', 'שדה חובה');
                 hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'weaponType';
+                if (!firstErrorField) firstErrorField = 'team';
             }
 
-            // Validate weapon number
-            const weaponNumber = document.getElementById('weaponNumber').value;
-            if (!weaponNumber) {
-                showError('weaponNumber', 'שדה חובה');
+            // Validate weapon type (at least one checkbox + each has a number)
+            const checkedWeapons = document.querySelectorAll('.weapon-type-checkbox:checked');
+            if (checkedWeapons.length === 0) {
+                showError('weaponType', 'יש לבחור לפחות סוג נשק אחד');
                 hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'weaponNumber';
+                if (!firstErrorField) firstErrorField = 'weaponNegev';
+            } else {
+                checkedWeapons.forEach(cb => {
+                    const wNumInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
+                    if (!wNumInput || !wNumInput.value.trim()) {
+                        showError('weaponType', 'יש להזין מספר לכל נשק שנבחר');
+                        hasErrors = true;
+                        if (!firstErrorField) firstErrorField = wNumInput ? wNumInput.id : 'weaponNegev';
+                    }
+                });
             }
 
-            // Validate NVD number (only if NVD type is selected)
-            const nvdType = document.getElementById('nvdType').value;
-            const nvdNumber = document.getElementById('nvdNumber').value;
-            if (nvdType && !nvdNumber) {
-                showError('nvdNumber', 'שדה חובה כאשר נבחר סוג אמרל');
-                hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'nvdNumber';
-            }
+            // Validate sight numbers
+            document.querySelectorAll('.sight-checkbox:checked').forEach(cb => {
+                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
+                if (numInput && !numInput.value.trim()) {
+                    numInput.classList.add('border-red-500');
+                    hasErrors = true;
+                    if (!firstErrorField) firstErrorField = numInput.id;
+                }
+            });
+
+            // Validate NVD numbers
+            document.querySelectorAll('.nvd-checkbox:checked').forEach(cb => {
+                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
+                if (numInput && !numInput.value.trim()) {
+                    numInput.classList.add('border-red-500');
+                    hasErrors = true;
+                    if (!firstErrorField) firstErrorField = numInput.id;
+                }
+            });
 
             // Validate zayin number (only if zayin checkbox is checked)
             const hasZayin = document.getElementById('hasZayin').checked;
@@ -1238,14 +1312,6 @@
                 showError('pakNumber', 'שדה חובה כאשר נבחר פק');
                 hasErrors = true;
                 if (!firstErrorField) firstErrorField = 'pakNumber';
-            }
-
-            // Validate matol number (only if weapon type is מטול)
-            const matolNumber = document.getElementById('matolNumber').value;
-            if (weaponType === 'מטול' && !matolNumber) {
-                showError('matolNumber', 'שדה חובה כאשר נבחר מטול');
-                hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'matolNumber';
             }
 
             // Validate signature
@@ -1294,27 +1360,49 @@
                 return;
             }
             
+            // Collect weapon data (multiple)
+            const weaponKeyMap = { 'נגב': 'negev', 'M16': 'm16', 'M4': 'm4', 'מטול': 'matol' };
+            const weaponData = {};
+            document.querySelectorAll('.weapon-type-checkbox:checked').forEach(cb => {
+                const key = weaponKeyMap[cb.value];
+                const numEl = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
+                if (key && numEl) weaponData[key] = numEl.value;
+            });
+
+            // Collect sight data
+            const sightKeyMap = { "טריג׳": 'trig', 'ליאור': 'lior', 'פגיון': 'pagion', 'זאבון': 'zavon', 'm5': 'm5' };
+            const sightData = {};
+            document.querySelectorAll('.sight-checkbox:checked').forEach(cb => {
+                const key = sightKeyMap[cb.value];
+                const numEl = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
+                if (key && numEl) sightData[key] = numEl.value;
+            });
+
+            // Collect NVD data
+            const nvdKeyMap = { 'שח"ע': 'shacha', 'עכבר': 'achbar', 'עדי': 'adi', 'עידו': 'ido', 'קירו': 'kiro' };
+            const nvdData = {};
+            document.querySelectorAll('.nvd-checkbox:checked').forEach(cb => {
+                const key = nvdKeyMap[cb.value];
+                const numEl = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
+                if (key && numEl) nvdData[key] = numEl.value;
+            });
+
             const data = {
                 fullName: fullName,
                 personalNumber: personalNumber,
                 phone: phone,
                 email: document.getElementById('email').value,
                 unit: document.getElementById('unit').value,
-                weaponType: document.getElementById('weaponType').value,
-                weaponNumber: document.getElementById('weaponNumber').value,
-                sightType: document.getElementById('sightType').value,
-                sightNumber: document.getElementById('sightNumber').value,
-                additionalSightType: document.getElementById('additionalSightType').value,
-                additionalSightNumber: document.getElementById('additionalSightNumber').value,
-                nvdType: document.getElementById('nvdType').value,
-                nvdNumber: document.getElementById('nvdNumber').value,
+                team: document.getElementById('team').value,
+                ...weaponData,
+                ...sightData,
+                ...nvdData,
                 hasBinoculars: document.getElementById('hasBinoculars').checked,
                 hasCompass: document.getElementById('hasCompass').checked,
                 hasZayin: document.getElementById('hasZayin').checked,
                 zayinNumber: document.getElementById('zayinNumber').value,
                 hasPak: document.getElementById('hasPak').checked,
                 pakNumber: document.getElementById('pakNumber').value,
-                matolNumber: document.getElementById('matolNumber').value,
                 signature: signatureData,
                 timestamp: new Date().toISOString()
             };
@@ -1375,11 +1463,16 @@
         // New form button
         newFormBtn.addEventListener('click', () => {
             form.reset();
-            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'weaponType', 'weaponNumber', 'nvdNumber', 'zayinNumber', 'pakNumber'].forEach(clearError);
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'weaponType', 'zayinNumber', 'pakNumber'].forEach(clearError);
 
-            // Hide NVD number field
-            nvdNumberContainer.classList.add('hidden');
-            nvdNumberInput.required = false;
+            // Hide team container
+            teamContainer.classList.add('hidden');
+
+            // Hide all weapon/sight/NVD inline number inputs
+            document.querySelectorAll('.weapon-inline-number, .sight-inline-number, .nvd-inline-number').forEach(el => {
+                el.classList.add('hidden');
+                el.value = '';
+            });
 
             // Hide zayin number field
             zayinNumberContainer.classList.add('hidden');
@@ -1388,10 +1481,6 @@
             // Hide pak number field
             pakNumberContainer.classList.add('hidden');
             pakNumberInput.required = false;
-
-            // Hide matol number field
-            matolNumberContainer.classList.add('hidden');
-            matolNumberInput.required = false;
 
             // Clear signature
             ctx.fillStyle = 'white';

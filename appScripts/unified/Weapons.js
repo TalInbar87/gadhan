@@ -3,14 +3,14 @@
  * Weapons Module - מודול נשקים
  * ================================================================
  * מבנה גיליון נשקים (כל הרשומות):
- * A(0)=תאריך ושעה | B(1)=שם מלא | C(2)=מספר אישי
- * D(3)=טלפון | E(4)=מייל | F(5)=מסגרת
- * G(6)=סוג נשק | H(7)=מספר נשק
- * I(8)=טריג׳ | J(9)=ליאור | K(10)=פגיון | L(11)=זאבון | M(12)=m5
- * N(13)=שח"ע | O(14)=עכבר | P(15)=עדי | Q(16)=עידו | R(17)=קירו
- * S(18)=משקפה | T(19)=מצפן | U(20)=ציין | V(21)=פק
+ * A(0)=תאריך ושעה | B(1)=שם מלא | C(2)=מספר אישי | D(3)=טלפון | E(4)=מייל
+ * F(5)=מסגרת | G(6)=צוות
+ * H(7)=נגב | I(8)=M16 | J(9)=M4 | K(10)=מטול
+ * L(11)=טריג׳ | M(12)=ליאור | N(13)=פגיון | O(14)=זאבון | P(15)=m5
+ * Q(16)=שח"ע | R(17)=עכבר | S(18)=עדי | T(19)=עידו | U(20)=קירו
+ * V(21)=משקפה | W(22)=מצפן | X(23)=ציין | Y(24)=פק
  *
- * גיליון זיכויים: אותן עמודות A-V + W=פריטים שזוכו + X=תאריך זיכוי + Y=זוכה על ידי
+ * גיליון זיכויים: אותן עמודות A-Y + Z=פריטים שזוכו + AA=תאריך זיכוי + AB=זוכה על ידי
  * גיליון העברות: תאריך | מקור PN | שם מקור | יעד PN | שם יעד | פריטים | בוצע ע"י
  *
  * כל הפונקציות מחזירות plain object { success, message?, error? }
@@ -20,7 +20,10 @@
 
 // מיפוי מפתחות פריטים לשמות עבריים (לשימוש במיילים)
 const WEAPONS_ITEM_NAMES_HE = {
-  weapon:     'נשק',
+  negev:      'נגב',
+  m16:        'M16',
+  m4:         'M4',
+  matol:      'מטול',
   trig:       "טריג'",
   lior:       'ליאור',
   pagion:     'פגיון',
@@ -34,28 +37,34 @@ const WEAPONS_ITEM_NAMES_HE = {
   binoculars: 'משקפה',
   compass:    'מצפן',
   zayin:      'ציין',
-  pak:        'פק',
-  matol:      'מטול'
+  pak:        'פק'
 };
 
 // מיפוי מפתחות פריטים לעמודות (0-indexed) בגיליון הנשקים
+// A(0)=תאריך | B(1)=שם | C(2)=מ"א | D(3)=טל | E(4)=מייל | F(5)=מסגרת | G(6)=צוות
+// H(7)=נגב | I(8)=M16 | J(9)=M4 | K(10)=מטול
+// L(11)=טריג׳ | M(12)=ליאור | N(13)=פגיון | O(14)=זאבון | P(15)=m5
+// Q(16)=שח"ע | R(17)=עכבר | S(18)=עדי | T(19)=עידו | U(20)=קירו
+// V(21)=משקפה | W(22)=מצפן | X(23)=ציין | Y(24)=פק
 const WEAPONS_ITEM_COLUMN_MAP = {
-  weapon:     [6, 7],  // G, H - סוג נשק + מספר נשק
-  trig:       [8],     // I  - טריג׳
-  lior:       [9],     // J  - ליאור
-  pagion:     [10],    // K  - פגיון
-  zavon:      [11],    // L  - זאבון
-  m5:         [12],    // M  - m5
-  shacha:     [13],    // N  - שח"ע
-  achbar:     [14],    // O  - עכבר
-  adi:        [15],    // P  - עדי
-  ido:        [16],    // Q  - עידו
-  kiro:       [17],    // R  - קירו
-  binoculars: [18],    // S  - משקפה
-  compass:    [19],    // T  - מצפן
-  zayin:      [20],    // U  - ציין
-  pak:        [21],    // V  - פק
-  matol:      [22]     // W  - מטול
+  negev:      [7],     // H  - נגב
+  m16:        [8],     // I  - M16
+  m4:         [9],     // J  - M4
+  matol:      [10],    // K  - מטול
+  trig:       [11],    // L  - טריג׳
+  lior:       [12],    // M  - ליאור
+  pagion:     [13],    // N  - פגיון
+  zavon:      [14],    // O  - זאבון
+  m5:         [15],    // P  - m5
+  shacha:     [16],    // Q  - שח"ע
+  achbar:     [17],    // R  - עכבר
+  adi:        [18],    // S  - עדי
+  ido:        [19],    // T  - עידו
+  kiro:       [20],    // U  - קירו
+  binoculars: [21],    // V  - משקפה
+  compass:    [22],    // W  - מצפן
+  zayin:      [23],    // X  - ציין
+  pak:        [24]     // Y  - פק
 };
 
 // ================================================================
@@ -83,23 +92,25 @@ function weapons_checkPersonalNumber(personalNumber, callback) {
           phone:          '0' + rows[i][3],
           email:          rows[i][4],
           unit:           rows[i][5],
-          weaponType:     rows[i][6],
-          weaponNumber:   rows[i][7],
-          trig:           rows[i][8],
-          lior:           rows[i][9],
-          pagion:         rows[i][10],
-          zavon:          rows[i][11],
-          m5:             rows[i][12],
-          shacha:         rows[i][13],
-          achbar:         rows[i][14],
-          adi:            rows[i][15],
-          ido:            rows[i][16],
-          kiro:           rows[i][17],
-          binoculars:     rows[i][18] == 1,
-          compass:        rows[i][19] == 1,
-          zayin:          rows[i][20],
-          pak:            rows[i][21],
-          matol:          rows[i][22] || ''
+          team:           rows[i][6]  || '',
+          negev:          rows[i][7]  || '',
+          m16:            rows[i][8]  || '',
+          m4:             rows[i][9]  || '',
+          matol:          rows[i][10] || '',
+          trig:           rows[i][11] || '',
+          lior:           rows[i][12] || '',
+          pagion:         rows[i][13] || '',
+          zavon:          rows[i][14] || '',
+          m5:             rows[i][15] || '',
+          shacha:         rows[i][16] || '',
+          achbar:         rows[i][17] || '',
+          adi:            rows[i][18] || '',
+          ido:            rows[i][19] || '',
+          kiro:           rows[i][20] || '',
+          binoculars:     rows[i][21] == 1,
+          compass:        rows[i][22] == 1,
+          zayin:          rows[i][23] || '',
+          pak:            rows[i][24] || ''
         }
       }, callback);
     }
@@ -157,9 +168,11 @@ function weapons_saveToMainSheet(ss, data, timestamp) {
 function weapons_createUnitSheet(ss, sheetName) {
   const sheet = ss.insertSheet(sheetName);
   const headers = [
-    'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת',
-    'סוג נשק', 'מספר נשק', "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
-    'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק', 'מטול'
+    'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת', 'צוות',
+    'נגב', 'M16', 'M4', 'מטול',
+    "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
+    'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו',
+    'משקפה', 'מצפן', 'ציין', 'פק'
   ];
   sheet.appendRow(headers);
   const hr = sheet.getRange(1, 1, 1, headers.length);
@@ -215,27 +228,30 @@ function weapons_prepareRowData(data, timestamp) {
     data.personalNumber,
     data.phone,
     data.email,
-    data.unit || '',
-    data.weaponType   || '',
-    data.weaponNumber || '',
-    // כוונות - כוונה ראשית ו/או נוספת
-    (data.sightType === "טריג׳" ? data.sightNumber : '') || (data.additionalSightType === "טריג׳" ? data.additionalSightNumber : '') || '',
-    (data.sightType === 'ליאור'  ? data.sightNumber : '') || (data.additionalSightType === 'ליאור'  ? data.additionalSightNumber : '') || '',
-    (data.sightType === 'פגיון'  ? data.sightNumber : '') || (data.additionalSightType === 'פגיון'  ? data.additionalSightNumber : '') || '',
-    (data.sightType === 'זאבון'  ? data.sightNumber : '') || (data.additionalSightType === 'זאבון'  ? data.additionalSightNumber : '') || '',
-    (data.sightType === 'm5'     ? data.sightNumber : '') || (data.additionalSightType === 'm5'     ? data.additionalSightNumber : '') || '',
+    data.unit  || '',
+    data.team  || '',
+    // נשקים
+    data.negev || '',
+    data.m16   || '',
+    data.m4    || '',
+    data.matol || '',
+    // כוונות
+    data.trig   || '',
+    data.lior   || '',
+    data.pagion || '',
+    data.zavon  || '',
+    data.m5     || '',
     // אמרל"ים
-    data.nvdType === 'שח"ע' ? (data.nvdNumber || '') : '',
-    data.nvdType === 'עכבר'  ? (data.nvdNumber || '') : '',
-    data.nvdType === 'עדי'   ? (data.nvdNumber || '') : '',
-    data.nvdType === 'עידו'  ? (data.nvdNumber || '') : '',
-    data.nvdType === 'קירו'  ? (data.nvdNumber || '') : '',
+    data.shacha || '',
+    data.achbar || '',
+    data.adi    || '',
+    data.ido    || '',
+    data.kiro   || '',
     // ציוד נוסף
     data.hasBinoculars ? '1' : '',
     data.hasCompass    ? '1' : '',
     data.hasZayin ? (data.zayinNumber || '') : '',
-    data.hasPak   ? (data.pakNumber   || '') : '',
-    data.weaponType === 'מטול' ? (data.matolNumber || '') : ''
+    data.hasPak   ? (data.pakNumber   || '') : ''
   ];
 }
 
@@ -265,9 +281,11 @@ function weapons_getOrCreateCreditSheet(ss) {
   if (!sheet) {
     sheet = ss.insertSheet('זיכויים');
     const headers = [
-      'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת',
-      'סוג נשק', 'מספר נשק', "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
-      'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו', 'משקפה', 'מצפן', 'ציין', 'פק', 'מטול',
+      'תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת', 'צוות',
+      'נגב', 'M16', 'M4', 'מטול',
+      "טריג׳", 'ליאור', 'פגיון', 'זאבון', 'm5',
+      'שח"ע', 'עכבר', 'עדי', 'עידו', 'קירו',
+      'משקפה', 'מצפן', 'ציין', 'פק',
       'פריטים שזוכו', 'תאריך זיכוי', 'זוכה על ידי'
     ];
     sheet.appendRow(headers);
@@ -407,14 +425,14 @@ function weapons_handlePartialCredit(data) {
         });
       }
     });
-    // עמודה X (24): מיזוג רשימת פריטים (W=מטול הוסר, X=פריטים שזוכו)
-    const prev = creditSheet.getRange(existingCreditRow, 24).getValue() || '';
-    creditSheet.getRange(existingCreditRow, 24).setValue(
+    // עמודה Z (26): מיזוג רשימת פריטים שזוכו
+    const prev = creditSheet.getRange(existingCreditRow, 26).getValue() || '';
+    creditSheet.getRange(existingCreditRow, 26).setValue(
       prev ? prev + ', ' + selectedItems.join(', ') : selectedItems.join(', ')
     );
-    // עמודות Y (25), Z (26): עדכון תאריך ומבצע
-    creditSheet.getRange(existingCreditRow, 25).setValue(creditAt || new Date().toISOString());
-    creditSheet.getRange(existingCreditRow, 26).setValue(creditBy || 'unknown');
+    // עמודות AA (27), AB (28): עדכון תאריך ומבצע
+    creditSheet.getRange(existingCreditRow, 27).setValue(creditAt || new Date().toISOString());
+    creditSheet.getRange(existingCreditRow, 28).setValue(creditBy || 'unknown');
     Logger.log('✓ Existing credit row updated for ' + personalNumber);
   }
 
@@ -651,17 +669,23 @@ function weapons_handleTransferItems(data) {
  * מייצר HTML לPDF זיכוי מלא — בנוי מנתוני rowData של הגיליון
  */
 function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
+  const weaponDefs = [
+    { label: 'נגב',  col: 7  }, { label: 'M16',  col: 8  },
+    { label: 'M4',   col: 9  }, { label: 'מטול', col: 10 }
+  ];
   const sightDefs = [
-    { label: "טריג׳", col: 8  }, { label: 'ליאור', col: 9  },
-    { label: 'פגיון',  col: 10 }, { label: 'זאבון', col: 11 }, { label: 'm5', col: 12 }
+    { label: "טריג׳", col: 11 }, { label: 'ליאור', col: 12 },
+    { label: 'פגיון',  col: 13 }, { label: 'זאבון', col: 14 }, { label: 'm5', col: 15 }
   ];
   const nvdDefs = [
-    { label: 'שח"ע', col: 13 }, { label: 'עכבר', col: 14 },
-    { label: 'עדי',   col: 15 }, { label: 'עידו', col: 16 }, { label: 'קירו', col: 17 }
+    { label: 'שח"ע', col: 16 }, { label: 'עכבר', col: 17 },
+    { label: 'עדי',   col: 18 }, { label: 'עידו', col: 19 }, { label: 'קירו', col: 20 }
   ];
   var f = function(label, val) {
     return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
   };
+  var weaponRows = weaponDefs.filter(function(w) { return rowData[w.col]; })
+    .map(function(w) { return f('נשק', w.label + ' — ' + rowData[w.col]); }).join('');
   var sightRows = sightDefs.filter(function(s) { return rowData[s.col]; })
     .map(function(s) { return f('כוונת', s.label + ' — ' + rowData[s.col]); }).join('');
   var nvdRows = nvdDefs.filter(function(n) { return rowData[n.col]; })
@@ -688,14 +712,11 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
     f('שם מלא',      rowData[1]) +
     f('מספר אישי',   String(rowData[2])) +
     f('מסגרת',       rowData[5]) +
-    f('סוג נשק',     rowData[6]) +
-    f('מספר נשק',    rowData[7]) +
-    sightRows + nvdRows +
-    (rowData[18] ? f('משקפה', 'כן') : '') +
-    (rowData[19] ? f('מצפן',  'כן') : '') +
-    (rowData[20] ? f('ציין',  rowData[20]) : '') +
-    (rowData[21] ? f('פק',    rowData[21]) : '') +
-    (rowData[22] ? f('מטול',  rowData[22]) : '') +
+    weaponRows + sightRows + nvdRows +
+    (rowData[21] ? f('משקפה', 'כן') : '') +
+    (rowData[22] ? f('מצפן',  'כן') : '') +
+    (rowData[23] ? f('ציין',  rowData[23]) : '') +
+    (rowData[24] ? f('פק',    rowData[24]) : '') +
     f('זוכה על ידי', creditBy || '') +
     '</div>' +
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
@@ -708,22 +729,24 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
  */
 function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, creditSignature, ts) {
   var ITEM_DEFS = {
-    weapon:     { label: 'נשק',         cols: [6, 7]  },
-    trig:       { label: "טריג׳ כוונת", cols: [8]     },
-    lior:       { label: 'ליאור כוונת', cols: [9]     },
-    pagion:     { label: 'פגיון כוונת', cols: [10]    },
-    zavon:      { label: 'זאבון כוונת', cols: [11]    },
-    m5:         { label: 'm5 כוונת',    cols: [12]    },
-    shacha:     { label: 'שח"ע אמרל',   cols: [13]    },
-    achbar:     { label: 'עכבר אמרל',   cols: [14]    },
-    adi:        { label: 'עדי אמרל',    cols: [15]    },
-    ido:        { label: 'עידו אמרל',   cols: [16]    },
-    kiro:       { label: 'קירו אמרל',   cols: [17]    },
-    binoculars: { label: 'משקפה',       cols: [18]    },
-    compass:    { label: 'מצפן',        cols: [19]    },
-    zayin:      { label: 'ציין',        cols: [20]    },
-    pak:        { label: 'פק',          cols: [21]    },
-    matol:      { label: 'מטול',        cols: [22]    }
+    negev:      { label: 'נגב',         cols: [7]     },
+    m16:        { label: 'M16',         cols: [8]     },
+    m4:         { label: 'M4',          cols: [9]     },
+    matol:      { label: 'מטול',        cols: [10]    },
+    trig:       { label: "טריג׳ כוונת", cols: [11]    },
+    lior:       { label: 'ליאור כוונת', cols: [12]    },
+    pagion:     { label: 'פגיון כוונת', cols: [13]    },
+    zavon:      { label: 'זאבון כוונת', cols: [14]    },
+    m5:         { label: 'm5 כוונת',    cols: [15]    },
+    shacha:     { label: 'שח"ע אמרל',   cols: [16]    },
+    achbar:     { label: 'עכבר אמרל',   cols: [17]    },
+    adi:        { label: 'עדי אמרל',    cols: [18]    },
+    ido:        { label: 'עידו אמרל',   cols: [19]    },
+    kiro:       { label: 'קירו אמרל',   cols: [20]    },
+    binoculars: { label: 'משקפה',       cols: [21]    },
+    compass:    { label: 'מצפן',        cols: [22]    },
+    zayin:      { label: 'ציין',        cols: [23]    },
+    pak:        { label: 'פק',          cols: [24]    }
   };
   var f = function(label, val) {
     return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
@@ -795,15 +818,22 @@ function weapons_createPdfHtml(data, timestamp) {
     '<div class="field"><div class="field-label">שם מלא:</div><div class="field-value">' + data.fullName + '</div></div>' +
     '<div class="field"><div class="field-label">מספר אישי:</div><div class="field-value">' + data.personalNumber + '</div></div>' +
     '<div class="field"><div class="field-label">טלפון:</div><div class="field-value">' + data.phone + '</div></div>' +
-    (data.unit         ? '<div class="field"><div class="field-label">מסגרת:</div><div class="field-value">'         + data.unit         + '</div></div>' : '') +
-    (data.weaponType   ? '<div class="field"><div class="field-label">סוג נשק:</div><div class="field-value">'       + data.weaponType   + '</div></div>' : '') +
-    (data.weaponNumber ? '<div class="field"><div class="field-label">מספר נשק:</div><div class="field-value">'      + data.weaponNumber + '</div></div>' : '') +
-    (data.sightType    ? '<div class="field"><div class="field-label">סוג כוונת:</div><div class="field-value">'     + data.sightType    + '</div></div>' : '') +
-    (data.sightNumber  ? '<div class="field"><div class="field-label">מספר כוונת:</div><div class="field-value">'    + data.sightNumber  + '</div></div>' : '') +
-    (data.additionalSightType   ? '<div class="field"><div class="field-label">כוונת נוספת:</div><div class="field-value">'       + data.additionalSightType   + '</div></div>' : '') +
-    (data.additionalSightNumber ? '<div class="field"><div class="field-label">מספר כוונת נוסף:</div><div class="field-value">'   + data.additionalSightNumber + '</div></div>' : '') +
-    (data.nvdType      ? '<div class="field"><div class="field-label">סוג אמרל:</div><div class="field-value">'      + data.nvdType      + '</div></div>' : '') +
-    (data.nvdNumber    ? '<div class="field"><div class="field-label">מספר אמרל:</div><div class="field-value">'     + data.nvdNumber    + '</div></div>' : '') +
+    (data.unit   ? '<div class="field"><div class="field-label">מסגרת:</div><div class="field-value">' + data.unit  + '</div></div>' : '') +
+    (data.team   ? '<div class="field"><div class="field-label">צוות:</div><div class="field-value">'   + data.team  + '</div></div>' : '') +
+    (data.negev  ? '<div class="field"><div class="field-label">נגב:</div><div class="field-value">'    + data.negev + '</div></div>' : '') +
+    (data.m16    ? '<div class="field"><div class="field-label">M16:</div><div class="field-value">'    + data.m16   + '</div></div>' : '') +
+    (data.m4     ? '<div class="field"><div class="field-label">M4:</div><div class="field-value">'     + data.m4    + '</div></div>' : '') +
+    (data.matol  ? '<div class="field"><div class="field-label">מטול:</div><div class="field-value">'   + data.matol + '</div></div>' : '') +
+    (data.trig   ? '<div class="field"><div class="field-label">כוונת טריג׳:</div><div class="field-value">'  + data.trig   + '</div></div>' : '') +
+    (data.lior   ? '<div class="field"><div class="field-label">כוונת ליאור:</div><div class="field-value">'  + data.lior   + '</div></div>' : '') +
+    (data.pagion ? '<div class="field"><div class="field-label">כוונת פגיון:</div><div class="field-value">'  + data.pagion + '</div></div>' : '') +
+    (data.zavon  ? '<div class="field"><div class="field-label">כוונת זאבון:</div><div class="field-value">'  + data.zavon  + '</div></div>' : '') +
+    (data.m5     ? '<div class="field"><div class="field-label">כוונת m5:</div><div class="field-value">'     + data.m5     + '</div></div>' : '') +
+    (data.shacha ? '<div class="field"><div class="field-label">אמרל שח"ע:</div><div class="field-value">'    + data.shacha + '</div></div>' : '') +
+    (data.achbar ? '<div class="field"><div class="field-label">אמרל עכבר:</div><div class="field-value">'    + data.achbar + '</div></div>' : '') +
+    (data.adi    ? '<div class="field"><div class="field-label">אמרל עדי:</div><div class="field-value">'     + data.adi    + '</div></div>' : '') +
+    (data.ido    ? '<div class="field"><div class="field-label">אמרל עידו:</div><div class="field-value">'    + data.ido    + '</div></div>' : '') +
+    (data.kiro   ? '<div class="field"><div class="field-label">אמרל קירו:</div><div class="field-value">'    + data.kiro   + '</div></div>' : '') +
     (data.hasBinoculars ? '<div class="field"><div class="field-label">משקפה:</div><div class="field-value">כן</div></div>' : '') +
     (data.hasCompass    ? '<div class="field"><div class="field-label">מצפן:</div><div class="field-value">כן</div></div>'   : '') +
     (data.hasZayin ? '<div class="field"><div class="field-label">ציין:</div><div class="field-value">כן' + (data.zayinNumber ? ' - ' + data.zayinNumber : '') + '</div></div>' : '') +
@@ -823,8 +853,11 @@ function weapons_sendEmail(data, pdf, timestamp) {
                  'אישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\n' +
                  'תאריך: ' + timestamp + '\n' +
                  'מספר אישי: ' + data.personalNumber + '\n' +
-                 (data.unit       ? 'מסגרת: ' + data.unit       + '\n' : '') +
-                 (data.weaponType ? 'סוג נשק: ' + data.weaponType + '\n' : '') +
+                 (data.unit  ? 'מסגרת: ' + data.unit + '\n' : '') +
+                 (data.negev ? 'נגב: '  + data.negev + '\n' : '') +
+                 (data.m16   ? 'M16: '  + data.m16   + '\n' : '') +
+                 (data.m4    ? 'M4: '   + data.m4    + '\n' : '') +
+                 (data.matol ? 'מטול: ' + data.matol + '\n' : '') +
                  '\nמצורף אישור PDF מפורט.\n\n' +
                  'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
     attachments: [pdf]
