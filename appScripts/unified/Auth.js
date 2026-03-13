@@ -197,7 +197,10 @@ class Authorization {
       read:         'read',
       delete:       'delete',
       view_reports: 'view_reports',
-      manage_users: 'manage_users'
+      manage_users: 'manage_users',
+      credit:       'credit',
+      audit_log:    'audit_log',
+      transfer:     'transfer'
     };
     return this.getPermissions(payload.role).includes(map[action]);
   }

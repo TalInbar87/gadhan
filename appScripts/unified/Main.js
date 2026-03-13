@@ -280,7 +280,7 @@ function handleCreateUser(data, request) {
 
   const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
-  if (payload.role !== 'admin') return createResponse(403, 'Only admins can create users', null);
+  if (!Authorization.canAccessResource(payload, null, 'manage_users')) return createResponse(403, 'Insufficient permissions', null);
 
   try {
     UserManager.createUser(userData);
@@ -302,10 +302,10 @@ function handleCreditData(data, request) {
   const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
 
-  if (payload.role !== 'admin') {
+  if (!Authorization.canAccessResource(payload, formType, 'credit')) {
     AuditLogger.log(payload.username, 'CREDIT_DENIED', formType,
-                   creditData.personalNumber, { reason: 'Not admin' }, request);
-    return createResponse(403, 'Only admins can credit equipment', null);
+                   creditData.personalNumber, { reason: 'Insufficient permissions' }, request);
+    return createResponse(403, 'Insufficient permissions', null);
   }
 
   const creditPayload = {
@@ -338,10 +338,10 @@ function handlePartialCredit(data, request) {
   const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
 
-  if (payload.role !== 'admin') {
+  if (!Authorization.canAccessResource(payload, formType, 'credit')) {
     AuditLogger.log(payload.username, 'PARTIAL_CREDIT_DENIED', formType,
-                   creditData.personalNumber, { reason: 'Not admin' }, request);
-    return createResponse(403, 'Only admins can credit equipment', null);
+                   creditData.personalNumber, { reason: 'Insufficient permissions' }, request);
+    return createResponse(403, 'Insufficient permissions', null);
   }
 
   const creditPayload = {
@@ -375,9 +375,9 @@ function handleTransferItems(data, request) {
   const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
 
-  if (payload.role !== 'admin') {
+  if (!Authorization.canAccessResource(payload, formType, 'transfer')) {
     AuditLogger.log(payload.username, 'TRANSFER_DENIED', formType,
-                   transferData.sourcePersonalNumber, { reason: 'Not admin' }, request);
+                   transferData.sourcePersonalNumber, { reason: 'Insufficient permissions' }, request);
     return createResponse(403, 'Only admins can transfer equipment', null);
   }
 
@@ -416,7 +416,7 @@ function handleGetAuditLog(data, request) {
 
   const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
-  if (payload.role !== 'admin') return createResponse(403, 'Only admins can view audit log', null);
+  if (!Authorization.canAccessResource(payload, null, 'audit_log')) return createResponse(403, 'Insufficient permissions', null);
 
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SHEETS.AUDIT_LOG);
