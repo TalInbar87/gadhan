@@ -244,242 +244,310 @@
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="team"></p>
                 </div>
 
-                <!-- Weapon Type (checkboxes - exclusive) -->
+                <!-- ציוד -->
                 <div>
                     <label class="block text-stone-700 font-bold mb-2 text-lg">
-                        סוג נשק <span class="text-red-600">*</span>
+                        ציוד <span class="text-red-600">*</span>
                     </label>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="weaponNegev" value="נגב"
-                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="weaponNegev" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">נגב</label>
-                            <input type="text" id="weaponNumberNegev"
-                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר נשק" maxlength="20" />
+                    <div class="mb-2">
+                        <input type="text" id="itemSearch"
+                            placeholder="🔍 חפש פריט..."
+                            class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-600"
+                            oninput="filterItems(this.value)" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-2" id="itemGrid">
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_roskM16" data-key="roskM16" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_roskM16" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M16</label>
+                            <input type="text" id="num_roskM16" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="weaponM16" value="M16"
-                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="weaponM16" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">M16</label>
-                            <input type="text" id="weaponNumberM16"
-                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר נשק" maxlength="20" />
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_roskM4" data-key="roskM4" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_roskM4" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M4</label>
+                            <input type="text" id="num_roskM4" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="weaponM4" value="M4"
-                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="weaponM4" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">M4</label>
-                            <input type="text" id="weaponNumberM4"
-                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר נשק" maxlength="20" />
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_negev" data-key="negev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_negev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגב</label>
+                            <input type="text" id="num_negev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="weaponMatol" value="מטול"
-                                class="weapon-type-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="weaponMatol" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">מטול</label>
-                            <input type="text" id="weaponNumberMatol"
-                                class="weapon-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר נשק" maxlength="20" />
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_mag" data-key="mag" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_mag" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מאג</label>
+                            <input type="text" id="num_mag" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_matol" data-key="matol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_matol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מטול</label>
+                            <input type="text" id="num_matol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_baret" data-key="baret" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_baret" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בארט</label>
+                            <input type="text" id="num_baret" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_trig" data-key="trig" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_trig" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">טריג</label>
+                            <input type="text" id="num_trig" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_m5" data-key="m5" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_m5" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת M5</label>
+                            <input type="text" id="num_m5" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_pictini" data-key="pictini" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_pictini" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פיקטיני</label>
+                            <input type="text" id="num_pictini" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_mepro" data-key="mepro" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_mepro" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מפרו</label>
+                            <input type="text" id="num_mepro" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_zayinNegev" data-key="zayinNegev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_zayinNegev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ציין נגב</label>
+                            <input type="text" id="num_zayinNegev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_shacha" data-key="shacha" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_shacha" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שח"ע</label>
+                            <input type="text" id="num_shacha" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_lior" data-key="lior" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_lior" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ליאור</label>
+                            <input type="text" id="num_lior" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_zavon" data-key="zavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_zavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">זאבון</label>
+                            <input type="text" id="num_zavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_akila6" data-key="akila6" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_akila6" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אקילה*6</label>
+                            <input type="text" id="num_akila6" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_binoculars" data-key="binoculars" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_binoculars" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת</label>
+                            <input type="text" id="num_binoculars" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_compass" data-key="compass" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_compass" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מצפן</label>
+                            <input type="text" id="num_compass" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_armon" data-key="armon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_armon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערמון</label>
+                            <input type="text" id="num_armon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <input type="checkbox" id="cb_thermalMarker" data-key="thermalMarker" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_thermalMarker" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן טרמי לחיר</label>
+                            <input type="text" id="num_thermalMarker" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_achbar" data-key="achbar" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_achbar" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עכבר</label>
+                            <input type="text" id="num_achbar" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_lpl" data-key="lpl" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_lpl" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">LPL</label>
+                            <input type="text" id="num_lpl" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_yarour" data-key="yarour" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_yarour" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">יראור</label>
+                            <input type="text" id="num_yarour" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_adi" data-key="adi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_adi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עדי</label>
+                            <input type="text" id="num_adi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_matolHandasi" data-key="matolHandasi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_matolHandasi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל הנדסי</label>
+                            <input type="text" id="num_matolHandasi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_matolSarug" data-key="matolSarug" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_matolSarug" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל סרוג</label>
+                            <input type="text" id="num_matolSarug" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_makabim" data-key="makabim" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_makabim" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכבים</label>
+                            <input type="text" id="num_makabim" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_shabang" data-key="shabang" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_shabang" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבנג</label>
+                            <input type="text" id="num_shabang" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_pagion" data-key="pagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_pagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פגיון</label>
+                            <input type="text" id="num_pagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_sightPagion" data-key="sightPagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_sightPagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת לפגיון</label>
+                            <input type="text" id="num_sightPagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_ido" data-key="ido" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_ido" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עידו</label>
+                            <input type="text" id="num_ido" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_leopold" data-key="leopold" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_leopold" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">לאופולד</label>
+                            <input type="text" id="num_leopold" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_noa" data-key="noa" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_noa" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נועה</label>
+                            <input type="text" id="num_noa" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_amit" data-key="amit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_amit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עמית</label>
+                            <input type="text" id="num_amit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_yarin" data-key="yarin" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_yarin" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ירין</label>
+                            <input type="text" id="num_yarin" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_shabshavet" data-key="shabshavet" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_shabshavet" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבשבת</label>
+                            <input type="text" id="num_shabshavet" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <input type="checkbox" id="cb_laserMatol" data-key="laserMatol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_laserMatol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן לייזר למטול</label>
+                            <input type="text" id="num_laserMatol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_metzitzan" data-key="metzitzan" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_metzitzan" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מציצן</label>
+                            <input type="text" id="num_metzitzan" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_rigit" data-key="rigit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_rigit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ריגיט</label>
+                            <input type="text" id="num_rigit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_magenOz" data-key="magenOz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_magenOz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מגן עוז</label>
+                            <input type="text" id="num_magenOz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_boresight" data-key="boresight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_boresight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בורסייט</label>
+                            <input type="text" id="num_boresight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_kundson" data-key="kundson" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_kundson" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">קונדסון</label>
+                            <input type="text" id="num_kundson" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_makhpal" data-key="makhpal" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_makhpal" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכפל</label>
+                            <input type="text" id="num_makhpal" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_negavon" data-key="negavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_negavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגבון</label>
+                            <input type="text" id="num_negavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <input type="checkbox" id="cb_pakZayinNegavon" data-key="pakZayinNegavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_pakZayinNegavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פק ציין לנגבון</label>
+                            <input type="text" id="num_pakZayinNegavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_sightAyotek" data-key="sightAyotek" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_sightAyotek" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת איוטק</label>
+                            <input type="text" id="num_sightAyotek" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_binocularsPugi" data-key="binocularsPugi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_binocularsPugi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת פוגי</label>
+                            <input type="text" id="num_binocularsPugi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_ironBall" data-key="ironBall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_ironBall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כדור ברזל</label>
+                            <input type="text" id="num_ironBall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_mkh" data-key="mkh" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_mkh" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מק"ח</label>
+                            <input type="text" id="num_mkh" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_kneeNight" data-key="kneeNight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_kneeNight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך לילה</label>
+                            <input type="text" id="num_kneeNight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_kneeDay" data-key="kneeDay" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_kneeDay" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך יום</label>
+                            <input type="text" id="num_kneeDay" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <input type="checkbox" id="cb_merkavaCurtain" data-key="merkavaCurtain" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_merkavaCurtain" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">וילון מרכבה</label>
+                            <input type="text" id="num_merkavaCurtain" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_kitBaz" data-key="kitBaz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_kitBaz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערכת באז</label>
+                            <input type="text" id="num_kitBaz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_amaSoch" data-key="amaSoch" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_amaSoch" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אמה סוך</label>
+                            <input type="text" id="num_amaSoch" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_dotSmall" data-key="dotSmall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_dotSmall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה קטנה</label>
+                            <input type="text" id="num_dotSmall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_dotEnhanced" data-key="dotEnhanced" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_dotEnhanced" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה משופרת</label>
+                            <input type="text" id="num_dotEnhanced" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_droneIbu" data-key="droneIbu" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_droneIbu" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן איבו</label>
+                            <input type="text" id="num_droneIbu" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <input type="checkbox" id="cb_droneAvatah" data-key="droneAvatah" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_droneAvatah" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן אבטה</label>
+                            <input type="text" id="num_droneAvatah" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        </div>
+                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <input type="checkbox" id="cb_droneFlycard" data-key="droneFlycard" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                            <label for="cb_droneFlycard" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן פלייקארד</label>
+                            <input type="text" id="num_droneFlycard" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
                         </div>
                     </div>
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="weaponType"></p>
-                </div>
-
-                <!-- Sight Types (checkboxes) -->
-                <div>
-                    <label class="block text-stone-700 font-bold mb-2 text-lg">כוונת</label>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="sightTrig" value="טריג׳"
-                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="sightTrig" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">טריג׳</label>
-                            <input type="text" id="sightNumberTrig"
-                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר כוונת" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="sightLior" value="ליאור"
-                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="sightLior" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">ליאור</label>
-                            <input type="text" id="sightNumberLior"
-                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר כוונת" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="sightPagion" value="פגיון"
-                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="sightPagion" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">פגיון</label>
-                            <input type="text" id="sightNumberPagion"
-                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר כוונת" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="sightZavon" value="זאבון"
-                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="sightZavon" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">זאבון</label>
-                            <input type="text" id="sightNumberZavon"
-                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר כוונת" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="sightM5" value="m5"
-                                class="sight-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="sightM5" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">m5</label>
-                            <input type="text" id="sightNumberM5"
-                                class="sight-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר כוונת" maxlength="20" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NVD Types (checkboxes) - אמצעי ראיית לילה -->
-                <div>
-                    <label class="block text-stone-700 font-bold mb-2 text-lg">אמצעי ראיית לילה</label>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="nvdShacha" value='שח"ע'
-                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="nvdShacha" class='text-stone-700 font-bold text-lg cursor-pointer flex-1'>שח"ע</label>
-                            <input type="text" id="nvdNumberShacha"
-                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder='מספר שח"ע' maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="nvdAchbar" value="עכבר"
-                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="nvdAchbar" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עכבר</label>
-                            <input type="text" id="nvdNumberAchbar"
-                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר עכבר" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="nvdAdi" value="עדי"
-                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="nvdAdi" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עדי</label>
-                            <input type="text" id="nvdNumberAdi"
-                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר עדי" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="nvdIdo" value="עידו"
-                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="nvdIdo" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">עידו</label>
-                            <input type="text" id="nvdNumberIdo"
-                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר עידו" maxlength="20" />
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">
-                            <input type="checkbox" id="nvdKiro" value="קירו"
-                                class="nvd-checkbox form-field-lockable w-6 h-6 accent-green-700"
-                                disabled />
-                            <label for="nvdKiro" class="text-stone-700 font-bold text-lg cursor-pointer flex-1">קירו</label>
-                            <input type="text" id="nvdNumberKiro"
-                                class="nvd-inline-number hidden px-3 py-2 text-base border-2 border-stone-300 rounded-lg w-36"
-                                placeholder="מספר קירו" maxlength="20" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Binoculars Checkbox -->
-                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
-                    <input
-                        type="checkbox"
-                        id="hasBinoculars"
-                        name="hasBinoculars"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
-                        disabled
-                    />
-                    <label for="hasBinoculars" class="text-stone-700 font-bold text-lg cursor-pointer">
-                        משקפה
-                    </label>
-                </div>
-
-                <!-- Compass Checkbox -->
-                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
-                    <input
-                        type="checkbox"
-                        id="hasCompass"
-                        name="hasCompass"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
-                        disabled
-                    />
-                    <label for="hasCompass" class="text-stone-700 font-bold text-lg cursor-pointer">
-                        מצפן
-                    </label>
-                </div>
-
-                <!-- Zayin Checkbox -->
-                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
-                    <input
-                        type="checkbox"
-                        id="hasZayin"
-                        name="hasZayin"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
-                        disabled
-                    />
-                    <label for="hasZayin" class="text-stone-700 font-bold text-lg cursor-pointer">
-                        ציין
-                    </label>
-                </div>
-
-                <!-- Zayin Number (hidden by default) -->
-                <div id="zayinNumberContainer" class="hidden">
-                    <label for="zayinNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר ציין <span class="text-red-600">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="zayinNumber"
-                        name="zayinNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
-                        placeholder="מספר סידורי"
-                    />
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="zayinNumber"></p>
-                </div>
-
-                <!-- Pak Checkbox -->
-                <div class="flex items-center gap-3 p-4 bg-stone-50 rounded-xl">
-                    <input
-                        type="checkbox"
-                        id="hasPak"
-                        name="hasPak"
-                        class="w-6 h-6 text-green-700 border-stone-300 rounded focus:ring-green-500 form-field-lockable"
-                        disabled
-                    />
-                    <label for="hasPak" class="text-stone-700 font-bold text-lg cursor-pointer">
-                        פק
-                    </label>
-                </div>
-
-                <!-- Pak Number (hidden by default) -->
-                <div id="pakNumberContainer" class="hidden">
-                    <label for="pakNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מספר פק <span class="text-red-600">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="pakNumber"
-                        name="pakNumber"
-                        maxlength="20"
-                        class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 transition-all duration-200"
-                        placeholder="מספר סידורי"
-                    />
-                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="pakNumber"></p>
+                    <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="itemList"></p>
                 </div>
 
                 <!-- Divider -->
@@ -787,17 +855,6 @@
             checkFormValidity();
         });
         
-        // Helper maps for checkbox id suffixes
-        function weaponCheckboxIdSuffix(value) {
-            return { 'נגב': 'Negev', 'M16': 'M16', 'M4': 'M4', 'מטול': 'Matol' }[value] || '';
-        }
-        function sightCheckboxIdSuffix(value) {
-            return { "טריג׳": 'Trig', 'ליאור': 'Lior', 'פגיון': 'Pagion', 'זאבון': 'Zavon', 'm5': 'M5' }[value] || '';
-        }
-        function nvdCheckboxIdSuffix(value) {
-            return { 'שח"ע': 'Shacha', 'עכבר': 'Achbar', 'עדי': 'Adi', 'עידו': 'Ido', 'קירו': 'Kiro' }[value] || '';
-        }
-
         // Unit change handler - show/hide team dropdown
         const unitSelect = document.getElementById('unit');
         const teamContainer = document.getElementById('teamContainer');
@@ -816,80 +873,27 @@
             checkFormValidity();
         });
 
-        // Weapon type checkboxes - show/hide number input
-        document.querySelectorAll('.weapon-type-checkbox').forEach(cb => {
+        // Item search filter
+        function filterItems(query) {
+            const q = query.trim().toLowerCase();
+            document.querySelectorAll('#itemGrid > div').forEach(row => {
+                const label = row.querySelector('label');
+                const match = !q || (label && label.textContent.toLowerCase().includes(q));
+                row.style.display = match ? '' : 'none';
+            });
+        }
+
+        // Unified item checkbox handler - show/hide inline number input
+        document.querySelectorAll('.item-checkbox').forEach(cb => {
             cb.addEventListener('change', () => {
-                const numInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
+                const key = cb.dataset.key;
+                const numInput = document.getElementById('num_' + key);
                 if (numInput) {
                     if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
                     else { numInput.classList.add('hidden'); numInput.value = ''; }
                 }
                 checkFormValidity();
             });
-        });
-
-        // Sight checkboxes - show/hide number input
-        document.querySelectorAll('.sight-checkbox').forEach(cb => {
-            cb.addEventListener('change', () => {
-                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
-                if (numInput) {
-                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
-                    else { numInput.classList.add('hidden'); numInput.value = ''; }
-                }
-                checkFormValidity();
-            });
-        });
-
-        // NVD checkboxes - show/hide number input
-        document.querySelectorAll('.nvd-checkbox').forEach(cb => {
-            cb.addEventListener('change', () => {
-                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
-                if (numInput) {
-                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
-                    else { numInput.classList.add('hidden'); numInput.value = ''; }
-                }
-                checkFormValidity();
-            });
-        });
-
-        // Zayin checkbox handler
-        const hasZayinCheckbox = document.getElementById('hasZayin');
-        const zayinNumberContainer = document.getElementById('zayinNumberContainer');
-        const zayinNumberInput = document.getElementById('zayinNumber');
-        
-        hasZayinCheckbox.addEventListener('change', () => {
-            if (hasZayinCheckbox.checked) {
-                // Show and require zayin number
-                zayinNumberContainer.classList.remove('hidden');
-                zayinNumberInput.required = true;
-            } else {
-                // Hide and make optional
-                zayinNumberContainer.classList.add('hidden');
-                zayinNumberInput.required = false;
-                zayinNumberInput.value = '';
-                clearError('zayinNumber');
-            }
-            checkFormValidity();
-        });
-        
-        // Pak checkbox handler
-        const hasPakCheckbox = document.getElementById('hasPak');
-        const pakNumberContainer = document.getElementById('pakNumberContainer');
-        const pakNumberInput = document.getElementById('pakNumber');
-        
-        hasPakCheckbox.addEventListener('change', () => {
-            if (hasPakCheckbox.checked) {
-                // Show and require pak number
-                pakNumberContainer.classList.remove('hidden');
-                pakNumberInput.required = true;
-            } else {
-                // Hide and make optional
-                pakNumberContainer.classList.add('hidden');
-                pakNumberInput.required = false;
-                pakNumberInput.value = '';
-                clearError('pakNumber');
-            }
-            checkFormValidity();
         });
 
         // Personal number check functionality
@@ -973,82 +977,29 @@
                 document.getElementById('team').value = data.team;
             }
 
-            // Fill weapon checkboxes + numbers (each weapon has its own key)
-            const weaponFillMap = {
-                negev: { cbId: 'weaponNegev', numId: 'weaponNumberNegev' },
-                m16:   { cbId: 'weaponM16',   numId: 'weaponNumberM16'   },
-                m4:    { cbId: 'weaponM4',     numId: 'weaponNumberM4'    },
-                matol: { cbId: 'weaponMatol',  numId: 'weaponNumberMatol' }
-            };
-            Object.entries(weaponFillMap).forEach(([key, ids]) => {
-                if (data[key]) {
-                    const cb = document.getElementById(ids.cbId);
-                    const numInput = document.getElementById(ids.numId);
-                    if (cb && numInput) {
+            // Fill all item checkboxes
+            const ALL_ITEM_KEYS = ['roskM16','roskM4','negev','mag','matol','baret','trig','m5',
+                'pictini','mepro','zayinNegev','shacha','lior','zavon','akila6','binoculars',
+                'compass','armon','thermalMarker','achbar','lpl','yarour','adi','matolHandasi',
+                'matolSarug','makabim','shabang','pagion','sightPagion','ido','leopold','noa',
+                'amit','yarin','shabshavet','laserMatol','metzitzan','rigit','magenOz','boresight',
+                'kundson','makhpal','negavon','pakZayinNegavon','sightAyotek','binocularsPugi',
+                'ironBall','mkh','kneeNight','kneeDay','merkavaCurtain','kitBaz','amaSoch',
+                'dotSmall','dotEnhanced','droneIbu','droneAvatah','droneFlycard'];
+            ALL_ITEM_KEYS.forEach(key => {
+                const val = data[key];
+                if (val && val !== '') {
+                    const cb = document.getElementById('cb_' + key);
+                    const numInput = document.getElementById('num_' + key);
+                    if (cb) {
                         cb.checked = true;
-                        numInput.classList.remove('hidden');
-                        numInput.value = data[key];
+                        if (numInput && val !== '1') {
+                            numInput.classList.remove('hidden');
+                            numInput.value = val;
+                        }
                     }
                 }
             });
-
-            // Fill sight checkboxes
-            const sightFillMap = {
-                trig:   { cbId: 'sightTrig',   numId: 'sightNumberTrig'   },
-                lior:   { cbId: 'sightLior',   numId: 'sightNumberLior'   },
-                pagion: { cbId: 'sightPagion', numId: 'sightNumberPagion' },
-                zavon:  { cbId: 'sightZavon',  numId: 'sightNumberZavon'  },
-                m5:     { cbId: 'sightM5',     numId: 'sightNumberM5'     }
-            };
-            Object.entries(sightFillMap).forEach(([key, ids]) => {
-                if (data[key]) {
-                    const cb = document.getElementById(ids.cbId);
-                    const numInput = document.getElementById(ids.numId);
-                    if (cb && numInput) {
-                        cb.checked = true;
-                        numInput.classList.remove('hidden');
-                        numInput.value = data[key];
-                    }
-                }
-            });
-
-            // Fill NVD checkboxes
-            const nvdFillMap = {
-                shacha: { cbId: 'nvdShacha', numId: 'nvdNumberShacha' },
-                achbar: { cbId: 'nvdAchbar', numId: 'nvdNumberAchbar' },
-                adi:    { cbId: 'nvdAdi',    numId: 'nvdNumberAdi'    },
-                ido:    { cbId: 'nvdIdo',    numId: 'nvdNumberIdo'    },
-                kiro:   { cbId: 'nvdKiro',   numId: 'nvdNumberKiro'   }
-            };
-            Object.entries(nvdFillMap).forEach(([key, ids]) => {
-                if (data[key]) {
-                    const cb = document.getElementById(ids.cbId);
-                    const numInput = document.getElementById(ids.numId);
-                    if (cb && numInput) {
-                        cb.checked = true;
-                        numInput.classList.remove('hidden');
-                        numInput.value = data[key];
-                    }
-                }
-            });
-
-            // Fill binoculars and compass
-            document.getElementById('hasBinoculars').checked = data.binoculars === true || data.binoculars === "1";
-            document.getElementById('hasCompass').checked = data.compass === true || data.compass === "1";
-
-            // Fill zayin
-            if (data.zayin) {
-                document.getElementById('hasZayin').checked = true;
-                document.getElementById('zayinNumber').value = data.zayin;
-                hasZayinCheckbox.dispatchEvent(new Event('change'));
-            }
-
-            // Fill pak
-            if (data.pak) {
-                document.getElementById('hasPak').checked = true;
-                document.getElementById('pakNumber').value = data.pak;
-                hasPakCheckbox.dispatchEvent(new Event('change'));
-            }
 
             // Trigger form validity check
             checkFormValidity();
@@ -1119,37 +1070,10 @@
             const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
             const teamRequired = platoons.includes(unit) && !document.getElementById('team').value;
 
-            // Weapon: at least one checkbox checked + each checked weapon has a number
-            const checkedWeapons = document.querySelectorAll('.weapon-type-checkbox:checked');
-            const weaponValid = checkedWeapons.length > 0 && Array.from(checkedWeapons).every(cb => {
-                const numInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
-                return numInput && numInput.value.trim();
-            });
+            // At least one item must be checked
+            const itemValid = document.querySelectorAll('.item-checkbox:checked').length > 0;
 
-            // Sights: each checked sight must have a number
-            const sightValid = Array.from(document.querySelectorAll('.sight-checkbox:checked')).every(cb => {
-                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
-                return numInput && numInput.value.trim();
-            });
-
-            // NVDs: each checked NVD must have a number
-            const nvdValid = Array.from(document.querySelectorAll('.nvd-checkbox:checked')).every(cb => {
-                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
-                return numInput && numInput.value.trim();
-            });
-
-            // Check if zayin number is required (only if zayin checkbox is checked)
-            const hasZayin = document.getElementById('hasZayin').checked;
-            const zayinNumber = document.getElementById('zayinNumber').value;
-            const zayinNumberRequired = hasZayin && !zayinNumber;
-
-            // Check if pak number is required (only if pak checkbox is checked)
-            const hasPak = document.getElementById('hasPak').checked;
-            const pakNumber = document.getElementById('pakNumber').value;
-            const pakNumberRequired = hasPak && !pakNumber;
-
-            // Don't require signature for button enabling - only validate on submit
-            const isValid = fullName && personalNumber && phone && email && unit && !teamRequired && weaponValid && sightValid && nvdValid && !zayinNumberRequired && !pakNumberRequired;
+            const isValid = fullName && personalNumber && phone && email && unit && !teamRequired && itemValid;
 
             if (isValid) {
                 submitBtn.disabled = false;
@@ -1163,7 +1087,7 @@
         }
 
         // Add input event listeners
-        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'zayinNumber', 'pakNumber'].forEach(fieldName => {
+        ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team'].forEach(fieldName => {
             const input = document.getElementById(fieldName);
             if (!input) return;
             input.addEventListener('input', () => {
@@ -1180,8 +1104,8 @@
             }
         });
 
-        // Watch inline number inputs for form validity
-        document.querySelectorAll('.weapon-inline-number, .sight-inline-number, .nvd-inline-number').forEach(input => {
+        // Watch item number inputs for form validity
+        document.querySelectorAll('.item-num').forEach(input => {
             input.addEventListener('input', checkFormValidity);
         });
 
@@ -1190,7 +1114,7 @@
             e.preventDefault();
 
             // Clear all errors
-            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'weaponType', 'zayinNumber', 'pakNumber'].forEach(clearError);
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'itemList'].forEach(clearError);
 
             let hasErrors = false;
             let firstErrorField = null;
@@ -1259,59 +1183,11 @@
                 if (!firstErrorField) firstErrorField = 'team';
             }
 
-            // Validate weapon type (at least one checkbox + each has a number)
-            const checkedWeapons = document.querySelectorAll('.weapon-type-checkbox:checked');
-            if (checkedWeapons.length === 0) {
-                showError('weaponType', 'יש לבחור לפחות סוג נשק אחד');
+            // Validate items (at least one must be checked)
+            if (document.querySelectorAll('.item-checkbox:checked').length === 0) {
+                showError('itemList', 'יש לבחור לפחות פריט אחד');
                 hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'weaponNegev';
-            } else {
-                checkedWeapons.forEach(cb => {
-                    const wNumInput = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
-                    if (!wNumInput || !wNumInput.value.trim()) {
-                        showError('weaponType', 'יש להזין מספר לכל נשק שנבחר');
-                        hasErrors = true;
-                        if (!firstErrorField) firstErrorField = wNumInput ? wNumInput.id : 'weaponNegev';
-                    }
-                });
-            }
-
-            // Validate sight numbers
-            document.querySelectorAll('.sight-checkbox:checked').forEach(cb => {
-                const numInput = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
-                if (numInput && !numInput.value.trim()) {
-                    numInput.classList.add('border-red-500');
-                    hasErrors = true;
-                    if (!firstErrorField) firstErrorField = numInput.id;
-                }
-            });
-
-            // Validate NVD numbers
-            document.querySelectorAll('.nvd-checkbox:checked').forEach(cb => {
-                const numInput = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
-                if (numInput && !numInput.value.trim()) {
-                    numInput.classList.add('border-red-500');
-                    hasErrors = true;
-                    if (!firstErrorField) firstErrorField = numInput.id;
-                }
-            });
-
-            // Validate zayin number (only if zayin checkbox is checked)
-            const hasZayin = document.getElementById('hasZayin').checked;
-            const zayinNumber = document.getElementById('zayinNumber').value;
-            if (hasZayin && !zayinNumber) {
-                showError('zayinNumber', 'שדה חובה כאשר נבחר ציין');
-                hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'zayinNumber';
-            }
-
-            // Validate pak number (only if pak checkbox is checked)
-            const hasPak = document.getElementById('hasPak').checked;
-            const pakNumber = document.getElementById('pakNumber').value;
-            if (hasPak && !pakNumber) {
-                showError('pakNumber', 'שדה חובה כאשר נבחר פק');
-                hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'pakNumber';
+                if (!firstErrorField) firstErrorField = 'cb_roskM16';
             }
 
             // Validate signature
@@ -1360,31 +1236,12 @@
                 return;
             }
             
-            // Collect weapon data (multiple)
-            const weaponKeyMap = { 'נגב': 'negev', 'M16': 'm16', 'M4': 'm4', 'מטול': 'matol' };
-            const weaponData = {};
-            document.querySelectorAll('.weapon-type-checkbox:checked').forEach(cb => {
-                const key = weaponKeyMap[cb.value];
-                const numEl = document.getElementById('weaponNumber' + weaponCheckboxIdSuffix(cb.value));
-                if (key && numEl) weaponData[key] = numEl.value;
-            });
-
-            // Collect sight data
-            const sightKeyMap = { "טריג׳": 'trig', 'ליאור': 'lior', 'פגיון': 'pagion', 'זאבון': 'zavon', 'm5': 'm5' };
-            const sightData = {};
-            document.querySelectorAll('.sight-checkbox:checked').forEach(cb => {
-                const key = sightKeyMap[cb.value];
-                const numEl = document.getElementById('sightNumber' + sightCheckboxIdSuffix(cb.value));
-                if (key && numEl) sightData[key] = numEl.value;
-            });
-
-            // Collect NVD data
-            const nvdKeyMap = { 'שח"ע': 'shacha', 'עכבר': 'achbar', 'עדי': 'adi', 'עידו': 'ido', 'קירו': 'kiro' };
-            const nvdData = {};
-            document.querySelectorAll('.nvd-checkbox:checked').forEach(cb => {
-                const key = nvdKeyMap[cb.value];
-                const numEl = document.getElementById('nvdNumber' + nvdCheckboxIdSuffix(cb.value));
-                if (key && numEl) nvdData[key] = numEl.value;
+            // Collect item data
+            const itemData = {};
+            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                const key = cb.dataset.key;
+                const numInput = document.getElementById('num_' + key);
+                itemData[key] = numInput && numInput.value.trim() ? numInput.value.trim() : '1';
             });
 
             const data = {
@@ -1394,15 +1251,7 @@
                 email: document.getElementById('email').value,
                 unit: document.getElementById('unit').value,
                 team: document.getElementById('team').value,
-                ...weaponData,
-                ...sightData,
-                ...nvdData,
-                hasBinoculars: document.getElementById('hasBinoculars').checked,
-                hasCompass: document.getElementById('hasCompass').checked,
-                hasZayin: document.getElementById('hasZayin').checked,
-                zayinNumber: document.getElementById('zayinNumber').value,
-                hasPak: document.getElementById('hasPak').checked,
-                pakNumber: document.getElementById('pakNumber').value,
+                ...itemData,
                 signature: signatureData,
                 timestamp: new Date().toISOString()
             };
@@ -1463,24 +1312,16 @@
         // New form button
         newFormBtn.addEventListener('click', () => {
             form.reset();
-            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'weaponType', 'zayinNumber', 'pakNumber'].forEach(clearError);
+            ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'itemList'].forEach(clearError);
 
             // Hide team container
             teamContainer.classList.add('hidden');
 
-            // Hide all weapon/sight/NVD inline number inputs
-            document.querySelectorAll('.weapon-inline-number, .sight-inline-number, .nvd-inline-number').forEach(el => {
+            // Hide all item inline number inputs
+            document.querySelectorAll('.item-num').forEach(el => {
                 el.classList.add('hidden');
                 el.value = '';
             });
-
-            // Hide zayin number field
-            zayinNumberContainer.classList.add('hidden');
-            zayinNumberInput.required = false;
-
-            // Hide pak number field
-            pakNumberContainer.classList.add('hidden');
-            pakNumberInput.required = false;
 
             // Clear signature
             ctx.fillStyle = 'white';
