@@ -253,24 +253,11 @@ function handleGetExisting(data, request) {
           phone:          '0' + rows[i][3],
           email:          rows[i][4],
           unit:           rows[i][5],
-          weaponType:     rows[i][6],
-          weaponNumber:   rows[i][7],
-          trig:           rows[i][8],
-          lior:           rows[i][9],
-          pagion:         rows[i][10],
-          zavon:          rows[i][11],
-          m5:             rows[i][12],
-          shacha:         rows[i][13],
-          achbar:         rows[i][14],
-          adi:            rows[i][15],
-          ido:            rows[i][16],
-          kiro:           rows[i][17],
-          binoculars:     rows[i][18] == 1,
-          compass:        rows[i][19] == 1,
-          zayin:          rows[i][20],
-          pak:            rows[i][21],
-          matol:          rows[i][22] || ''
+          team:           rows[i][6]
         };
+        WEAPONS_ITEM_LIST.forEach(function(item) {
+          existingData[item.key] = rows[i][item.col] || '';
+        });
       }
       break;
     }
