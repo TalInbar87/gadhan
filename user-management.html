@@ -96,9 +96,7 @@
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all">
                             <option value="">בחר תפקיד...</option>
                             <option value="admin">👑 מנהל מערכת</option>
-                            <option value="operator">🔧 מפעיל</option>
-                            <option value="viewer">👁️ צופה</option>
-                            <option value="user">👤 משתמש</option>
+                            <option value="sergeant">🪖 סמל</option>
                         </select>
                     </div>
 
@@ -128,100 +126,29 @@
                             <h3 class="text-xl font-bold text-red-800">מנהל מערכת</h3>
                         </div>
                         <ul class="space-y-2 text-red-700">
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>הרשאות מלאות לכל המערכת</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>ניהול משתמשים והרשאות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>צפייה ביומן ביקורת מלא</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>מחיקת ועריכת רשומות</span>
-                            </li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>הרשאות מלאות לכל המערכת</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>ניהול משתמשים והרשאות</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>זיכוי ציוד (מלא וחלקי)</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>צפייה ביומן ביקורת</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>העברת ציוד בין חיילים</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>מחיקת ועריכת רשומות</span></li>
                         </ul>
                     </div>
 
-                    <!-- Operator -->
+                    <!-- Sergeant -->
                     <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-300">
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl">🔧</span>
-                            <h3 class="text-xl font-bold text-blue-800">מפעיל</h3>
+                            <span class="text-3xl">🪖</span>
+                            <h3 class="text-xl font-bold text-blue-800">סמל</h3>
                         </div>
                         <ul class="space-y-2 text-blue-700">
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>קריאה וכתיבה של נתונים</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>צפייה בדוחות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>הזנת חתימות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>×</span>
-                                <span>אין גישה לניהול משתמשים</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Viewer -->
-                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border-2 border-green-300">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl">👁️</span>
-                            <h3 class="text-xl font-bold text-green-800">צופה</h3>
-                        </div>
-                        <ul class="space-y-2 text-green-700">
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>קריאה בלבד</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>צפייה בדוחות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>×</span>
-                                <span>אין אפשרות להזין נתונים</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>×</span>
-                                <span>אין גישה למערכות חתימה</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- User -->
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-300">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl">👤</span>
-                            <h3 class="text-xl font-bold text-gray-800">משתמש</h3>
-                        </div>
-                        <ul class="space-y-2 text-gray-700">
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>כתיבה בלבד</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>✓</span>
-                                <span>הזנת חתימות אישיות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>×</span>
-                                <span>אין גישה לדוחות</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span>×</span>
-                                <span>אין יכולת לקרוא נתונים אחרים</span>
-                            </li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>קריאה וכתיבה של נתונים</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>צפייה בדוחות</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>העברת ציוד בין חיילים</span></li>
+                            <li class="flex items-start gap-2"><span>✓</span><span>מחיקת רשומות</span></li>
+                            <li class="flex items-start gap-2"><span>×</span><span>אין גישה לניהול משתמשים</span></li>
+                            <li class="flex items-start gap-2"><span>×</span><span>אין אפשרות לזיכוי ציוד</span></li>
+                            <li class="flex items-start gap-2"><span>×</span><span>אין גישה ליומן ביקורת</span></li>
                         </ul>
                     </div>
                 </div>
