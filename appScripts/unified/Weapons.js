@@ -534,16 +534,16 @@ function weapons_handleCredit(data) {
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
-        to:          email,
-        subject:     'אישור זיכוי נשק - ' + fullName,
-        body:        'שלום ' + fullName + ',\n' +
-                     'הציוד זוכה במערכת\n' +
-                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
-                     'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+      weapons_sendEmailWithRotation({
+        to:      email,
+        subject: 'אישור זיכוי נשק - ' + fullName,
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
+        pdfBlob: pdf
       });
-      Logger.log('✅ [Weapons] Credit email with PDF sent to: ' + email);
+      Logger.log('✅ [Weapons] Credit email sent to: ' + email);
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Credit email failed: ' + emailErr);
@@ -660,16 +660,16 @@ function weapons_handlePartialCredit(data) {
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
-      MailApp.sendEmail({
-        to:          email,
-        subject:     'אישור זיכוי נשק - ' + fullName,
-        body:        'שלום ' + fullName + ',\n' +
-                     'הציוד זוכה במערכת\n' +
-                     'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
-                     'מצ"ב קובץ אישור חתום',
-        attachments: [pdf]
+      weapons_sendEmailWithRotation({
+        to:      email,
+        subject: 'אישור זיכוי נשק - ' + fullName,
+        body:    'שלום ' + fullName + ',\n' +
+                 'הציוד זוכה במערכת\n' +
+                 'ע"י: ' + (creditBy || 'לא ידוע') + '\n\n' +
+                 'מצ"ב קובץ אישור חתום',
+        pdfBlob: pdf
       });
-      Logger.log('✅ [Weapons] Partial credit email with PDF sent to: ' + email);
+      Logger.log('✅ [Weapons] Partial credit email sent to: ' + email);
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Partial credit email failed: ' + emailErr);
@@ -822,7 +822,7 @@ function weapons_handleTransferItems(data) {
     ).join(', ');
 
     if (sourceData[4]) {
-      MailApp.sendEmail({
+      weapons_sendEmailWithRotation({
         to:      sourceData[4],
         subject: 'אישור העברת ציוד - ' + sourceData[1],
         body:    'שלום ' + sourceData[1] + ',\n\n' +
@@ -836,7 +836,7 @@ function weapons_handleTransferItems(data) {
     }
 
     if (targetData[4]) {
-      MailApp.sendEmail({
+      weapons_sendEmailWithRotation({
         to:      targetData[4],
         subject: 'קבלת ציוד מועבר - ' + targetData[1],
         body:    'שלום ' + targetData[1] + ',\n\n' +
@@ -1131,7 +1131,7 @@ function weapons_readNotesMap(ss, personalNumber) {
 function weapons_sendEmailFast(data) {
   if (!data.email) return;
   const ts = formatTimestamp();
-  MailApp.sendEmail({
+  weapons_sendEmailWithRotation({
     to:       data.email,
     subject:  'אישור חתימה על נשק - ' + data.fullName,
     body:     'שלום ' + data.fullName + ',\nאישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\nתאריך: ' + ts + '\nמספר אישי: ' + data.personalNumber + (data.unit ? '\nמסגרת: ' + data.unit : '') + '\n\nבברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
@@ -1189,17 +1189,91 @@ function weapons_createPdfHtml(data, timestamp) {
 }
 
 function weapons_sendEmail(data, pdf, timestamp) {
-  MailApp.sendEmail({
-    to:          data.email,
-    subject:     'אישור חתימה על נשק - ' + data.fullName,
-    body:        'שלום ' + data.fullName + ',\n\n' +
-                 'אישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\n' +
-                 'תאריך: ' + timestamp + '\n' +
-                 'מספר אישי: ' + data.personalNumber + '\n' +
-                 (data.unit ? 'מסגרת: ' + data.unit + '\n' : '') +
-                 '\nמצורף אישור PDF מפורט.\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
-    attachments: [pdf]
+  weapons_sendEmailWithRotation({
+    to:      data.email,
+    subject: 'אישור חתימה על נשק - ' + data.fullName,
+    body:    'שלום ' + data.fullName + ',\n\n' +
+             'אישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\n' +
+             'תאריך: ' + timestamp + '\n' +
+             'מספר אישי: ' + data.personalNumber + '\n' +
+             (data.unit ? 'מסגרת: ' + data.unit + '\n' : '') +
+             '\nמצורף אישור PDF מפורט.\n\n' +
+             'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+    pdfBlob: pdf
   });
   Logger.log('✅ [Weapons] Email sent to: ' + data.email);
+}
+
+// ================================================================
+// Email Rotation Helper
+// ================================================================
+
+/**
+ * שולח מייל עם רוטציה בין עד 5 חשבונות Gmail + CC קבוע ל-gadhan.
+ *
+ * options: { to, subject, body, htmlBody?, pdfBlob? }
+ *
+ * רוטציה: idx=0 → MailApp ישיר (חשבון ראשי)
+ *          idx=1..4 → relay GAS web app (חשבונות 2-5)
+ * Fallback: אם relay נכשל → נסיון ישיר
+ */
+function weapons_sendEmailWithRotation(options) {
+  var emailCfg  = CONFIG.EMAIL || {};
+  var gadhan    = emailCfg.GADHAN || '';
+  var relayUrls = [
+    emailCfg.RELAY_URL_2 || '',
+    emailCfg.RELAY_URL_3 || '',
+    emailCfg.RELAY_URL_4 || '',
+    emailCfg.RELAY_URL_5 || ''
+  ].filter(function(u) { return !!u; });
+
+  // בנה רשימת נמענים: חייל + gadhan (אם שונה)
+  var recipients = [options.to];
+  if (gadhan && gadhan !== options.to) recipients.push(gadhan);
+  var toStr = recipients.filter(Boolean).join(',');
+
+  // בחר חשבון בסיבוב
+  var totalAccounts = 1 + relayUrls.length;
+  var props = PropertiesService.getScriptProperties();
+  var idx   = parseInt(props.getProperty('EMAIL_ROTATION_IDX') || '0') % totalAccounts;
+  props.setProperty('EMAIL_ROTATION_IDX', String((idx + 1) % totalAccounts));
+
+  if (idx === 0 || relayUrls.length === 0) {
+    // ── שליחה ישירה (חשבון 1) ────────────────────────────────
+    var directOpts = { to: toStr, subject: options.subject, body: options.body || '' };
+    if (options.htmlBody) directOpts.htmlBody = options.htmlBody;
+    if (options.pdfBlob)  directOpts.attachments = [options.pdfBlob];
+    MailApp.sendEmail(directOpts);
+    Logger.log('✅ [Email] Direct (account 1) → ' + toStr);
+    return;
+  }
+
+  // ── שליחה דרך relay (חשבונות 2-5) ──────────────────────────
+  var relayUrl = relayUrls[idx - 1];
+  var payload  = { to: toStr, subject: options.subject, body: options.body || '' };
+  if (options.htmlBody) payload.htmlBody = options.htmlBody;
+  if (options.pdfBlob) {
+    payload.attachmentBase64 = Utilities.base64Encode(options.pdfBlob.getBytes());
+    payload.attachmentName   = options.pdfBlob.getName();
+    payload.attachmentMime   = options.pdfBlob.getContentType();
+  }
+
+  try {
+    var resp   = UrlFetchApp.fetch(relayUrl, {
+      method:           'post',
+      contentType:      'application/json',
+      payload:          JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    var result = JSON.parse(resp.getContentText());
+    if (!result.success) throw new Error(result.error || 'relay error');
+    Logger.log('✅ [Email] Relay ' + idx + ' → ' + toStr);
+  } catch (relayErr) {
+    // Fallback: ישיר
+    Logger.log('⚠️ [Email] Relay ' + idx + ' failed (' + relayErr + '), falling back to direct');
+    var fbOpts = { to: toStr, subject: options.subject, body: options.body || '' };
+    if (options.htmlBody) fbOpts.htmlBody = options.htmlBody;
+    if (options.pdfBlob)  fbOpts.attachments = [options.pdfBlob];
+    MailApp.sendEmail(fbOpts);
+  }
 }
