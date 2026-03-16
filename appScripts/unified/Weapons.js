@@ -141,6 +141,7 @@ function weapons_saveToSheet(data) {
   weapons_saveToUnitSheet(ss, data, ts);
   weapons_saveToMainSheet(ss, data, ts);
   weapons_saveToZivudSheet(ss, data, ts);
+  weapons_saveToMainZivudSheet(ss, data, ts);
 }
 
 function weapons_saveToUnitSheet(ss, data, timestamp) {
@@ -197,6 +198,25 @@ function weapons_saveToZivudSheet(ss, data, timestamp) {
     sheet.appendRow(rowData);
   }
   Logger.log('✓ [Weapons] Saved to zivud sheet: ' + sheetName);
+}
+
+/**
+ * שומר לגליון זיווד ראשי "כל הרשומות זיווד" — אותה לוגיקה כמו weapons_saveToMainSheet
+ */
+function weapons_saveToMainZivudSheet(ss, data, timestamp) {
+  const mainZivudName = CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד';
+  let sheet = ss.getSheetByName(mainZivudName);
+  if (!sheet) sheet = weapons_createZivudSheet(ss, mainZivudName);
+
+  const existingRow = findExistingRow(sheet, data.personalNumber, CONFIG.WEAPONS.PN_COLUMN);
+  const rowData = weapons_prepareZivudRowData(data, timestamp);
+
+  if (existingRow) {
+    sheet.getRange(existingRow, 1, 1, rowData.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+  Logger.log('✓ [Weapons] Saved to main zivud sheet: ' + mainZivudName);
 }
 
 function weapons_createZivudSheet(ss, sheetName) {
