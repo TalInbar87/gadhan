@@ -78,7 +78,7 @@
                     <h1 class="text-3xl font-bold tracking-wide">העברת/זיכוי ציוד</h1>
                 </div>
                 <div class="bg-white rounded-b-2xl shadow-lg p-4 border-t-4 border-amber-600">
-                    <p class="text-stone-600 text-lg">ניהול נשקים — מנהלים בלבד</p>
+                    <p class="text-stone-600 text-lg">ניהול נשקים</p>
                 </div>
             </div>
 
@@ -261,7 +261,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-8 text-stone-500 text-sm fade-in" style="animation-delay: 0.2s">
-                <p>ניהול העברת ציוד — מנהלים בלבד</p>
+                <p>ניהול העברת ציוד</p>
             </div>
         </div>
     </div>
@@ -283,7 +283,7 @@
         // ============================================================
 
         const authClient = new SecureAuthClient(API_URL);
-        const authGuard = new AuthGuard(authClient, 'manage_users');
+        const authGuard = new AuthGuard(authClient, 'transfer');
 
         window.addEventListener('DOMContentLoaded', async () => {
             document.body.insertAdjacentHTML('afterbegin', `
@@ -300,12 +300,14 @@
             if (isAuthenticated) {
                 document.getElementById('authLoadingOverlay').remove();
                 displayUserInfo();
+                setupUIForRole();
                 setupSignatureCanvas();
             }
         });
 
         function displayUserInfo() {
             const user = authClient.user;
+            const roleLabel = user.role === 'admin' ? 'מנהל מערכת' : 'סמל';
             const container = document.querySelector('#pageContainer .max-w-2xl');
             container.insertAdjacentHTML('afterbegin', `
                 <div style="background: rgba(217,119,6,0.1); padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border: 2px solid rgba(217,119,6,0.3);">
@@ -313,7 +315,7 @@
                         <span style="font-size: 24px;">🔐</span>
                         <div>
                             <div style="font-weight: bold; color: #92400e; font-size: 16px;">${(user.fullName || user.username).replace(/\+/g, ' ')}</div>
-                            <div style="opacity: 0.7; font-size: 13px; color: #78350f;">מנהל מערכת</div>
+                            <div style="opacity: 0.7; font-size: 13px; color: #78350f;">${roleLabel}</div>
                         </div>
                     </div>
                     <button onclick="handleLogout()" style="background: #dc2626; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
@@ -321,6 +323,12 @@
                     </button>
                 </div>
             `);
+        }
+
+        function setupUIForRole() {
+            if (!authClient.hasPermission('credit')) {
+                document.getElementById('modeCreditBtn').style.display = 'none';
+            }
         }
 
         async function handleLogout() {
@@ -502,7 +510,8 @@
             document.getElementById('itemsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             // Reset action state
-            setMode('credit');
+            const defaultMode = authClient.hasPermission('credit') ? 'credit' : 'transfer';
+            setMode(defaultMode);
             resetCreditSection();
         }
 
@@ -657,6 +666,10 @@
         }
 
         async function submitCredit() {
+            if (!authClient.hasPermission('credit')) {
+                alert('אין הרשאה לבצע זיכוי');
+                return;
+            }
             const selectedItems = getSelectedKeys();
             if (selectedItems.length === 0) {
                 alert('יש לבחור לפחות פריט אחד לזיכוי');
