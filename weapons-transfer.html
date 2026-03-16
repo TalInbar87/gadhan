@@ -496,7 +496,7 @@
                     row.innerHTML = `
                         <input type="checkbox" class="item-checkbox" data-key="${def.key}" data-label="${def.label}" data-value="${val}" onchange="onItemCheckChange()" />
                         <span class="font-bold text-stone-700">${def.label}</span>
-                        <span class="text-stone-500 mr-auto text-sm">${val}${note ? ' <span class="text-amber-700">— ' + note + '</span>' : ''}</span>
+                        <span class="text-stone-500 mr-auto text-sm">${val}</span>
                     `;
                     itemsList.appendChild(row);
 
@@ -504,6 +504,22 @@
                     checkbox.addEventListener('change', () => {
                         row.classList.toggle('selected', checkbox.checked);
                     });
+
+                    if (note) {
+                        const noteRow = document.createElement('label');
+                        noteRow.className = 'item-row border-amber-200 bg-amber-50/30';
+                        noteRow.style.paddingRight = '2.5rem';
+                        noteRow.innerHTML = `
+                            <input type="checkbox" class="note-checkbox" data-key="${def.key}" data-note="${note.replace(/"/g, '&quot;')}" onchange="onItemCheckChange()" />
+                            <span class="text-amber-700 text-sm">↳ ציוד נלווה</span>
+                            <span class="text-amber-700 mr-auto text-sm font-medium">${note}</span>
+                        `;
+                        itemsList.appendChild(noteRow);
+                        const noteCheckbox = noteRow.querySelector('input[type=checkbox]');
+                        noteCheckbox.addEventListener('change', () => {
+                            noteRow.classList.toggle('selected', noteCheckbox.checked);
+                        });
+                    }
                 });
             }
 
@@ -522,6 +538,10 @@
 
         function getSelectedKeys() {
             return [...document.querySelectorAll('.item-checkbox:checked')].map(cb => cb.dataset.key);
+        }
+
+        function getSelectedNoteKeys() {
+            return [...document.querySelectorAll('.note-checkbox:checked')].map(cb => cb.dataset.key);
         }
 
         function getSelectedItemsWithValues() {
@@ -545,7 +565,7 @@
         // ============================================================
 
         document.getElementById('selectAllBtn').addEventListener('click', () => {
-            document.querySelectorAll('.item-checkbox').forEach(cb => {
+            document.querySelectorAll('.item-checkbox, .note-checkbox').forEach(cb => {
                 cb.checked = true;
                 cb.closest('label').classList.add('selected');
             });
@@ -553,7 +573,7 @@
         });
 
         document.getElementById('clearSelectionBtn').addEventListener('click', () => {
-            document.querySelectorAll('.item-checkbox').forEach(cb => {
+            document.querySelectorAll('.item-checkbox, .note-checkbox').forEach(cb => {
                 cb.checked = false;
                 cb.closest('label').classList.remove('selected');
             });
@@ -659,7 +679,7 @@
         function updateCreditSubmitState() {
             const checkbox = document.getElementById('creditConfirmCheckbox');
             const btn = document.getElementById('submitCreditBtn');
-            const hasSelection = getSelectedKeys().length > 0;
+            const hasSelection = getSelectedKeys().length + getSelectedNoteKeys().length > 0;
             const isValid = checkbox.checked && creditHasSignature && hasSelection;
             btn.disabled = !isValid;
             btn.style.opacity = isValid ? '1' : '0.5';
@@ -671,14 +691,15 @@
                 alert('אין הרשאה לבצע זיכוי');
                 return;
             }
-            const selectedItems = getSelectedKeys();
-            if (selectedItems.length === 0) {
+            const selectedItems     = getSelectedKeys();
+            const selectedNoteItems = getSelectedNoteKeys();
+            if (selectedItems.length + selectedNoteItems.length === 0) {
                 alert('יש לבחור לפחות פריט אחד לזיכוי');
                 return;
             }
 
-            const totalItems = document.querySelectorAll('.item-checkbox').length;
-            const isFullCredit = selectedItems.length === totalItems;
+            const totalItems  = document.querySelectorAll('.item-checkbox').length;
+            const isFullCredit = selectedItems.length === totalItems && selectedNoteItems.length === 0;
 
             const personalNumber = sourceInput.value.trim();
             const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
@@ -696,6 +717,7 @@
                     creditData: {
                         personalNumber,
                         selectedItems,
+                        selectedNoteItems,
                         itemsWithValues: isFullCredit ? getAllItemsWithValues() : getSelectedItemsWithValues(),
                         creditSignature,
                         creditBy: authClient.user.username,
@@ -707,7 +729,8 @@
                 const result = await response.json();
 
                 if (result.statusCode === 200) {
-                    alert(`זיכוי בוצע בהצלחה! ${selectedItems.length} פריטים הועברו לגיליון הזיכויים.`);
+                    const total = selectedItems.length + selectedNoteItems.length;
+                    alert(`זיכוי בוצע בהצלחה! ${total} פריטים הועברו לגיליון הזיכויים.`);
                     resetImport();
                     sourceInput.value = '';
                     importBtn.disabled = true;
@@ -729,8 +752,9 @@
         // ============================================================
 
         async function submitTransfer() {
-            const selectedItems = getSelectedKeys();
-            if (selectedItems.length === 0) {
+            const selectedItems     = getSelectedKeys();
+            const selectedNoteItems = getSelectedNoteKeys();
+            if (selectedItems.length + selectedNoteItems.length === 0) {
                 alert('יש לבחור לפחות פריט אחד להעברה');
                 return;
             }
@@ -755,9 +779,10 @@
             const itemLabels = selectedItems.map(key => {
                 const def = ITEM_DEFINITIONS.find(d => d.key === key);
                 return def ? def.label : key;
-            }).join(', ');
+            });
+            if (selectedNoteItems.length > 0) itemLabels.push('ציוד נלווה (' + selectedNoteItems.length + ')');
 
-            if (!confirm(`להעביר ${selectedItems.length} פריטים (${itemLabels}) ממספר אישי ${sourcePN} למספר אישי ${targetPN}?`)) {
+            if (!confirm(`להעביר ${itemLabels.join(', ')} ממספר אישי ${sourcePN} למספר אישי ${targetPN}?`)) {
                 return;
             }
 
@@ -775,6 +800,7 @@
                         sourcePersonalNumber: sourcePN,
                         targetPersonalNumber: targetPN,
                         selectedItems,
+                        selectedNoteItems,
                         transferBy: authClient.user.username,
                         transferAt: new Date().toISOString()
                     }
@@ -784,7 +810,8 @@
                 const result = await response.json();
 
                 if (result.statusCode === 200) {
-                    alert(`העברה בוצעה בהצלחה! ${selectedItems.length} פריטים הועברו לחייל ${targetPN}.`);
+                    const total = selectedItems.length + selectedNoteItems.length;
+                    alert(`העברה בוצעה בהצלחה! ${total} פריטים הועברו לחייל ${targetPN}.`);
                     resetImport();
                     sourceInput.value = '';
                     document.getElementById('targetPersonalNumber').value = '';

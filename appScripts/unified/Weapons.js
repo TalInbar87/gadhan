@@ -503,6 +503,23 @@ function weapons_handleCredit(data) {
         if (ud[i][2] == personalNumber) { unitSheet.deleteRow(i + 1); break; }
       }
     }
+    // מחק גם מגיליון זיווד של המסגרת
+    const unitZivud = ss.getSheetByName(unit + ' זיווד');
+    if (unitZivud) {
+      const uzd = unitZivud.getDataRange().getValues();
+      for (let i = 1; i < uzd.length; i++) {
+        if (uzd[i][2] == personalNumber) { unitZivud.deleteRow(i + 1); break; }
+      }
+    }
+  }
+
+  // מחק מגיליון זיווד ראשי
+  const mainZivud = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+  if (mainZivud) {
+    const mzd = mainZivud.getDataRange().getValues();
+    for (let i = 1; i < mzd.length; i++) {
+      if (mzd[i][2] == personalNumber) { mainZivud.deleteRow(i + 1); break; }
+    }
   }
 
   // שלח מייל אישור זיכוי לחייל עם PDF מצורף
@@ -544,7 +561,7 @@ function weapons_handleCredit(data) {
  * @returns {{ success: boolean, message?: string, error?: string }}
  */
 function weapons_handlePartialCredit(data) {
-  const { personalNumber, selectedItems, creditBy, creditAt } = data;
+  const { personalNumber, selectedItems, selectedNoteItems, creditBy, creditAt } = data;
   Logger.log('💳 [Weapons] Partial credit: ' + personalNumber + ', items: ' + JSON.stringify(selectedItems));
 
   const ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
@@ -626,6 +643,11 @@ function weapons_handlePartialCredit(data) {
     }
   }
 
+  // נקה ציוד נלווה שנבחר מגיליונות זיווד
+  if (selectedNoteItems && selectedNoteItems.length > 0) {
+    weapons_clearNoteItems(ss, personalNumber, selectedNoteItems);
+  }
+
   // שלח מייל אישור זיכוי חלקי לחייל עם PDF מצורף
   try {
     const email    = rowData[4];
@@ -665,7 +687,7 @@ function weapons_handlePartialCredit(data) {
  * @returns {{ success: boolean, message?: string, error?: string }}
  */
 function weapons_handleTransferItems(data) {
-  const { sourcePersonalNumber, targetPersonalNumber, selectedItems, transferBy, transferAt } = data;
+  const { sourcePersonalNumber, targetPersonalNumber, selectedItems, selectedNoteItems, transferBy, transferAt } = data;
   Logger.log('🔄 [Weapons] Transfer ' + sourcePersonalNumber + ' → ' + targetPersonalNumber);
 
   const ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
@@ -753,6 +775,11 @@ function weapons_handleTransferItems(data) {
         }
       }
     }
+  }
+
+  // העבר ציוד נלווה בגיליונות זיווד
+  if (selectedNoteItems && selectedNoteItems.length > 0) {
+    weapons_transferNoteItems(ss, sourcePersonalNumber, targetPersonalNumber, selectedNoteItems);
   }
 
   // רשום בגיליון העברות
@@ -928,6 +955,79 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
     '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
     '</body></html>';
+}
+
+/**
+ * מנקה הערות (ציוד נלווה) מגיליונות זיווד עבור פריטים נבחרים — ללא נגיעה בגיליון הראשי
+ */
+function weapons_clearNoteItems(ss, personalNumber, noteKeys) {
+  if (!noteKeys || noteKeys.length === 0) return;
+  var mainZivudName = CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד';
+  var mainZivud = ss.getSheetByName(mainZivudName);
+  if (mainZivud) {
+    var rows = mainZivud.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][2] == personalNumber) {
+        noteKeys.forEach(function(key) {
+          var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+          if (item) mainZivud.getRange(i + 1, item.col + 1).setValue('');
+        });
+        break;
+      }
+    }
+  }
+  // נקה גם מגיליון מסגרת זיווד
+  var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+  if (mainSheet) {
+    var mainRows = mainSheet.getDataRange().getValues();
+    for (var mi = 1; mi < mainRows.length; mi++) {
+      if (mainRows[mi][2] == personalNumber) {
+        var unit = mainRows[mi][5];
+        if (unit) {
+          var unitZivud = ss.getSheetByName(unit + ' זיווד');
+          if (unitZivud) {
+            var urows = unitZivud.getDataRange().getValues();
+            for (var j = 1; j < urows.length; j++) {
+              if (urows[j][2] == personalNumber) {
+                noteKeys.forEach(function(key) {
+                  var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+                  if (item) unitZivud.getRange(j + 1, item.col + 1).setValue('');
+                });
+                break;
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+  Logger.log('✓ [Weapons] Cleared note items: ' + noteKeys.join(', '));
+}
+
+/**
+ * מעביר הערות (ציוד נלווה) מחייל מקור לחייל יעד בגיליונות הזיווד
+ */
+function weapons_transferNoteItems(ss, sourcePN, targetPN, noteKeys) {
+  if (!noteKeys || noteKeys.length === 0) return;
+  var mainZivudName = CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד';
+  var mainZivud = ss.getSheetByName(mainZivudName);
+  if (!mainZivud) return;
+  var rows = mainZivud.getDataRange().getValues();
+  var srcRow = -1, tgtRow = -1;
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][2] == sourcePN) srcRow = i + 1;
+    if (rows[i][2] == targetPN) tgtRow = i + 1;
+  }
+  if (srcRow === -1) return;
+  noteKeys.forEach(function(key) {
+    var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+    if (!item) return;
+    var noteVal = mainZivud.getRange(srcRow, item.col + 1).getValue();
+    mainZivud.getRange(srcRow, item.col + 1).setValue('');
+    if (tgtRow !== -1) mainZivud.getRange(tgtRow, item.col + 1).setValue(noteVal);
+  });
+  Logger.log('✓ [Weapons] Transferred notes ' + sourcePN + '→' + targetPN + ': ' + noteKeys.join(', '));
 }
 
 /**

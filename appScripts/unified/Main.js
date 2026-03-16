@@ -360,12 +360,13 @@ function handlePartialCredit(data, request) {
   }
 
   const creditPayload = {
-    personalNumber:  creditData.personalNumber,
-    selectedItems:   creditData.selectedItems,
-    itemsWithValues: creditData.itemsWithValues,
-    creditBy:        creditData.creditBy,
-    creditAt:        creditData.creditAt,
-    creditSignature: creditData.creditSignature
+    personalNumber:    creditData.personalNumber,
+    selectedItems:     creditData.selectedItems,
+    selectedNoteItems: creditData.selectedNoteItems || [],
+    itemsWithValues:   creditData.itemsWithValues,
+    creditBy:          creditData.creditBy,
+    creditAt:          creditData.creditAt,
+    creditSignature:   creditData.creditSignature
   };
 
   const result = formType === 'weapons'
@@ -404,6 +405,7 @@ function handleTransferItems(data, request) {
     sourcePersonalNumber: transferData.sourcePersonalNumber,
     targetPersonalNumber: transferData.targetPersonalNumber,
     selectedItems:        transferData.selectedItems,
+    selectedNoteItems:    transferData.selectedNoteItems || [],
     transferBy:           transferData.transferBy,
     transferAt:           transferData.transferAt
   };
