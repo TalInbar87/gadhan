@@ -813,7 +813,11 @@ function weapons_handleTransferItems(data) {
       var label = WEAPONS_ITEM_NAMES_HE[k] || k;
       var note  = notesMap[k];
       return note ? label + ' (' + note + ')' : label;
-    }).join(', ');
+    }).concat(
+      (selectedNoteItems || []).map(function(k) {
+        return 'ציוד נלווה - ' + (WEAPONS_ITEM_NAMES_HE[k] || k) + (notesMap[k] ? ' (' + notesMap[k] + ')' : '');
+      })
+    ).join(', ');
 
     if (sourceData[4]) {
       MailApp.sendEmail({
@@ -1010,23 +1014,91 @@ function weapons_clearNoteItems(ss, personalNumber, noteKeys) {
  */
 function weapons_transferNoteItems(ss, sourcePN, targetPN, noteKeys) {
   if (!noteKeys || noteKeys.length === 0) return;
-  var mainZivudName = CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד';
-  var mainZivud = ss.getSheetByName(mainZivudName);
-  if (!mainZivud) return;
-  var rows = mainZivud.getDataRange().getValues();
-  var srcRow = -1, tgtRow = -1;
-  for (var i = 1; i < rows.length; i++) {
-    if (rows[i][2] == sourcePN) srcRow = i + 1;
-    if (rows[i][2] == targetPN) tgtRow = i + 1;
+  var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+
+  // עדכן גיליון זיווד ראשי
+  var mainZivud = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+  if (mainZivud) {
+    var rows = mainZivud.getDataRange().getValues();
+    var srcRow = -1, tgtRow = -1;
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][2] == sourcePN) srcRow = i + 1;
+      if (rows[i][2] == targetPN) tgtRow = i + 1;
+    }
+    if (srcRow !== -1) {
+      noteKeys.forEach(function(key) {
+        var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+        if (!item) return;
+        var noteVal = mainZivud.getRange(srcRow, item.col + 1).getValue();
+        mainZivud.getRange(srcRow, item.col + 1).setValue('');
+        if (tgtRow !== -1) mainZivud.getRange(tgtRow, item.col + 1).setValue(noteVal);
+      });
+    }
   }
-  if (srcRow === -1) return;
-  noteKeys.forEach(function(key) {
-    var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
-    if (!item) return;
-    var noteVal = mainZivud.getRange(srcRow, item.col + 1).getValue();
-    mainZivud.getRange(srcRow, item.col + 1).setValue('');
-    if (tgtRow !== -1) mainZivud.getRange(tgtRow, item.col + 1).setValue(noteVal);
-  });
+
+  // עדכן גיליונות זיווד של מסגרת מקור ויעד
+  if (mainSheet) {
+    var mainRows = mainSheet.getDataRange().getValues();
+    var srcUnit = null, tgtUnit = null;
+    for (var mi = 1; mi < mainRows.length; mi++) {
+      if (mainRows[mi][2] == sourcePN) srcUnit = mainRows[mi][5];
+      if (mainRows[mi][2] == targetPN) tgtUnit = mainRows[mi][5];
+    }
+
+    // קרא ערכי הערות מגיליון מסגרת מקור לפני ניקוי
+    var noteVals = {};
+    if (srcUnit) {
+      var srcZivud = ss.getSheetByName(srcUnit + ' זיווד');
+      if (srcZivud) {
+        var srows = srcZivud.getDataRange().getValues();
+        for (var si = 1; si < srows.length; si++) {
+          if (srows[si][2] == sourcePN) {
+            noteKeys.forEach(function(key) {
+              var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+              if (item) {
+                noteVals[key] = srows[si][item.col];
+                srcZivud.getRange(si + 1, item.col + 1).setValue('');
+              }
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    // כתוב לגיליון מסגרת יעד (אם שונה ממקור)
+    if (tgtUnit && tgtUnit !== srcUnit) {
+      var tgtZivud = ss.getSheetByName(tgtUnit + ' זיווד');
+      if (tgtZivud) {
+        var trows = tgtZivud.getDataRange().getValues();
+        for (var ti = 1; ti < trows.length; ti++) {
+          if (trows[ti][2] == targetPN) {
+            noteKeys.forEach(function(key) {
+              var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+              if (item && noteVals[key]) tgtZivud.getRange(ti + 1, item.col + 1).setValue(noteVals[key]);
+            });
+            break;
+          }
+        }
+      }
+    } else if (srcUnit && srcUnit === tgtUnit) {
+      // אותה מסגרת — עדכן ישירות
+      var unitZivud = ss.getSheetByName(srcUnit + ' זיווד');
+      if (unitZivud) {
+        var urows = unitZivud.getDataRange().getValues();
+        for (var ui = 1; ui < urows.length; ui++) {
+          if (urows[ui][2] == targetPN) {
+            noteKeys.forEach(function(key) {
+              var item = WEAPONS_ITEM_LIST.filter(function(it) { return it.key === key; })[0];
+              if (item && noteVals[key]) unitZivud.getRange(ui + 1, item.col + 1).setValue(noteVals[key]);
+            });
+            break;
+          }
+        }
+      }
+    }
+  }
+
   Logger.log('✓ [Weapons] Transferred notes ' + sourcePN + '→' + targetPN + ': ' + noteKeys.join(', '));
 }
 
