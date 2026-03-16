@@ -376,7 +376,7 @@ function handlePartialCredit(data, request) {
   if (result.success) {
     AuditLogger.log(payload.username, 'DATA_PARTIAL_CREDITED', formType,
                    creditData.personalNumber,
-                   { items: creditData.itemsWithValues || creditData.selectedItems, creditBy: creditData.creditBy }, request);
+                   { items: creditData.itemsWithValues || creditData.selectedItems, noteItems: creditData.selectedNoteItems, creditBy: creditData.creditBy }, request);
     return createResponse(200, 'Partial credit completed successfully', null);
   }
   return createResponse(500, result.error || 'Partial credit failed', null);
@@ -418,6 +418,7 @@ function handleTransferItems(data, request) {
                    {
                      target:     transferData.targetPersonalNumber,
                      items:      transferData.selectedItems,
+                     noteItems:  transferData.selectedNoteItems,
                      transferBy: transferData.transferBy
                    }, request);
     return createResponse(200, 'Transfer completed successfully', null);
