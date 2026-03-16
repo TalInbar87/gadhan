@@ -801,7 +801,9 @@ function weapons_handleTransferItems(data) {
     transferAt || new Date().toISOString(),
     sourcePersonalNumber, sourceData[1],  // שם מקור
     targetPersonalNumber, targetData[1],  // שם יעד
-    selectedItems.join(', '),
+    selectedItems.concat(
+      (selectedNoteItems || []).map(function(k) { return 'ציוד נלווה:' + (WEAPONS_ITEM_NAMES_HE[k] || k); })
+    ).join(', '),
     transferBy || 'unknown'
   ]);
 
