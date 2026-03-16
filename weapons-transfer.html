@@ -489,13 +489,14 @@
                 document.getElementById('actionSection').classList.remove('hidden');
 
                 availableItems.forEach(def => {
-                    const val = def.getValue(data);
+                    const val  = def.getValue(data);
+                    const note = data['note_' + def.key] || '';
                     const row = document.createElement('label');
                     row.className = 'item-row';
                     row.innerHTML = `
                         <input type="checkbox" class="item-checkbox" data-key="${def.key}" data-label="${def.label}" data-value="${val}" onchange="onItemCheckChange()" />
                         <span class="font-bold text-stone-700">${def.label}</span>
-                        <span class="text-stone-500 mr-auto text-sm">${val}</span>
+                        <span class="text-stone-500 mr-auto text-sm">${val}${note ? ' <span class="text-amber-700">— ' + note + '</span>' : ''}</span>
                     `;
                     itemsList.appendChild(row);
 

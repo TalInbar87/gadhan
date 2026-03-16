@@ -120,6 +120,21 @@ function weapons_checkPersonalNumber(personalNumber, callback) {
           WEAPONS_ITEM_LIST.forEach(function(item) {
             d[item.key] = rows[i][item.col] || '';
           });
+          // שלוף הערות מגיליון זיווד ראשי
+          try {
+            var zSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+            if (zSheet) {
+              var zRows = zSheet.getDataRange().getValues();
+              for (var zi = 1; zi < zRows.length; zi++) {
+                if (zRows[zi][2] == personalNumber) {
+                  WEAPONS_ITEM_LIST.forEach(function(item) {
+                    if (zRows[zi][item.col]) d['note_' + item.key] = zRows[zi][item.col];
+                  });
+                  break;
+                }
+              }
+            }
+          } catch(e) { Logger.log('⚠️ note fetch error: ' + e); }
           return d;
         })()
       }, callback);
@@ -496,7 +511,9 @@ function weapons_handleCredit(data) {
     const fullName = rowData[1];
     if (email) {
       const ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
-      const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts);
+      // שלוף הערות מגיליון זיווד
+      const notesMap = weapons_readNotesMap(ss, personalNumber);
+      const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts, notesMap);
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
@@ -616,7 +633,8 @@ function weapons_handlePartialCredit(data) {
     if (email) {
       const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
       const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
-      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, data.creditSignature, ts);
+      const notesMap = weapons_readNotesMap(ss, personalNumber);
+      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, data.creditSignature, ts, notesMap);
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
@@ -762,8 +780,13 @@ function weapons_handleTransferItems(data) {
 
   // שלח מיילים למקור וליעד
   try {
-    const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
-    const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
+    const ts       = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    const notesMap = weapons_readNotesMap(ss, sourcePersonalNumber);
+    const itemsHe  = selectedItems.map(function(k) {
+      var label = WEAPONS_ITEM_NAMES_HE[k] || k;
+      var note  = notesMap[k];
+      return note ? label + ' (' + note + ')' : label;
+    }).join(', ');
 
     if (sourceData[4]) {
       MailApp.sendEmail({
@@ -811,12 +834,18 @@ function weapons_handleTransferItems(data) {
 /**
  * מייצר HTML לPDF זיכוי מלא — בנוי מנתוני rowData של הגיליון
  */
-function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
+function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts, notesMap) {
+  notesMap = notesMap || {};
   var f = function(label, val) {
     return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
   };
   var itemRows = WEAPONS_ITEM_LIST.filter(function(item) { return rowData[item.col]; })
-    .map(function(item) { return f(item.label, rowData[item.col] === '1' ? 'כן' : rowData[item.col]); }).join('');
+    .map(function(item) {
+      var display = rowData[item.col] === '1' ? 'כן' : rowData[item.col];
+      var note = notesMap[item.key];
+      if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
+      return f(item.label, display);
+    }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
     '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
@@ -850,7 +879,8 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
 /**
  * מייצר HTML לPDF זיכוי חלקי — מציג רק את הפריטים שנבחרו
  */
-function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, creditSignature, ts) {
+function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, creditSignature, ts, notesMap) {
+  notesMap = notesMap || {};
   var ITEM_DEFS = (function() {
     var m = {};
     WEAPONS_ITEM_LIST.forEach(function(item) {
@@ -865,7 +895,10 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     var def = ITEM_DEFS[key];
     if (!def) return '';
     var vals = def.cols.map(function(c) { return rowData[c]; }).filter(function(v) { return v && v !== '' && v != 0; });
-    return f(def.label, vals.length > 0 ? vals.join(' — ') : 'כן');
+    var display = vals.length > 0 ? vals.join(' — ') : 'כן';
+    var note = notesMap[key];
+    if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
+    return f(def.label, display);
   }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
@@ -895,6 +928,27 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
     '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
     '</body></html>';
+}
+
+/**
+ * קורא מפת הערות (key→note) מגיליון "כל הרשומות זיווד" לפי מספר אישי
+ */
+function weapons_readNotesMap(ss, personalNumber) {
+  var map = {};
+  try {
+    var sheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+    if (!sheet) return map;
+    var rows = sheet.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][2] == personalNumber) {
+        WEAPONS_ITEM_LIST.forEach(function(item) {
+          if (rows[i][item.col]) map[item.key] = rows[i][item.col];
+        });
+        break;
+      }
+    }
+  } catch(e) { Logger.log('⚠️ weapons_readNotesMap: ' + e); }
+  return map;
 }
 
 /**
@@ -947,7 +1001,11 @@ function weapons_createPdfHtml(data, timestamp) {
     (data.team   ? '<div class="field"><div class="field-label">צוות:</div><div class="field-value">'   + data.team  + '</div></div>' : '') +
     WEAPONS_ITEM_LIST.map(function(item) {
       var val = data[item.key];
-      return val ? '<div class="field"><div class="field-label">' + item.label + ':</div><div class="field-value">' + (val === '1' ? 'כן' : val) + '</div></div>' : '';
+      if (!val) return '';
+      var display = (val === '1' ? 'כן' : val);
+      var note = data['note_' + item.key];
+      if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
+      return '<div class="field"><div class="field-label">' + item.label + ':</div><div class="field-value">' + display + '</div></div>';
     }).join('') +
     '</div>' +
     '<div class="disclaimer"><strong>הצהרה:</strong> אני מאשר/ת בזאת כי קיבלתי את אמצעי הלחימה והציוד המפורטים במסמך זה, וכי כל הפרטים שמסרתי נכונים ומדויקים. אני מתחייב/ת לשמור על הציוד ולהחזירו במצב תקין.</div>' +
