@@ -256,295 +256,469 @@
                             oninput="filterItems(this.value)" />
                     </div>
                     <div class="grid grid-cols-2 gap-2" id="itemGrid">
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_roskM16" data-key="roskM16" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_roskM16" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M16</label>
-                            <input type="text" id="num_roskM16" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_roskM16" data-key="roskM16" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_roskM16" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M16</label>
+                                <input type="text" id="num_roskM16" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_roskM16" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_roskM4" data-key="roskM4" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_roskM4" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M4</label>
-                            <input type="text" id="num_roskM4" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_roskM4" data-key="roskM4" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_roskM4" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רוס"ק M4</label>
+                                <input type="text" id="num_roskM4" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_roskM4" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_negev" data-key="negev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_negev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגב</label>
-                            <input type="text" id="num_negev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_negev" data-key="negev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_negev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגב</label>
+                                <input type="text" id="num_negev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_negev" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_mag" data-key="mag" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_mag" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מאג</label>
-                            <input type="text" id="num_mag" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_mag" data-key="mag" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_mag" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מאג</label>
+                                <input type="text" id="num_mag" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_mag" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_matol" data-key="matol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_matol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מטול</label>
-                            <input type="text" id="num_matol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_matol" data-key="matol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_matol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מטול</label>
+                                <input type="text" id="num_matol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_matol" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_baret" data-key="baret" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_baret" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בארט</label>
-                            <input type="text" id="num_baret" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_baret" data-key="baret" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_baret" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בארט</label>
+                                <input type="text" id="num_baret" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_baret" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_trig" data-key="trig" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_trig" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">טריג</label>
-                            <input type="text" id="num_trig" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_trig" data-key="trig" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_trig" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">טריג</label>
+                                <input type="text" id="num_trig" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_trig" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_m5" data-key="m5" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_m5" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת M5</label>
-                            <input type="text" id="num_m5" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_m5" data-key="m5" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_m5" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת M5</label>
+                                <input type="text" id="num_m5" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_m5" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_pictini" data-key="pictini" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_pictini" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פיקטיני</label>
-                            <input type="text" id="num_pictini" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_pictini" data-key="pictini" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_pictini" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פיקטיני</label>
+                                <input type="text" id="num_pictini" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_pictini" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_mepro" data-key="mepro" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_mepro" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מפרו</label>
-                            <input type="text" id="num_mepro" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_mepro" data-key="mepro" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_mepro" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מפרו</label>
+                                <input type="text" id="num_mepro" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_mepro" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_zayinNegev" data-key="zayinNegev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_zayinNegev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ציין נגב</label>
-                            <input type="text" id="num_zayinNegev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_zayinNegev" data-key="zayinNegev" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_zayinNegev" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ציין נגב</label>
+                                <input type="text" id="num_zayinNegev" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_zayinNegev" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_shacha" data-key="shacha" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_shacha" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שח"ע</label>
-                            <input type="text" id="num_shacha" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_shacha" data-key="shacha" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_shacha" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שח"ע</label>
+                                <input type="text" id="num_shacha" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_shacha" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_lior" data-key="lior" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_lior" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ליאור</label>
-                            <input type="text" id="num_lior" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_lior" data-key="lior" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_lior" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ליאור</label>
+                                <input type="text" id="num_lior" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_lior" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_zavon" data-key="zavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_zavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">זאבון</label>
-                            <input type="text" id="num_zavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_zavon" data-key="zavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_zavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">זאבון</label>
+                                <input type="text" id="num_zavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_zavon" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_akila6" data-key="akila6" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_akila6" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אקילה*6</label>
-                            <input type="text" id="num_akila6" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_akila6" data-key="akila6" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_akila6" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אקילה*6</label>
+                                <input type="text" id="num_akila6" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_akila6" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_binoculars" data-key="binoculars" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_binoculars" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת</label>
-                            <input type="text" id="num_binoculars" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_binoculars" data-key="binoculars" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_binoculars" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת</label>
+                                <input type="text" id="num_binoculars" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_binoculars" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_compass" data-key="compass" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_compass" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מצפן</label>
-                            <input type="text" id="num_compass" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_compass" data-key="compass" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_compass" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מצפן</label>
+                                <input type="text" id="num_compass" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_compass" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_armon" data-key="armon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_armon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערמון</label>
-                            <input type="text" id="num_armon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_armon" data-key="armon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_armon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערמון</label>
+                                <input type="text" id="num_armon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_armon" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
-                            <input type="checkbox" id="cb_thermalMarker" data-key="thermalMarker" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_thermalMarker" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן טרמי לחיר</label>
-                            <input type="text" id="num_thermalMarker" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_thermalMarker" data-key="thermalMarker" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_thermalMarker" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן טרמי לחיר</label>
+                                <input type="text" id="num_thermalMarker" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_thermalMarker" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_achbar" data-key="achbar" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_achbar" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עכבר</label>
-                            <input type="text" id="num_achbar" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_achbar" data-key="achbar" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_achbar" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עכבר</label>
+                                <input type="text" id="num_achbar" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_achbar" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_lpl" data-key="lpl" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_lpl" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">LPL</label>
-                            <input type="text" id="num_lpl" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_lpl" data-key="lpl" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_lpl" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">LPL</label>
+                                <input type="text" id="num_lpl" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_lpl" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_yarour" data-key="yarour" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_yarour" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">יראור</label>
-                            <input type="text" id="num_yarour" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_yarour" data-key="yarour" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_yarour" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">יראור</label>
+                                <input type="text" id="num_yarour" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_yarour" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_adi" data-key="adi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_adi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עדי</label>
-                            <input type="text" id="num_adi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_adi" data-key="adi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_adi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עדי</label>
+                                <input type="text" id="num_adi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_adi" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_matolHandasi" data-key="matolHandasi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_matolHandasi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל הנדסי</label>
-                            <input type="text" id="num_matolHandasi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_matolHandasi" data-key="matolHandasi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_matolHandasi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל הנדסי</label>
+                                <input type="text" id="num_matolHandasi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_matolHandasi" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_matolSarug" data-key="matolSarug" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_matolSarug" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל סרוג</label>
-                            <input type="text" id="num_matolSarug" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_matolSarug" data-key="matolSarug" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_matolSarug" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מט"ל סרוג</label>
+                                <input type="text" id="num_matolSarug" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_matolSarug" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_makabim" data-key="makabim" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_makabim" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכבים</label>
-                            <input type="text" id="num_makabim" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_makabim" data-key="makabim" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_makabim" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכבים</label>
+                                <input type="text" id="num_makabim" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_makabim" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_shabang" data-key="shabang" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_shabang" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבנג</label>
-                            <input type="text" id="num_shabang" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_shabang" data-key="shabang" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_shabang" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבנג</label>
+                                <input type="text" id="num_shabang" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_shabang" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_pagion" data-key="pagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_pagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פגיון</label>
-                            <input type="text" id="num_pagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_pagion" data-key="pagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_pagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פגיון</label>
+                                <input type="text" id="num_pagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_pagion" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_sightPagion" data-key="sightPagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_sightPagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת לפגיון</label>
-                            <input type="text" id="num_sightPagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_sightPagion" data-key="sightPagion" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_sightPagion" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת לפגיון</label>
+                                <input type="text" id="num_sightPagion" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_sightPagion" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_ido" data-key="ido" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_ido" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עידו</label>
-                            <input type="text" id="num_ido" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_ido" data-key="ido" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_ido" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עידו</label>
+                                <input type="text" id="num_ido" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_ido" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_leopold" data-key="leopold" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_leopold" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">לאופולד</label>
-                            <input type="text" id="num_leopold" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_leopold" data-key="leopold" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_leopold" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">לאופולד</label>
+                                <input type="text" id="num_leopold" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_leopold" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_noa" data-key="noa" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_noa" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נועה</label>
-                            <input type="text" id="num_noa" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_noa" data-key="noa" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_noa" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נועה</label>
+                                <input type="text" id="num_noa" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_noa" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_amit" data-key="amit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_amit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עמית</label>
-                            <input type="text" id="num_amit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_amit" data-key="amit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_amit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">עמית</label>
+                                <input type="text" id="num_amit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_amit" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_yarin" data-key="yarin" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_yarin" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ירין</label>
-                            <input type="text" id="num_yarin" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_yarin" data-key="yarin" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_yarin" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ירין</label>
+                                <input type="text" id="num_yarin" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_yarin" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_shabshavet" data-key="shabshavet" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_shabshavet" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבשבת</label>
-                            <input type="text" id="num_shabshavet" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_shabshavet" data-key="shabshavet" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_shabshavet" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">שבשבת</label>
+                                <input type="text" id="num_shabshavet" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_shabshavet" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
-                            <input type="checkbox" id="cb_laserMatol" data-key="laserMatol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_laserMatol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן לייזר למטול</label>
-                            <input type="text" id="num_laserMatol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_laserMatol" data-key="laserMatol" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_laserMatol" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">סמן לייזר למטול</label>
+                                <input type="text" id="num_laserMatol" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_laserMatol" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_metzitzan" data-key="metzitzan" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_metzitzan" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מציצן</label>
-                            <input type="text" id="num_metzitzan" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_metzitzan" data-key="metzitzan" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_metzitzan" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מציצן</label>
+                                <input type="text" id="num_metzitzan" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_metzitzan" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_rigit" data-key="rigit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_rigit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ריגיט</label>
-                            <input type="text" id="num_rigit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_rigit" data-key="rigit" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_rigit" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ריגיט</label>
+                                <input type="text" id="num_rigit" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_rigit" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_magenOz" data-key="magenOz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_magenOz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מגן עוז</label>
-                            <input type="text" id="num_magenOz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_magenOz" data-key="magenOz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_magenOz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מגן עוז</label>
+                                <input type="text" id="num_magenOz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_magenOz" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_boresight" data-key="boresight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_boresight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בורסייט</label>
-                            <input type="text" id="num_boresight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_boresight" data-key="boresight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_boresight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">בורסייט</label>
+                                <input type="text" id="num_boresight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_boresight" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_kundson" data-key="kundson" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_kundson" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">קונדסון</label>
-                            <input type="text" id="num_kundson" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_kundson" data-key="kundson" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_kundson" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">קונדסון</label>
+                                <input type="text" id="num_kundson" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_kundson" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_makhpal" data-key="makhpal" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_makhpal" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכפל</label>
-                            <input type="text" id="num_makhpal" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_makhpal" data-key="makhpal" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_makhpal" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מכפל</label>
+                                <input type="text" id="num_makhpal" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_makhpal" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_negavon" data-key="negavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_negavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגבון</label>
-                            <input type="text" id="num_negavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_negavon" data-key="negavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_negavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נגבון</label>
+                                <input type="text" id="num_negavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_negavon" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
-                            <input type="checkbox" id="cb_pakZayinNegavon" data-key="pakZayinNegavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_pakZayinNegavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פק ציין לנגבון</label>
-                            <input type="text" id="num_pakZayinNegavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_pakZayinNegavon" data-key="pakZayinNegavon" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_pakZayinNegavon" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">פק ציין לנגבון</label>
+                                <input type="text" id="num_pakZayinNegavon" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_pakZayinNegavon" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_sightAyotek" data-key="sightAyotek" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_sightAyotek" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת איוטק</label>
-                            <input type="text" id="num_sightAyotek" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_sightAyotek" data-key="sightAyotek" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_sightAyotek" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כוונת איוטק</label>
+                                <input type="text" id="num_sightAyotek" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_sightAyotek" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_binocularsPugi" data-key="binocularsPugi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_binocularsPugi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת פוגי</label>
-                            <input type="text" id="num_binocularsPugi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_binocularsPugi" data-key="binocularsPugi" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_binocularsPugi" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">משקפת פוגי</label>
+                                <input type="text" id="num_binocularsPugi" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_binocularsPugi" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_ironBall" data-key="ironBall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_ironBall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כדור ברזל</label>
-                            <input type="text" id="num_ironBall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_ironBall" data-key="ironBall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_ironBall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">כדור ברזל</label>
+                                <input type="text" id="num_ironBall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_ironBall" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_mkh" data-key="mkh" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_mkh" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מק"ח</label>
-                            <input type="text" id="num_mkh" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_mkh" data-key="mkh" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_mkh" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">מק"ח</label>
+                                <input type="text" id="num_mkh" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_mkh" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_kneeNight" data-key="kneeNight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_kneeNight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך לילה</label>
-                            <input type="text" id="num_kneeNight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_kneeNight" data-key="kneeNight" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_kneeNight" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך לילה</label>
+                                <input type="text" id="num_kneeNight" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_kneeNight" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_kneeDay" data-key="kneeDay" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_kneeDay" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך יום</label>
-                            <input type="text" id="num_kneeDay" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_kneeDay" data-key="kneeDay" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_kneeDay" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ברך יום</label>
+                                <input type="text" id="num_kneeDay" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_kneeDay" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
-                            <input type="checkbox" id="cb_merkavaCurtain" data-key="merkavaCurtain" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_merkavaCurtain" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">וילון מרכבה</label>
-                            <input type="text" id="num_merkavaCurtain" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_merkavaCurtain" data-key="merkavaCurtain" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_merkavaCurtain" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">וילון מרכבה</label>
+                                <input type="text" id="num_merkavaCurtain" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_merkavaCurtain" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_kitBaz" data-key="kitBaz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_kitBaz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערכת באז</label>
-                            <input type="text" id="num_kitBaz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_kitBaz" data-key="kitBaz" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_kitBaz" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">ערכת באז</label>
+                                <input type="text" id="num_kitBaz" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_kitBaz" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_amaSoch" data-key="amaSoch" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_amaSoch" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אמה סוך</label>
-                            <input type="text" id="num_amaSoch" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_amaSoch" data-key="amaSoch" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_amaSoch" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">אמה סוך</label>
+                                <input type="text" id="num_amaSoch" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_amaSoch" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_dotSmall" data-key="dotSmall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_dotSmall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה קטנה</label>
-                            <input type="text" id="num_dotSmall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_dotSmall" data-key="dotSmall" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_dotSmall" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה קטנה</label>
+                                <input type="text" id="num_dotSmall" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_dotSmall" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_dotEnhanced" data-key="dotEnhanced" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_dotEnhanced" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה משופרת</label>
-                            <input type="text" id="num_dotEnhanced" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_dotEnhanced" data-key="dotEnhanced" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_dotEnhanced" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">נקודה משופרת</label>
+                                <input type="text" id="num_dotEnhanced" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_dotEnhanced" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_droneIbu" data-key="droneIbu" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_droneIbu" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן איבו</label>
-                            <input type="text" id="num_droneIbu" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_droneIbu" data-key="droneIbu" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_droneIbu" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן איבו</label>
+                                <input type="text" id="num_droneIbu" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_droneIbu" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-1">
-                            <input type="checkbox" id="cb_droneAvatah" data-key="droneAvatah" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_droneAvatah" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן אבטה</label>
-                            <input type="text" id="num_droneAvatah" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-1">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_droneAvatah" data-key="droneAvatah" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_droneAvatah" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן אבטה</label>
+                                <input type="text" id="num_droneAvatah" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_droneAvatah" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
-                        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-lg col-span-2">
-                            <input type="checkbox" id="cb_droneFlycard" data-key="droneFlycard" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
-                            <label for="cb_droneFlycard" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן פלייקארד</label>
-                            <input type="text" id="num_droneFlycard" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                        <div class="flex flex-col gap-1 p-2 bg-stone-50 rounded-lg col-span-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cb_droneFlycard" data-key="droneFlycard" class="item-checkbox form-field-lockable w-5 h-5 accent-green-700 flex-shrink-0" disabled />
+                                <label for="cb_droneFlycard" class="text-stone-700 font-medium text-sm cursor-pointer flex-1 leading-tight">רחפן פלייקארד</label>
+                                <input type="text" id="num_droneFlycard" class="item-num hidden w-20 px-2 py-1 text-xs border border-stone-300 rounded-lg" placeholder="מס׳" maxlength="30" />
+                            </div>
+                            <input type="text" id="note_droneFlycard" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="הערה..." maxlength="200" />
                         </div>
                     </div>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="itemList"></p>
@@ -883,14 +1057,18 @@
             });
         }
 
-        // Unified item checkbox handler - show/hide inline number input
+        // Unified item checkbox handler - show/hide number + note inputs
         document.querySelectorAll('.item-checkbox').forEach(cb => {
             cb.addEventListener('change', () => {
                 const key = cb.dataset.key;
-                const numInput = document.getElementById('num_' + key);
-                if (numInput) {
-                    if (cb.checked) { numInput.classList.remove('hidden'); numInput.focus(); }
-                    else { numInput.classList.add('hidden'); numInput.value = ''; }
+                const numInput  = document.getElementById('num_'  + key);
+                const noteInput = document.getElementById('note_' + key);
+                if (cb.checked) {
+                    if (numInput)  { numInput.classList.remove('hidden');  numInput.focus(); }
+                    if (noteInput) { noteInput.classList.remove('hidden'); }
+                } else {
+                    if (numInput)  { numInput.classList.add('hidden');  numInput.value  = ''; }
+                    if (noteInput) { noteInput.classList.add('hidden'); noteInput.value = ''; }
                 }
                 checkFormValidity();
             });
@@ -989,13 +1167,19 @@
             ALL_ITEM_KEYS.forEach(key => {
                 const val = data[key];
                 if (val && val !== '') {
-                    const cb = document.getElementById('cb_' + key);
-                    const numInput = document.getElementById('num_' + key);
+                    const cb        = document.getElementById('cb_'   + key);
+                    const numInput  = document.getElementById('num_'  + key);
+                    const noteInput = document.getElementById('note_' + key);
                     if (cb) {
                         cb.checked = true;
                         if (numInput && val !== '1') {
                             numInput.classList.remove('hidden');
                             numInput.value = val;
+                        }
+                        if (noteInput) {
+                            noteInput.classList.remove('hidden');
+                            const noteVal = data['note_' + key];
+                            if (noteVal) noteInput.value = noteVal;
                         }
                     }
                 }
@@ -1236,12 +1420,15 @@
                 return;
             }
             
-            // Collect item data
+            // Collect item data (serial numbers + notes)
             const itemData = {};
             document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                const key = cb.dataset.key;
-                const numInput = document.getElementById('num_' + key);
+                const key       = cb.dataset.key;
+                const numInput  = document.getElementById('num_'  + key);
+                const noteInput = document.getElementById('note_' + key);
                 itemData[key] = numInput && numInput.value.trim() ? numInput.value.trim() : '1';
+                const noteVal = noteInput && noteInput.value.trim();
+                if (noteVal) itemData['note_' + key] = noteVal;
             });
 
             const data = {
@@ -1317,8 +1504,8 @@
             // Hide team container
             teamContainer.classList.add('hidden');
 
-            // Hide all item inline number inputs
-            document.querySelectorAll('.item-num').forEach(el => {
+            // Hide all item inline number + note inputs
+            document.querySelectorAll('.item-num, .item-note').forEach(el => {
                 el.classList.add('hidden');
                 el.value = '';
             });

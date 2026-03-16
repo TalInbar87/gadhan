@@ -140,6 +140,7 @@ function weapons_saveToSheet(data) {
   const ts = formatTimestamp();
   weapons_saveToUnitSheet(ss, data, ts);
   weapons_saveToMainSheet(ss, data, ts);
+  weapons_saveToZivudSheet(ss, data, ts);
 }
 
 function weapons_saveToUnitSheet(ss, data, timestamp) {
@@ -173,6 +174,146 @@ function weapons_saveToMainSheet(ss, data, timestamp) {
     mainSheet.appendRow(rowData);
     Logger.log('✓ [Weapons] Added to main sheet');
   }
+}
+
+// ================================================================
+// Zivud Sheet (הערות לציוד)
+// ================================================================
+
+/**
+ * שומר לגליון זיווד של המסגרת — אותה מבנה כמו צלם אבל עמודות פריט מכילות הערות
+ */
+function weapons_saveToZivudSheet(ss, data, timestamp) {
+  const sheetName = (data.unit || CONFIG.WEAPONS.DEFAULT_UNIT) + ' זיווד';
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) sheet = weapons_createZivudSheet(ss, sheetName);
+
+  const existingRow = findExistingRow(sheet, data.personalNumber, CONFIG.WEAPONS.PN_COLUMN);
+  const rowData = weapons_prepareZivudRowData(data, timestamp);
+
+  if (existingRow) {
+    sheet.getRange(existingRow, 1, 1, rowData.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+  Logger.log('✓ [Weapons] Saved to zivud sheet: ' + sheetName);
+}
+
+function weapons_createZivudSheet(ss, sheetName) {
+  const sheet = ss.insertSheet(sheetName);
+  var headers = ['תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת', 'צוות'];
+  WEAPONS_ITEM_LIST.forEach(function(item) { headers.push(item.label); });
+  sheet.appendRow(headers);
+  const hr = sheet.getRange(1, 1, 1, headers.length);
+  hr.setBackground('#7B5E00');
+  hr.setFontColor('#FFFFFF');
+  hr.setFontWeight('bold');
+  hr.setHorizontalAlignment('right');
+  Logger.log('✓ [Weapons] Created zivud sheet: ' + sheetName);
+  return sheet;
+}
+
+/**
+ * מכין שורת נתונים לגליון זיווד — עמודות פריטים מכילות הערה (note_KEY)
+ */
+function weapons_prepareZivudRowData(data, timestamp) {
+  var row = [
+    timestamp,
+    data.fullName,
+    data.personalNumber,
+    data.phone,
+    data.email,
+    data.unit || '',
+    data.team || ''
+  ];
+  WEAPONS_ITEM_LIST.forEach(function(item) {
+    // כתוב הערה אם קיימת, אחרת השאר ריק
+    row.push(data[item.key] ? (data['note_' + item.key] || '') : '');
+  });
+  return row;
+}
+
+// ================================================================
+// Async Email Queue
+// ================================================================
+
+/**
+ * מכניס משימת מייל לתור ב-PropertiesService ומפעיל טריגר
+ * (לא מחכה לשליחת המייל — חוזר מיידית)
+ */
+function weapons_queueEmail(data) {
+  try {
+    const key = 'wepEmail_' + data.personalNumber + '_' + Date.now();
+    PropertiesService.getScriptProperties().setProperty(key, JSON.stringify({
+      pn:        String(data.personalNumber),
+      email:     data.email     || '',
+      fullName:  data.fullName  || '',
+      unit:      data.unit      || '',
+      submittedAt: data.submittedAt || new Date().toISOString()
+    }));
+    // יצירת טריגר חד-פעמי רק אם אין כבר אחד ממתין
+    const exists = ScriptApp.getProjectTriggers().some(function(t) {
+      return t.getHandlerFunction() === 'weapons_sendQueuedEmails';
+    });
+    if (!exists) {
+      ScriptApp.newTrigger('weapons_sendQueuedEmails').timeBased().after(3000).create();
+    }
+    Logger.log('📧 [Weapons] Email queued for PN: ' + data.personalNumber);
+  } catch(e) {
+    Logger.log('⚠️ [Weapons] Failed to queue email: ' + e);
+  }
+}
+
+/**
+ * מופעל ע"י טריגר — שולח מיילים ממתינים מהתור
+ */
+function weapons_sendQueuedEmails() {
+  const props = PropertiesService.getScriptProperties();
+  const all   = props.getProperties();
+  const ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  const mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+
+  for (var key in all) {
+    if (!key.startsWith('wepEmail_')) continue;
+    var job;
+    try { job = JSON.parse(all[key]); } catch(e) { props.deleteProperty(key); continue; }
+    props.deleteProperty(key);
+
+    try {
+      if (!mainSheet || !job.email) continue;
+      // קרא נתונים עדכניים מהגיליון
+      var rows = mainSheet.getDataRange().getValues();
+      var rowData = null;
+      for (var i = 1; i < rows.length; i++) {
+        if (String(rows[i][2]) === String(job.pn)) { rowData = rows[i]; break; }
+      }
+      if (!rowData) continue;
+
+      var emailData = {
+        fullName:       rowData[1],
+        personalNumber: rowData[2],
+        phone:          rowData[3],
+        email:          rowData[4],
+        unit:           rowData[5] || '',
+        team:           rowData[6] || ''
+      };
+      WEAPONS_ITEM_LIST.forEach(function(item) {
+        emailData[item.key] = rowData[item.col] || '';
+      });
+
+      weapons_generateAndSendPDF(emailData);
+      Logger.log('✅ [Weapons] Queued email sent for PN: ' + job.pn);
+    } catch(e) {
+      Logger.log('⚠️ [Weapons] Queued email failed for PN ' + (job && job.pn) + ': ' + e);
+    }
+  }
+
+  // נקה את הטריגר הזה לאחר הרצה
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'weapons_sendQueuedEmails') {
+      try { ScriptApp.deleteTrigger(t); } catch(e) {}
+    }
+  });
 }
 
 function weapons_createUnitSheet(ss, sheetName) {
