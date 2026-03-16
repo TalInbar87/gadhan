@@ -258,6 +258,21 @@ function handleGetExisting(data, request) {
         WEAPONS_ITEM_LIST.forEach(function(item) {
           existingData[item.key] = rows[i][item.col] || '';
         });
+        // שלוף הערות מגיליון זיווד ראשי
+        try {
+          const zSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+          if (zSheet) {
+            const zRows = zSheet.getDataRange().getValues();
+            for (let zi = 1; zi < zRows.length; zi++) {
+              if (zRows[zi][2] == personalNumber) {
+                WEAPONS_ITEM_LIST.forEach(function(item) {
+                  if (zRows[zi][item.col]) existingData['note_' + item.key] = zRows[zi][item.col];
+                });
+                break;
+              }
+            }
+          }
+        } catch(e) { Logger.log('⚠️ note fetch in getExisting: ' + e); }
       }
       break;
     }
