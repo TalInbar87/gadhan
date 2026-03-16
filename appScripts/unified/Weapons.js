@@ -877,6 +877,21 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     '</body></html>';
 }
 
+/**
+ * שליחת מייל מהירה ללא PDF — HTML ישירות (חוסך 3-5 שניות של המרת PDF)
+ */
+function weapons_sendEmailFast(data) {
+  if (!data.email) return;
+  const ts = formatTimestamp();
+  MailApp.sendEmail({
+    to:       data.email,
+    subject:  'אישור חתימה על נשק - ' + data.fullName,
+    body:     'שלום ' + data.fullName + ',\nאישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\nתאריך: ' + ts + '\nמספר אישי: ' + data.personalNumber + (data.unit ? '\nמסגרת: ' + data.unit : '') + '\n\nבברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+    htmlBody: weapons_createPdfHtml(data, ts)
+  });
+  Logger.log('✅ [Weapons] Fast email sent to: ' + data.email);
+}
+
 function weapons_generateAndSendPDF(data) {
   const ts = formatTimestamp();
   const blob = Utilities.newBlob(weapons_createPdfHtml(data, ts), 'text/html', 'checkout.html');

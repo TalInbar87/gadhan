@@ -179,7 +179,7 @@ function handleSubmitData(data, request) {
   // שמור ישירות — ללא HTTP לסקריפט חיצוני
   if (formType === 'weapons') {
     weapons_saveToSheet(decryptedData);
-    weapons_queueEmail(decryptedData); // שולח מייל ברקע — לא מחכה
+    try { weapons_sendEmailFast(decryptedData); } catch(e) { Logger.log('⚠️ Email error: ' + e); }
   } else {
     radio_saveToSheet(decryptedData);
     radio_generateAndSendPDF(decryptedData);
