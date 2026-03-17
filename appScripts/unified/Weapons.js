@@ -659,7 +659,7 @@ function weapons_handlePartialCredit(data) {
       const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
       const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
       const notesMap = weapons_readNotesMap(ss, personalNumber);
-      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, data.creditSignature, ts, notesMap);
+      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, selectedNoteItems, creditBy, data.creditSignature, ts, notesMap);
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
       pdf.setName('זיכוי_חלקי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
@@ -888,9 +888,11 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts, not
   var itemRows = WEAPONS_ITEM_LIST.filter(function(item) { return rowData[item.col]; })
     .map(function(item) {
       var display = rowData[item.col] === '1' ? 'כן' : rowData[item.col];
-      var note = notesMap[item.key];
-      if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
       return f(item.label, display);
+    }).join('');
+  var noteRows = WEAPONS_ITEM_LIST.filter(function(item) { return notesMap[item.key]; })
+    .map(function(item) {
+      return f('ציוד נלווה — ' + item.label, notesMap[item.key]);
     }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
@@ -914,7 +916,7 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts, not
     f('שם מלא',      rowData[1]) +
     f('מספר אישי',   String(rowData[2])) +
     f('מסגרת',       rowData[5]) +
-    itemRows +
+    itemRows + noteRows +
     f('זוכה על ידי', creditBy || '') +
     '</div>' +
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
@@ -925,8 +927,9 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts, not
 /**
  * מייצר HTML לPDF זיכוי חלקי — מציג רק את הפריטים שנבחרו
  */
-function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, creditSignature, ts, notesMap) {
+function weapons_createPartialCreditPdfHtml(rowData, selectedItems, selectedNoteItems, creditBy, creditSignature, ts, notesMap) {
   notesMap = notesMap || {};
+  selectedNoteItems = selectedNoteItems || [];
   var ITEM_DEFS = (function() {
     var m = {};
     WEAPONS_ITEM_LIST.forEach(function(item) {
@@ -941,10 +944,12 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     var def = ITEM_DEFS[key];
     if (!def) return '';
     var vals = def.cols.map(function(c) { return rowData[c]; }).filter(function(v) { return v && v !== '' && v != 0; });
-    var display = vals.length > 0 ? vals.join(' — ') : 'כן';
-    var note = notesMap[key];
-    if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
-    return f(def.label, display);
+    return f(def.label, vals.length > 0 ? vals.join(' — ') : 'כן');
+  }).join('');
+  var noteRows = selectedNoteItems.map(function(key) {
+    var def = ITEM_DEFS[key];
+    if (!def) return '';
+    return f('ציוד נלווה — ' + def.label, notesMap[key] || 'כן');
   }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
@@ -968,7 +973,7 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     f('שם מלא',      rowData[1]) +
     f('מספר אישי',   String(rowData[2])) +
     f('מסגרת',       rowData[5]) +
-    itemRows +
+    itemRows + noteRows +
     f('זוכה על ידי', creditBy || '') +
     '</div>' +
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
@@ -986,9 +991,7 @@ function weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, se
     return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
   };
   var itemRows = selectedItems.map(function(key) {
-    var label = WEAPONS_ITEM_NAMES_HE[key] || key;
-    var note  = notesMap[key];
-    return f(label, note ? 'כן <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>' : 'כן');
+    return f(WEAPONS_ITEM_NAMES_HE[key] || key, 'כן');
   }).join('');
   var noteRows = selectedNoteItems.map(function(key) {
     var label = WEAPONS_ITEM_NAMES_HE[key] || key;
