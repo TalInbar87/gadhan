@@ -809,7 +809,7 @@ function weapons_handleTransferItems(data) {
     transferBy || 'unknown'
   ]);
 
-  // שלח מיילים למקור וליעד
+  // שלח מיילים למקור וליעד עם PDF מצורף
   try {
     const ts       = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
     const notesMap = weapons_readNotesMap(ss, sourcePersonalNumber);
@@ -823,6 +823,13 @@ function weapons_handleTransferItems(data) {
       })
     ).join(', ');
 
+    // יצירת PDF העברה
+    const transferHtml = weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, selectedNoteItems, notesMap, transferBy, ts);
+    const transferBlob = Utilities.newBlob(transferHtml, 'text/html', 'transfer.html');
+    const transferPdf  = transferBlob.getAs('application/pdf');
+    transferPdf.setName('אישור_העברה_' + sourcePersonalNumber + '_' + targetPersonalNumber + '_' + Date.now() + '.pdf');
+    weapons_savePdfToDrive(transferPdf, sourceData[5], null);
+
     if (sourceData[4]) {
       weapons_sendEmailWithRotation({
         to:      sourceData[4],
@@ -832,7 +839,8 @@ function weapons_handleTransferItems(data) {
                  ' (מ"א ' + targetPersonalNumber + '):\n' + itemsHe + '\n\n' +
                  'בוצע על ידי: ' + (transferBy || 'לא ידוע') + '\n' +
                  'תאריך: ' + ts + '\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        pdfBlob: transferPdf
       });
       Logger.log('✅ [Weapons] Transfer email sent to source: ' + sourceData[4]);
     }
@@ -846,7 +854,8 @@ function weapons_handleTransferItems(data) {
                  ' (מ"א ' + sourcePersonalNumber + '):\n' + itemsHe + '\n\n' +
                  'בוצע על ידי: ' + (transferBy || 'לא ידוע') + '\n' +
                  'תאריך: ' + ts + '\n\n' +
-                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219'
+                 'בברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
+        pdfBlob: transferPdf
       });
       Logger.log('✅ [Weapons] Transfer email sent to target: ' + targetData[4]);
     }
@@ -961,6 +970,59 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, cr
     f('זוכה על ידי', creditBy || '') +
     '</div>' +
     (creditSignature ? '<div class="sig"><div class="field-label" style="display:block;margin-bottom:5px">חתימת המאשר:</div><img src="' + creditSignature + '" alt="חתימה"/></div>' : '') +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
+}
+
+/**
+ * מייצר HTML לPDF העברת ציוד — מוסר, מקבל, פריטים
+ */
+function weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, selectedNoteItems, notesMap, transferBy, ts) {
+  notesMap = notesMap || {};
+  selectedNoteItems = selectedNoteItems || [];
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  var itemRows = selectedItems.map(function(key) {
+    var label = WEAPONS_ITEM_NAMES_HE[key] || key;
+    var note  = notesMap[key];
+    return f(label, note ? 'כן <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>' : 'כן');
+  }).join('');
+  var noteRows = selectedNoteItems.map(function(key) {
+    var label = WEAPONS_ITEM_NAMES_HE[key] || key;
+    var note  = notesMap[key] || '';
+    return f('ציוד נלווה — ' + label, note || 'כן');
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #1a3a6b; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.header p { font-size: 14px; opacity: 0.9; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.section-title { font-weight: bold; font-size: 15px; color: #1a3a6b; margin: 15px 0 6px; border-bottom: 2px solid #1a3a6b; padding-bottom: 3px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #1a3a6b; }' +
+    '.field-value { flex: 1; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>↔ אישור העברת ציוד</h1>' +
+    '<p>מערכת דוח צלם מקוון - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך העברה', ts) +
+    '<div class="section-title">מוסר</div>' +
+    f('שם מלא',    sourceData[1]) +
+    f('מספר אישי', String(sourceData[2])) +
+    f('מסגרת',     sourceData[5]) +
+    '<div class="section-title">מקבל</div>' +
+    f('שם מלא',    targetData[1]) +
+    f('מספר אישי', String(targetData[2])) +
+    f('מסגרת',     targetData[5]) +
+    '<div class="section-title">פריטים מועברים</div>' +
+    itemRows + noteRows +
+    f('בוצע על ידי', transferBy || '') +
+    '</div>' +
     '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
     '</body></html>';
 }
