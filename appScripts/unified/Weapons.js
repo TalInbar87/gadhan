@@ -829,8 +829,8 @@ function weapons_handleTransferItems(data) {
     const transferHtml = weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, selectedNoteItems, notesMap, transferBy, ts);
     const transferBlob = Utilities.newBlob(transferHtml, 'text/html', 'transfer.html');
     const transferPdf  = transferBlob.getAs('application/pdf');
-    transferPdf.setName('העברה_' + sourceData[1] + '_' + weapons_driveTimestamp() + '.pdf');
-    weapons_savePdfToDrive(transferPdf, sourceData[5], null, null);
+    transferPdf.setName('העברה_' + targetData[1] + '_' + sourceData[1] + '_' + weapons_driveTimestamp() + '.pdf');
+    weapons_savePdfToDrive(transferPdf, sourceData[5], null, 'העברות');
 
     if (sourceData[4]) {
       weapons_sendEmailWithRotation({
