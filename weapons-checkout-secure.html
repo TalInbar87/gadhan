@@ -1182,6 +1182,14 @@
                             if (noteVal) noteInput.value = noteVal;
                         }
                     }
+                } else {
+                    // ציוד נלווה ללא פריט ראשי — הצג שדה note בלבד
+                    const noteVal   = data['note_' + key];
+                    const noteInput = document.getElementById('note_' + key);
+                    if (noteVal && noteInput) {
+                        noteInput.classList.remove('hidden');
+                        noteInput.value = noteVal;
+                    }
                 }
             });
 

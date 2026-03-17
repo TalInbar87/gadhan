@@ -478,8 +478,13 @@
                 const val = def.getValue(data);
                 return val !== null && val !== undefined && val !== '' && val !== false;
             });
+            const orphanNotes = ITEM_DEFINITIONS.filter(def => {
+                const val  = def.getValue(data);
+                const note = data['note_' + def.key] || '';
+                return note && (val === null || val === undefined || val === '' || val === false);
+            });
 
-            if (availableItems.length === 0) {
+            if (availableItems.length === 0 && orphanNotes.length === 0) {
                 document.getElementById('noItemsMsg').classList.remove('hidden');
                 document.getElementById('selectionControls').classList.add('hidden');
                 document.getElementById('actionSection').classList.add('hidden');
@@ -520,6 +525,23 @@
                             noteRow.classList.toggle('selected', noteCheckbox.checked);
                         });
                     }
+                });
+
+                // ציוד נלווה ללא פריט ראשי
+                orphanNotes.forEach(def => {
+                    const note = data['note_' + def.key];
+                    const noteRow = document.createElement('label');
+                    noteRow.className = 'item-row border-amber-200 bg-amber-50/30';
+                    noteRow.innerHTML = `
+                        <input type="checkbox" class="note-checkbox" data-key="${def.key}" data-note="${note.replace(/"/g, '&quot;')}" onchange="onItemCheckChange()" />
+                        <span class="text-amber-700 font-medium text-sm">ציוד נלווה — ${def.label}</span>
+                        <span class="text-amber-700 mr-auto text-sm">${note}</span>
+                    `;
+                    itemsList.appendChild(noteRow);
+                    const noteCheckbox = noteRow.querySelector('input[type=checkbox]');
+                    noteCheckbox.addEventListener('change', () => {
+                        noteRow.classList.toggle('selected', noteCheckbox.checked);
+                    });
                 });
             }
 
