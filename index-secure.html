@@ -298,12 +298,14 @@
                 <p>מערכת לניהול וחתימה על נשקים ואמצעי לחימה</p>
             </a>
 
+            <!-- קשר — מושבת זמנית
             <a href="#" id="radioLink" class="nav-card radio" onclick="navigateTo('radio-checkout-secure.html', event)">
                 <div class="permission-badge">נדרש: כתיבה</div>
                 <div class="icon">⬛</div>
                 <h2>מערכת חתימה - קשר</h2>
                 <p>מערכת לניהול וחתימה על אמצעי קשר</p>
             </a>
+            -->
         </div>
 
         <div class="section-title" id="reportsSection" style="display: none;">דוחות ומעקב</div>
@@ -408,22 +410,30 @@
         // ============================================================
         
         function setupPermissions(user) {
-            // Check each permission
-            const hasWrite = authClient.hasPermission('write');
-            const isAdmin = authClient.hasPermission('manage_users');
+            const hasWrite      = authClient.hasPermission('write');
+            const isAdmin       = authClient.hasPermission('manage_users');
+            const hasReports    = authClient.hasPermission('view_reports');
+            const hasTransfer   = authClient.hasPermission('transfer');
 
-            // Weapons & Radio forms
+            // Weapons form
             if (!hasWrite) {
                 disableCard('weaponsLink');
-                disableCard('radioLink');
             }
 
-            // Reports + Admin section — מנהלים בלבד
-            if (isAdmin) {
+            // דוחות — מנהל + סמל
+            if (hasReports || isAdmin) {
                 document.getElementById('reportsSection').style.display = 'block';
                 document.getElementById('reportsCards').style.display = 'grid';
+            }
+
+            // ניהול מערכת — סמל רואה רק העברות, מנהל רואה הכל
+            if (isAdmin || hasTransfer) {
                 document.getElementById('adminSection').style.display = 'block';
                 document.getElementById('adminCards').style.display = 'grid';
+                if (!isAdmin) {
+                    document.getElementById('auditLink').style.display = 'none';
+                    document.getElementById('usersLink').style.display = 'none';
+                }
             }
         }
         
@@ -473,10 +483,11 @@
         
         function getRoleDisplayName(role) {
             const roleNames = {
-                'admin': '👑 מנהל מערכת',
+                'admin':    '👑 מנהל מערכת',
+                'sergeant': '🎖️ סמל',
                 'operator': '🔧 מפעיל',
-                'viewer': '👁️ צופה',
-                'user': '👤 משתמש'
+                'viewer':   '👁️ צופה',
+                'user':     '👤 משתמש'
             };
             return roleNames[role] || role;
         }
