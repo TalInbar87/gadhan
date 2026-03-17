@@ -220,6 +220,7 @@
                         <option value="ניוד">ניוד</option>
                         <option value='תאג"ד'>תאג"ד</option>
                         <option value="הדרכה">הדרכה</option>
+                        <option value='פלס"ם'>פלס"ם</option>
                     </select>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="unit"></p>
                 </div>
@@ -1034,9 +1035,20 @@
         const teamContainer = document.getElementById('teamContainer');
         const teamSelect = document.getElementById('team');
 
+        const teamOptionsByUnit = {
+            platoon: ['1', '2', '3', 'מפלג'],
+            palasm: ['לוגיסטיקה', 'שלישות', 'רכב', 'מטבח', 'תקשוב', 'טנ"א', 'מפל"ג']
+        };
+
         unitSelect.addEventListener('change', () => {
             const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
-            if (platoons.includes(unitSelect.value)) {
+            const isPalasm  = unitSelect.value === 'פלס"ם';
+            const isPlatoon = platoons.includes(unitSelect.value);
+
+            if (isPlatoon || isPalasm) {
+                const options = isPalasm ? teamOptionsByUnit.palasm : teamOptionsByUnit.platoon;
+                teamSelect.innerHTML = '<option value="">בחר צוות</option>' +
+                    options.map(o => `<option value="${o}">${o}</option>`).join('');
                 teamContainer.classList.remove('hidden');
                 teamSelect.required = true;
             } else {
