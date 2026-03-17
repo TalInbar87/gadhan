@@ -94,6 +94,7 @@ content = re.sub(r"RELAY_URL_2:\s*'[^']*'",   "RELAY_URL_2: '" + os.environ.get(
 content = re.sub(r"RELAY_URL_3:\s*'[^']*'",   "RELAY_URL_3: '" + os.environ.get('RELAY_URL_3','')  + "'",  content)
 content = re.sub(r"RELAY_URL_4:\s*'[^']*'",   "RELAY_URL_4: '" + os.environ.get('RELAY_URL_4','')  + "'",  content)
 content = re.sub(r"RELAY_URL_5:\s*'[^']*'",   "RELAY_URL_5: '" + os.environ.get('RELAY_URL_5','')  + "'",  content)
+content = re.sub(r"ROOT_FOLDER_ID:\s*'[^']*'", "ROOT_FOLDER_ID: '" + os.environ.get('DRIVE_ROOT_FOLDER_ID','') + "'", content)
 
 with open('$GAS_CONFIG_JS', 'w', encoding='utf-8') as f:
     f.write(content)

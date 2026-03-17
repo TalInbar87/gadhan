@@ -534,6 +534,7 @@ function weapons_handleCredit(data) {
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
+      weapons_savePdfToDrive(pdf, rowData[5], null);
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -660,6 +661,7 @@ function weapons_handlePartialCredit(data) {
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
       pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
+      weapons_savePdfToDrive(pdf, rowData[5], null);
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -1145,6 +1147,7 @@ function weapons_generateAndSendPDF(data) {
   const blob = Utilities.newBlob(weapons_createPdfHtml(data, ts), 'text/html', 'checkout.html');
   const pdf  = blob.getAs('application/pdf');
   pdf.setName('אישור_חתימה_' + data.personalNumber + '_' + Date.now() + '.pdf');
+  weapons_savePdfToDrive(pdf, data.unit, data.team);
   weapons_sendEmail(data, pdf, ts);
 }
 
@@ -1202,6 +1205,37 @@ function weapons_sendEmail(data, pdf, timestamp) {
     pdfBlob: pdf
   });
   Logger.log('✅ [Weapons] Email sent to: ' + data.email);
+}
+
+// ================================================================
+// Google Drive — PDF Archive
+// ================================================================
+
+/**
+ * שומר PDF בתיקיית Drive לפי היררכיית מסגרת/צוות.
+ * Root (מ-Config) / מסגרת / צוות (אופציונלי) / file.pdf
+ * אם ROOT_FOLDER_ID ריק — פעולה מדולגת.
+ */
+function weapons_savePdfToDrive(pdf, unit, team) {
+  var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
+  if (!rootId) return;
+  try {
+    var root       = DriveApp.getFolderById(rootId);
+    var unitName   = unit || 'ללא מסגרת';
+    var unitIter   = root.getFoldersByName(unitName);
+    var unitFolder = unitIter.hasNext() ? unitIter.next() : root.createFolder(unitName);
+
+    var target = unitFolder;
+    if (team) {
+      var teamIter = unitFolder.getFoldersByName(team);
+      target = teamIter.hasNext() ? teamIter.next() : unitFolder.createFolder(team);
+    }
+
+    target.createFile(pdf);
+    Logger.log('✅ [Drive] Saved: ' + pdf.getName() + ' → ' + unitName + (team ? '/' + team : ''));
+  } catch (e) {
+    Logger.log('⚠️ [Drive] Failed to save PDF: ' + e);
+  }
 }
 
 // ================================================================
