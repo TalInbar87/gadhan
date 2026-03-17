@@ -720,6 +720,12 @@
                             </div>
                             <input type="text" id="note_droneFlycard" class="item-note hidden w-full px-2 py-1 text-xs border border-amber-300 rounded-lg bg-amber-50" placeholder="ציוד נלווה..." maxlength="200" />
                         </div>
+                        <div class="flex flex-col gap-1 p-2 bg-green-50 border border-green-200 rounded-lg col-span-2">
+                            <label class="text-stone-700 font-medium text-sm">אחר</label>
+                            <input type="text" id="other_text"
+                                class="form-field-lockable w-full px-2 py-1 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-600"
+                                placeholder="פריט נוסף / הערה חופשית..." maxlength="500" disabled />
+                        </div>
                     </div>
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="itemList"></p>
                 </div>
@@ -1204,6 +1210,10 @@
                 }
             });
 
+            // Fill "אחר" free text
+            const otherInput = document.getElementById('other_text');
+            if (otherInput && data.other) otherInput.value = data.other;
+
             // Trigger form validity check
             checkFormValidity();
         }
@@ -1273,8 +1283,10 @@
             const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳', 'פלס"ם'];
             const teamRequired = platoons.includes(unit) && !document.getElementById('team').value;
 
-            // At least one item must be checked
-            const itemValid = document.querySelectorAll('.item-checkbox:checked').length > 0;
+            // At least one item must be checked (or "אחר" filled)
+            const hasCheckedItems = document.querySelectorAll('.item-checkbox:checked').length > 0;
+            const hasOther = (document.getElementById('other_text').value || '').trim() !== '';
+            const itemValid = hasCheckedItems || hasOther;
 
             const isValid = fullName && personalNumber && phone && unit && !teamRequired && itemValid;
 
@@ -1288,6 +1300,12 @@
                 submitBtn.classList.remove('bg-green-700', 'hover:bg-green-800', 'text-white', 'cursor-pointer', 'transform', 'hover:scale-105', 'hover:shadow-2xl');
             }
         }
+
+        // "אחר" input triggers validity check
+        document.getElementById('other_text').addEventListener('input', () => {
+            clearError('itemList');
+            checkFormValidity();
+        });
 
         // Add input event listeners
         ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team'].forEach(fieldName => {
@@ -1382,8 +1400,10 @@
                 if (!firstErrorField) firstErrorField = 'team';
             }
 
-            // Validate items (at least one must be checked)
-            if (document.querySelectorAll('.item-checkbox:checked').length === 0) {
+            // Validate items (at least one checked, or "אחר" filled)
+            const _hasChecked = document.querySelectorAll('.item-checkbox:checked').length > 0;
+            const _hasOther   = (document.getElementById('other_text').value || '').trim() !== '';
+            if (!_hasChecked && !_hasOther) {
                 showError('itemList', 'יש לבחור לפחות פריט אחד');
                 hasErrors = true;
                 if (!firstErrorField) firstErrorField = 'cb_roskM16';
@@ -1445,6 +1465,8 @@
                 const noteVal = noteInput && noteInput.value.trim();
                 if (noteVal) itemData['note_' + key] = noteVal;
             });
+            const otherVal = (document.getElementById('other_text').value || '').trim();
+            if (otherVal) itemData['other'] = otherVal;
 
             const data = {
                 fullName: fullName,
@@ -1506,6 +1528,9 @@
                 el.classList.add('hidden');
                 el.value = '';
             });
+
+            // Clear "אחר"
+            document.getElementById('other_text').value = '';
 
             // Clear signature
             ctx.fillStyle = 'white';

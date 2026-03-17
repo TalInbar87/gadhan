@@ -73,7 +73,8 @@ const WEAPONS_ITEM_LIST = [
   { key: 'dotEnhanced',     label: 'נקודה משופרת',      col: 61 },
   { key: 'droneIbu',        label: 'רחפן איבו',         col: 62 },
   { key: 'droneAvatah',     label: 'רחפן אבטה',         col: 63 },
-  { key: 'droneFlycard',    label: 'רחפן פלייקארד',     col: 64 }
+  { key: 'droneFlycard',    label: 'רחפן פלייקארד',     col: 64 },
+  { key: 'other',           label: 'אחר',               col: 65 }
 ];
 
 // נגזרים מ-WEAPONS_ITEM_LIST
