@@ -533,8 +533,8 @@ function weapons_handleCredit(data) {
       const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts, notesMap);
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');
-      pdf.setName('אישור_זיכוי_' + personalNumber + '_' + Date.now() + '.pdf');
-      weapons_savePdfToDrive(pdf, rowData[5], null);
+      pdf.setName('זיכוי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
+      weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -660,8 +660,8 @@ function weapons_handlePartialCredit(data) {
       const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, creditBy, data.creditSignature, ts, notesMap);
       const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
       const pdf     = blob.getAs('application/pdf');
-      pdf.setName('אישור_זיכוי_חלקי_' + personalNumber + '_' + Date.now() + '.pdf');
-      weapons_savePdfToDrive(pdf, rowData[5], null);
+      pdf.setName('זיכוי_חלקי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
+      weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -827,8 +827,8 @@ function weapons_handleTransferItems(data) {
     const transferHtml = weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, selectedNoteItems, notesMap, transferBy, ts);
     const transferBlob = Utilities.newBlob(transferHtml, 'text/html', 'transfer.html');
     const transferPdf  = transferBlob.getAs('application/pdf');
-    transferPdf.setName('אישור_העברה_' + sourcePersonalNumber + '_' + targetPersonalNumber + '_' + Date.now() + '.pdf');
-    weapons_savePdfToDrive(transferPdf, sourceData[5], null);
+    transferPdf.setName('העברה_' + sourceData[1] + '_' + weapons_driveTimestamp() + '.pdf');
+    weapons_savePdfToDrive(transferPdf, sourceData[5], null, null);
 
     if (sourceData[4]) {
       weapons_sendEmailWithRotation({
@@ -1208,8 +1208,8 @@ function weapons_generateAndSendPDF(data) {
   const ts = formatTimestamp();
   const blob = Utilities.newBlob(weapons_createPdfHtml(data, ts), 'text/html', 'checkout.html');
   const pdf  = blob.getAs('application/pdf');
-  pdf.setName('אישור_חתימה_' + data.personalNumber + '_' + Date.now() + '.pdf');
-  weapons_savePdfToDrive(pdf, data.unit, data.team);
+  pdf.setName('חתימה_' + data.fullName + '_' + weapons_driveTimestamp() + '.pdf');
+  weapons_savePdfToDrive(pdf, data.unit, data.team, null);
   weapons_sendEmail(data, pdf, ts);
 }
 
@@ -1278,14 +1278,37 @@ function weapons_sendEmail(data, pdf, timestamp) {
  * Root (מ-Config) / מסגרת / צוות (אופציונלי) / file.pdf
  * אם ROOT_FOLDER_ID ריק — פעולה מדולגת.
  */
-function weapons_savePdfToDrive(pdf, unit, team) {
+/** מחזיר timestamp בפורמט DD-MM-YYYY_HH-MM לשמות קבצים */
+function weapons_driveTimestamp() {
+  var d   = new Date();
+  var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+  return pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() +
+         '_' + pad(d.getHours()) + '-' + pad(d.getMinutes());
+}
+
+/**
+ * שומר PDF בתיקיית Drive.
+ * @param {Blob}   pdf
+ * @param {string} unit       — מסגרת
+ * @param {string} team       — צוות (אופציונלי)
+ * @param {string} typeFolder — תת-תיקייה ראשית (למשל "זיכויים"), אופציונלי
+ */
+function weapons_savePdfToDrive(pdf, unit, team, typeFolder) {
   var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
   if (!rootId) return;
   try {
-    var root       = DriveApp.getFolderById(rootId);
+    var root = DriveApp.getFolderById(rootId);
+
+    // תת-תיקייה לפי סוג (זיכויים / העברות / ...)
+    var base = root;
+    if (typeFolder) {
+      var typeIter = root.getFoldersByName(typeFolder);
+      base = typeIter.hasNext() ? typeIter.next() : root.createFolder(typeFolder);
+    }
+
     var unitName   = unit || 'ללא מסגרת';
-    var unitIter   = root.getFoldersByName(unitName);
-    var unitFolder = unitIter.hasNext() ? unitIter.next() : root.createFolder(unitName);
+    var unitIter   = base.getFoldersByName(unitName);
+    var unitFolder = unitIter.hasNext() ? unitIter.next() : base.createFolder(unitName);
 
     var target = unitFolder;
     if (team) {
@@ -1294,7 +1317,7 @@ function weapons_savePdfToDrive(pdf, unit, team) {
     }
 
     target.createFile(pdf);
-    Logger.log('✅ [Drive] Saved: ' + pdf.getName() + ' → ' + unitName + (team ? '/' + team : ''));
+    Logger.log('✅ [Drive] Saved: ' + pdf.getName());
   } catch (e) {
     Logger.log('⚠️ [Drive] Failed to save PDF: ' + e);
   }
