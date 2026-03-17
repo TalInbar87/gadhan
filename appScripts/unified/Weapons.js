@@ -489,6 +489,9 @@ function weapons_handleCredit(data) {
     Logger.log('⚠️ Already in credit sheet - skipping duplicate');
   }
 
+  // שלוף הערות לפני המחיקה (הזיווד יימחק בהמשך)
+  const notesMapCredit = weapons_readNotesMap(ss, personalNumber);
+
   // מחק מהגיליון הראשי
   mainSheet.deleteRow(foundRow);
   Logger.log('✓ Deleted from main sheet');
@@ -528,8 +531,7 @@ function weapons_handleCredit(data) {
     const fullName = rowData[1];
     if (email) {
       const ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
-      // שלוף הערות מגיליון זיווד
-      const notesMap = weapons_readNotesMap(ss, personalNumber);
+      const notesMap = notesMapCredit;
       const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts, notesMap);
       const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
       const pdf  = blob.getAs('application/pdf');

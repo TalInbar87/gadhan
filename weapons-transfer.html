@@ -698,8 +698,9 @@
                 return;
             }
 
-            const totalItems  = document.querySelectorAll('.item-checkbox').length;
-            const isFullCredit = selectedItems.length === totalItems && selectedNoteItems.length === 0;
+            const totalItems     = document.querySelectorAll('.item-checkbox').length;
+            const totalNoteItems = document.querySelectorAll('.note-checkbox').length;
+            const isFullCredit   = selectedItems.length === totalItems && selectedNoteItems.length === totalNoteItems;
 
             const personalNumber = sourceInput.value.trim();
             const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
