@@ -339,6 +339,7 @@ function radio_createCreditPdfHtml(rowData, creditBy, creditSignature, ts) {
 }
 
 function radio_generateAndSendPDF(data) {
+  if (!data.email) { Logger.log('⚠️ [Radio] No email — skipping PDF/email'); return; }
   const ts = formatTimestamp();
   const blob = Utilities.newBlob(radio_createPdfHtml(data, ts), 'text/html', 'checkout.html');
   const pdf  = blob.getAs('application/pdf');

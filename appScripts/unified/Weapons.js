@@ -1259,6 +1259,7 @@ function weapons_createPdfHtml(data, timestamp) {
 }
 
 function weapons_sendEmail(data, pdf, timestamp) {
+  if (!data.email) { Logger.log('⚠️ [Weapons] No email — skipping'); return; }
   weapons_sendEmailWithRotation({
     to:      data.email,
     subject: 'אישור חתימה על נשק - ' + data.fullName,

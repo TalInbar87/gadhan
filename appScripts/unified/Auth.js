@@ -207,6 +207,59 @@ class Authorization {
 }
 
 // ================================================================
+// Bulk User Import
+// ================================================================
+
+/**
+ * ייבוא משתמשים מרוכז מגיליון "Import" / "ייבוא" בתוך גיליון המשתמשים.
+ *
+ * מבנה הגיליון (שורה 1 = כותרות, מ-2 והלאה — נתונים):
+ *   A=Username | B=Password | C=Role (user/admin/operator) | D=Personal Number | E=Full Name | F=Email (אופציונלי)
+ *
+ * שימוש: פתח Apps Script IDE → Run → bulkImportUsers
+ */
+function bulkImportUsers() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEETS.USERS);
+  const importSheet = ss.getSheetByName('Import') || ss.getSheetByName('ייבוא');
+
+  if (!importSheet) {
+    Logger.log('❌ לא נמצא גיליון "Import" או "ייבוא".');
+    Logger.log('   צור גיליון בשם Import עם עמודות: Username | Password | Role | Personal Number | Full Name | Email');
+    return;
+  }
+
+  const rows = importSheet.getDataRange().getValues();
+  let success = 0, failed = 0, skipped = 0;
+
+  for (let i = 1; i < rows.length; i++) {
+    const username       = (rows[i][0] || '').toString().trim();
+    const password       = (rows[i][1] || '').toString().trim();
+    const role           = (rows[i][2] || 'user').toString().trim();
+    const personalNumber = (rows[i][3] || '').toString().trim();
+    const fullName       = (rows[i][4] || '').toString().trim();
+    const email          = (rows[i][5] || '').toString().trim();
+
+    if (!username || !password || !fullName) {
+      Logger.log('⏭ שורה ' + (i + 1) + ' — דילוג (חסר username/password/fullName)');
+      skipped++;
+      continue;
+    }
+
+    try {
+      UserManager.createUser({ username, password, role, personalNumber, fullName, email });
+      Logger.log('✅ נוצר: ' + username + ' (' + fullName + ')');
+      success++;
+    } catch (e) {
+      Logger.log('⚠️ שורה ' + (i + 1) + ' (' + username + '): ' + e.message);
+      failed++;
+    }
+  }
+
+  Logger.log('────────────────────────────────────────');
+  Logger.log('📊 סיום ייבוא: ' + success + ' נוצרו | ' + failed + ' נכשלו | ' + skipped + ' דולגו');
+}
+
+// ================================================================
 // Encrypted Data Handler  (דפדפן ↔ שרת)
 // XOR + URL-encode + Base64
 // ================================================================
