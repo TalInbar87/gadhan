@@ -182,7 +182,7 @@
                 <!-- Email -->
                 <div>
                     <label for="email" class="block text-stone-700 font-bold mb-2 text-lg">
-                        מייל <span class="text-red-600">*</span>
+                        מייל
                     </label>
                     <input
                         type="email"
@@ -190,7 +190,6 @@
                         name="email"
                         class="w-full px-4 py-3 text-lg border-2 border-stone-300 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-200 focus:border-green-600 form-field-lockable"
                         placeholder="example@email.com"
-                        required
                         disabled
                     />
                     <p class="text-red-600 text-sm mt-2 font-semibold hidden error-message" data-field="email"></p>
@@ -1270,14 +1269,14 @@
             const email = document.getElementById('email').value;
             const unit = document.getElementById('unit').value;
 
-            // Team required for פלוגה
-            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
+            // Team required for פלוגה and פלס"ם
+            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳', 'פלס"ם'];
             const teamRequired = platoons.includes(unit) && !document.getElementById('team').value;
 
             // At least one item must be checked
             const itemValid = document.querySelectorAll('.item-checkbox:checked').length > 0;
 
-            const isValid = fullName && personalNumber && phone && email && unit && !teamRequired && itemValid;
+            const isValid = fullName && personalNumber && phone && unit && !teamRequired && itemValid;
 
             if (isValid) {
                 submitBtn.disabled = false;
@@ -1359,13 +1358,9 @@
                 if (!firstErrorField) firstErrorField = 'phone';
             }
 
-            // Validate email
+            // Validate email (optional — only validate format if filled)
             const email = document.getElementById('email').value;
-            if (!email) {
-                showError('email', 'שדה חובה');
-                hasErrors = true;
-                if (!firstErrorField) firstErrorField = 'email';
-            } else if (!validateEmail(email)) {
+            if (email && !validateEmail(email)) {
                 showError('email', 'כתובת מייל לא תקינה');
                 hasErrors = true;
                 if (!firstErrorField) firstErrorField = 'email';
@@ -1379,8 +1374,8 @@
                 if (!firstErrorField) firstErrorField = 'unit';
             }
 
-            // Validate team (required for פלוגה)
-            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳'];
+            // Validate team (required for פלוגה and פלס"ם)
+            const platoons = ['פלוגה א׳', 'פלוגה ב׳', 'פלוגה ג׳', 'פלס"ם'];
             if (platoons.includes(unit) && !document.getElementById('team').value) {
                 showError('team', 'שדה חובה');
                 hasErrors = true;
