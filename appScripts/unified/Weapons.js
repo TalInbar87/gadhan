@@ -315,7 +315,7 @@ function weapons_sendQueuedEmails() {
     props.deleteProperty(key);
 
     try {
-      if (!mainSheet || !job.email) continue;
+      if (!mainSheet) continue;
       // קרא נתונים עדכניים מהגיליון
       var rows = mainSheet.getDataRange().getValues();
       var rowData = null;
