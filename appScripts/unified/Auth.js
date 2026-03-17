@@ -72,7 +72,7 @@ class UserManager {
     const h = Utilities.base64Encode(
       Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password + CONFIG.JWT_SECRET)
     );
-    return h[0] === '=' ? ' ' + h : h; // מניעת formula injection
+    return /^[=+\-@]/.test(h) ? ' ' + h : h; // מניעת formula injection (=, +, -, @)
   }
 
   static authenticate(username, password) {
