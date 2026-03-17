@@ -845,13 +845,9 @@
 
         const FORM_TYPE = 'weapons';
 
-        // Track whether personal number was checked
-        let personalNumberChecked = false;
-        let existingDataFound = false;
-
         // Initialize authentication
         const authClient = new SecureAuthClient(API_URL);
-        const authGuard = new AuthGuard(authClient, 'write');
+        const authGuard = new AuthGuard(authClient, 'manage_users');
         
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
@@ -889,18 +885,7 @@
                 document.getElementById('authLoadingOverlay').remove();
                 displayUserInfo();
 
-                // אם תפקיד 'user' — מלא מספר אישי אוטומטית ובדוק
-                if (authClient.user.role === 'user') {
-                    const pn = authClient.getPersonalNumber();
-                    if (pn && pn.length === 7) {
-                        const pnInput = document.getElementById('personalNumber');
-                        const checkBtn = document.getElementById('checkExistingButton');
-                        pnInput.value = pn;
-                        pnInput.readOnly = true;
-                        checkBtn.disabled = false;
-                        setTimeout(() => checkBtn.click(), 300);
-                    }
-                }
+
             }
         });
         
@@ -939,15 +924,12 @@
             document.querySelectorAll('.form-field-lockable').forEach(field => {
                 field.disabled = false;
             });
-            personalNumberChecked = true;
         }
 
         function lockFormFields() {
             document.querySelectorAll('.form-field-lockable').forEach(field => {
                 field.disabled = true;
             });
-            personalNumberChecked = false;
-            existingDataFound = false;
         }
 
         // Logout handler
@@ -1146,11 +1128,9 @@
                     unlockFormFields();
                     fillFormWithData(result.data);
                     checkStatusExisting.classList.remove('hidden');
-                    existingDataFound = true;
                 } else if (result.success && !result.data) {
                     unlockFormFields();
                     checkStatusNew.classList.remove('hidden');
-                    existingDataFound = false;
                 } else {
                     checkStatusError.classList.remove('hidden');
                     checkErrorMessage.textContent = result.error || 'שגיאה בבדיקת נתונים';
@@ -1522,10 +1502,7 @@
                     setTimeout(() => authClient.logout(), 3000);
                 }
             });
-            // הסתר "מלא טופס נוסף" למשתמשי user רגיל
-            if (authClient.user && authClient.user.role === 'user') {
-                document.getElementById('newFormBtn').style.display = 'none';
-            }
+
         });
 
         // New form button
