@@ -871,8 +871,21 @@
             `);
             
             const isAuthenticated = await authGuard.checkAuth();
-            
+
             if (isAuthenticated) {
+                // רק מנהלים יכולים לגשת לטופס החתמה
+                if (authClient.user.role !== 'admin') {
+                    document.getElementById('authLoadingOverlay').remove();
+                    document.body.innerHTML = `
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;direction:rtl;gap:1rem;">
+                            <div style="font-size:3rem;">🔒</div>
+                            <div style="font-size:1.25rem;font-weight:bold;color:#1c1917;">אין הרשאה</div>
+                            <div style="color:#57534e;">דף זה נגיש למנהלים בלבד</div>
+                            <a href="index-secure.html" style="margin-top:1rem;padding:0.5rem 1.5rem;background:#15803d;color:#fff;border-radius:0.5rem;text-decoration:none;">חזרה לדף הבית</a>
+                        </div>`;
+                    return;
+                }
+
                 document.getElementById('authLoadingOverlay').remove();
                 displayUserInfo();
 
