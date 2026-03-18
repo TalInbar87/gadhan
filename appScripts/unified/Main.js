@@ -86,6 +86,7 @@ function doPost(e) {
       case 'credit_data':    return handleCreditData(data, e);
       case 'partial_credit': return handlePartialCredit(data, e);
       case 'transfer_items': return handleTransferItems(data, e);
+      case 'swap_items':     return handleSwapItems(data, e);
       case 'get_audit_log':  return handleGetAuditLog(data, e);
       default:               return createResponse(400, 'Unknown action: ' + data.action, null);
     }
@@ -424,6 +425,25 @@ function handleTransferItems(data, request) {
     return createResponse(200, 'Transfer completed successfully', null);
   }
   return createResponse(500, result.error || 'Transfer failed', null);
+}
+
+/**
+ * ראש בראש — החלפת מספרי סידורי של אותו סוג ציוד בין שני חיילים
+ * נגיש לכל משתמש מאומת
+ */
+function handleSwapItems(data, request) {
+  const { token, swapData } = data;
+  const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+
+  const result = weapons_handleSwap(swapData);
+  if (result.success) {
+    AuditLogger.log(payload.username, 'ITEMS_SWAPPED', 'weapons',
+                   swapData.sourcePN,
+                   { target: swapData.targetPN, itemKey: swapData.itemKey, swapBy: swapData.swapBy }, request);
+    return createResponse(200, 'Swap completed successfully', null);
+  }
+  return createResponse(500, result.error || 'Swap failed', null);
 }
 
 /**

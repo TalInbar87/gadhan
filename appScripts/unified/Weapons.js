@@ -1087,6 +1087,204 @@ function weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, se
     '</body></html>';
 }
 
+// ================================================================
+// Swap (ראש בראש)
+// ================================================================
+
+/**
+ * החלפת מספרי סידורי של אותו סוג ציוד בין שני חיילים
+ */
+function weapons_handleSwap(data) {
+  var sourcePN   = data.sourcePN;
+  var targetPN   = data.targetPN;
+  var itemKey    = data.itemKey;
+  var swapBy     = data.swapBy;
+  var swapAt     = data.swapAt;
+
+  if (!itemKey) return { success: false, error: 'לא צוין סוג ציוד להחלפה' };
+
+  var cols = WEAPONS_ITEM_COLUMN_MAP[itemKey];
+  if (!cols) return { success: false, error: 'פריט לא מוכר: ' + itemKey };
+
+  var ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+  if (!mainSheet) return { success: false, error: 'Main sheet not found' };
+
+  var allData = mainSheet.getDataRange().getValues();
+  var sourceRow = -1, sourceData = null;
+  var targetRow = -1, targetData = null;
+
+  for (var i = 1; i < allData.length; i++) {
+    if (String(allData[i][2]) === String(sourcePN)) { sourceRow = i + 1; sourceData = allData[i]; }
+    if (String(allData[i][2]) === String(targetPN)) { targetRow = i + 1; targetData = allData[i]; }
+  }
+
+  if (sourceRow === -1) return { success: false, error: 'חייל א׳ לא נמצא במערכת' };
+  if (targetRow === -1) return { success: false, error: 'חייל ב׳ לא נמצא במערכת' };
+
+  // החלף ערכים בגיליון הראשי
+  cols.forEach(function(ci) {
+    var srcVal = sourceData[ci];
+    var tgtVal = targetData[ci];
+    mainSheet.getRange(sourceRow, ci + 1).setValue(tgtVal);
+    mainSheet.getRange(targetRow, ci + 1).setValue(srcVal);
+  });
+
+  // עדכן גיליון מסגרת מקור
+  var srcUnit = sourceData[5];
+  if (srcUnit) {
+    var srcSheet = ss.getSheetByName(srcUnit);
+    if (srcSheet) {
+      var sd = srcSheet.getDataRange().getValues();
+      for (var si = 1; si < sd.length; si++) {
+        if (String(sd[si][2]) === String(sourcePN)) {
+          cols.forEach(function(ci) { srcSheet.getRange(si + 1, ci + 1).setValue(targetData[ci]); });
+          break;
+        }
+      }
+    }
+  }
+
+  // עדכן גיליון מסגרת יעד (צור אם לא קיים)
+  var tgtUnit = targetData[5];
+  if (tgtUnit) {
+    var tgtSheet = ss.getSheetByName(tgtUnit);
+    if (!tgtSheet) tgtSheet = weapons_createUnitSheet(ss, tgtUnit);
+    var td = tgtSheet.getDataRange().getValues();
+    var tgtUnitRow = -1;
+    for (var ti = 1; ti < td.length; ti++) {
+      if (String(td[ti][2]) === String(targetPN)) { tgtUnitRow = ti + 1; break; }
+    }
+    if (tgtUnitRow !== -1) {
+      cols.forEach(function(ci) { tgtSheet.getRange(tgtUnitRow, ci + 1).setValue(sourceData[ci]); });
+    } else {
+      var newRow = targetData.slice();
+      cols.forEach(function(ci) { newRow[ci] = sourceData[ci]; });
+      tgtSheet.appendRow(newRow);
+    }
+  }
+
+  // החלף הערות זיווד בגיליון זיווד ראשי
+  var mainZivud = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+  if (mainZivud) {
+    var zrows = mainZivud.getDataRange().getValues();
+    var srcZivudRow = -1, tgtZivudRow = -1;
+    for (var zi = 1; zi < zrows.length; zi++) {
+      if (String(zrows[zi][2]) === String(sourcePN)) srcZivudRow = zi + 1;
+      if (String(zrows[zi][2]) === String(targetPN)) tgtZivudRow = zi + 1;
+    }
+    cols.forEach(function(ci) {
+      var srcNote = (srcZivudRow !== -1) ? zrows[srcZivudRow - 1][ci] : '';
+      var tgtNote = (tgtZivudRow !== -1) ? zrows[tgtZivudRow - 1][ci] : '';
+      if (srcZivudRow !== -1) mainZivud.getRange(srcZivudRow, ci + 1).setValue(tgtNote);
+      if (tgtZivudRow !== -1) mainZivud.getRange(tgtZivudRow, ci + 1).setValue(srcNote);
+    });
+  }
+
+  // עדכן גיליונות זיווד מסגרת
+  var srcZivudSheet = srcUnit ? ss.getSheetByName(srcUnit + ' זיווד') : null;
+  var tgtZivudSheet = tgtUnit ? ss.getSheetByName(tgtUnit + ' זיווד') : null;
+  if (srcZivudSheet) {
+    var szrows = srcZivudSheet.getDataRange().getValues();
+    for (var szi = 1; szi < szrows.length; szi++) {
+      if (String(szrows[szi][2]) === String(sourcePN)) {
+        var srcZivudVal = szrows[szi][cols[0]] || '';
+        cols.forEach(function(ci) { srcZivudSheet.getRange(szi + 1, ci + 1).setValue(''); });
+        if (tgtZivudSheet) {
+          var tzrows = tgtZivudSheet.getDataRange().getValues();
+          for (var tzi = 1; tzi < tzrows.length; tzi++) {
+            if (String(tzrows[tzi][2]) === String(targetPN)) {
+              var tgtZivudVal = tzrows[tzi][cols[0]] || '';
+              cols.forEach(function(ci) { tgtZivudSheet.getRange(tzi + 1, ci + 1).setValue(srcZivudVal); });
+              cols.forEach(function(ci) { srcZivudSheet.getRange(szi + 1, ci + 1).setValue(tgtZivudVal); });
+              break;
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  // רשום בגיליון העברות
+  var transferSheet = ss.getSheetByName('העברות');
+  if (!transferSheet) {
+    transferSheet = ss.insertSheet('העברות');
+    var headers = ['תאריך העברה', 'מספר אישי מקור', 'שם מקור', 'מספר אישי יעד', 'שם יעד', 'פריטים שהועברו', 'בוצע על ידי'];
+    transferSheet.appendRow(headers);
+    var hr = transferSheet.getRange(1, 1, 1, headers.length);
+    hr.setBackground('#1e3a5f'); hr.setFontColor('#FFFFFF'); hr.setFontWeight('bold'); hr.setHorizontalAlignment('right');
+  }
+  var itemLabel = WEAPONS_ITEM_NAMES_HE[itemKey] || itemKey;
+  transferSheet.appendRow([
+    swapAt || new Date().toISOString(),
+    sourcePN, sourceData[1],
+    targetPN, targetData[1],
+    'ראש בראש: ' + itemLabel,
+    swapBy || 'unknown'
+  ]);
+
+  // צור PDF ושמור ל-Drive, שלח מיילים אם קיימים
+  try {
+    var ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    var html = weapons_createSwapPdfHtml(sourceData, targetData, itemKey, swapBy, ts);
+    var blob = Utilities.newBlob(html, 'text/html', 'swap.html');
+    var pdf  = blob.getAs('application/pdf');
+    pdf.setName('ראשבראש_' + sourceData[1] + '_' + targetData[1] + '_' + weapons_driveTimestamp() + '.pdf');
+    weapons_savePdfToDrive(pdf, sourceData[5], null, 'ראש בראש');
+    Logger.log('✅ [Weapons] Swap PDF saved to Drive');
+    var swapBody = function(name, otherName) {
+      return 'שלום ' + name + ',\nבוצעה החלפת ציוד ראש בראש\nפריט: ' + itemLabel + '\nמול: ' + otherName + '\nע"י: ' + (swapBy || 'לא ידוע') + '\nמצ"ב אישור PDF';
+    };
+    if (sourceData[4]) {
+      weapons_sendEmailWithRotation({ to: sourceData[4], subject: 'אישור החלפת ציוד ראש בראש - ' + itemLabel, body: swapBody(sourceData[1], targetData[1]), pdfBlob: pdf });
+    }
+    if (targetData[4]) {
+      weapons_sendEmailWithRotation({ to: targetData[4], subject: 'אישור החלפת ציוד ראש בראש - ' + itemLabel, body: swapBody(targetData[1], sourceData[1]), pdfBlob: pdf });
+    }
+  } catch(e) {
+    Logger.log('⚠️ [Weapons] Swap PDF/email failed: ' + e);
+  }
+
+  return { success: true, message: 'Swap completed' };
+}
+
+function weapons_createSwapPdfHtml(sourceData, targetData, itemKey, swapBy, ts) {
+  var itemLabel = WEAPONS_ITEM_NAMES_HE[itemKey] || itemKey;
+  var cols = WEAPONS_ITEM_COLUMN_MAP[itemKey] || [];
+  var srcVal = cols.map(function(ci) { return sourceData[ci]; }).filter(function(v) { return v; }).join(' — ') || '—';
+  var tgtVal = cols.map(function(ci) { return targetData[ci]; }).filter(function(v) { return v; }).join(' — ') || '—';
+  var f = function(label, val) {
+    return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
+  };
+  return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
+    '* { font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+    'body { padding: 20px; background: #f5f5f5; }' +
+    '.header { background: #0f766e; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }' +
+    '.header h1 { font-size: 24px; margin-bottom: 5px; }' +
+    '.content { background: white; padding: 20px; border-radius: 8px; }' +
+    '.section-title { font-weight: bold; font-size: 15px; color: #0f766e; margin: 15px 0 6px; border-bottom: 2px solid #0f766e; padding-bottom: 3px; }' +
+    '.field { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }' +
+    '.field-label { font-weight: bold; min-width: 150px; color: #0f766e; }' +
+    '.field-value { flex: 1; }' +
+    '.footer { text-align: center; margin-top: 15px; color: #666; font-size: 10px; }' +
+    '</style></head><body>' +
+    '<div class="header"><h1>⇄ אישור החלפת ציוד ראש בראש</h1>' +
+    '<p>מערכת דוח צלם מקוון - גדחה"ו קומנדו 8219</p></div>' +
+    '<div class="content">' +
+    f('תאריך', ts) + f('פריט', itemLabel) +
+    '<div class="section-title">חייל א׳</div>' +
+    f('שם מלא', sourceData[1]) + f('מספר אישי', String(sourceData[2])) + f('מסגרת', sourceData[5]) +
+    f('מ.ס לפני', srcVal) + f('מ.ס אחרי', tgtVal) +
+    '<div class="section-title">חייל ב׳</div>' +
+    f('שם מלא', targetData[1]) + f('מספר אישי', String(targetData[2])) + f('מסגרת', targetData[5]) +
+    f('מ.ס לפני', tgtVal) + f('מ.ס אחרי', srcVal) +
+    f('בוצע על ידי', swapBy || '') +
+    '</div>' +
+    '<div class="footer"><p>מסמך זה נוצר אוטומטית | © 2026 כל הזכויות שמורות</p></div>' +
+    '</body></html>';
+}
+
 /**
  * מנקה הערות (ציוד נלווה) מגיליונות זיווד עבור פריטים נבחרים — ללא נגיעה בגיליון הראשי
  */
