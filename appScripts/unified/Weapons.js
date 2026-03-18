@@ -457,6 +457,40 @@ function weapons_getOrCreateCreditSheet(ss) {
   return sheet;
 }
 
+function weapons_getOrCreateCreditZivudSheet(ss) {
+  let sheet = ss.getSheetByName('זיכויים זיווד');
+  if (!sheet) {
+    sheet = ss.insertSheet('זיכויים זיווד');
+    var headers = ['תאריך ושעה', 'שם מלא', 'מספר אישי', 'טלפון', 'מייל', 'מסגרת', 'צוות'];
+    WEAPONS_ITEM_LIST.forEach(function(item) { headers.push(item.label); });
+    headers.push('פריטים שזוכו', 'תאריך זיכוי', 'זוכה על ידי');
+    sheet.appendRow(headers);
+    const hr = sheet.getRange(1, 1, 1, headers.length);
+    hr.setBackground('#5B0000');
+    hr.setFontColor('#FFFFFF');
+    hr.setFontWeight('bold');
+    hr.setHorizontalAlignment('right');
+  }
+  return sheet;
+}
+
+/**
+ * שומר שורת זיווד של חייל לגיליון "זיכויים זיווד" לפני מחיקתה
+ */
+function weapons_archiveZivudToCredit(ss, personalNumber, creditAt, creditBy, creditedItems) {
+  const mainZivud = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME + ' זיווד');
+  if (!mainZivud) return;
+  const rows = mainZivud.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][2] == personalNumber) {
+      const creditZivud = weapons_getOrCreateCreditZivudSheet(ss);
+      creditZivud.appendRow([...rows[i], creditedItems || 'הכל', creditAt || new Date().toISOString(), creditBy || 'unknown']);
+      Logger.log('✓ [Weapons] Zivud row archived to credit zivud sheet');
+      break;
+    }
+  }
+}
+
 // ================================================================
 // Full Credit
 // ================================================================
@@ -492,6 +526,9 @@ function weapons_handleCredit(data) {
 
   // שלוף הערות לפני המחיקה (הזיווד יימחק בהמשך)
   const notesMapCredit = weapons_readNotesMap(ss, personalNumber);
+
+  // ארכב זיווד לגיליון זיכויים זיווד לפני המחיקה
+  weapons_archiveZivudToCredit(ss, personalNumber, creditAt, creditBy, 'הכל');
 
   // מחק מהגיליון הראשי
   mainSheet.deleteRow(foundRow);
@@ -647,8 +684,9 @@ function weapons_handlePartialCredit(data) {
     }
   }
 
-  // נקה ציוד נלווה שנבחר מגיליונות זיווד
+  // ארכב זיווד לגיליון זיכויים זיווד לפני ניקוי
   if (selectedNoteItems && selectedNoteItems.length > 0) {
+    weapons_archiveZivudToCredit(ss, personalNumber, creditAt, creditBy, selectedNoteItems.map(function(k) { return WEAPONS_ITEM_NAMES_HE[k] || k; }).join(', '));
     weapons_clearNoteItems(ss, personalNumber, selectedNoteItems);
   }
 
