@@ -768,7 +768,9 @@
             btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
         }
 
+        let isCreditSubmitting = false;
         async function submitCredit() {
+            if (isCreditSubmitting) return;
             if (!authClient.hasPermission('credit')) {
                 alert('אין הרשאה לבצע זיכוי');
                 return;
@@ -788,6 +790,7 @@
             const creditSignature = document.getElementById('creditSignatureCanvas').toDataURL('image/png');
             const btn = document.getElementById('submitCreditBtn');
 
+            isCreditSubmitting = true;
             btn.disabled = true;
             btn.textContent = 'מזכה...';
 
@@ -824,6 +827,7 @@
                 console.error('Credit error:', err);
                 alert('שגיאה בזיכוי: ' + (err.message || 'נסה שוב'));
             } finally {
+                isCreditSubmitting = false;
                 btn.disabled = false;
                 btn.textContent = 'אישור זיכוי';
                 updateCreditSubmitState();
@@ -982,7 +986,7 @@
                     const row = document.createElement('label');
                     row.className = 'item-row';
                     row.innerHTML = `
-                        <input type="radio" name="${radioName}" class="item-checkbox"
+                        <input type="radio" name="${radioName}" class="swap-radio"
                             data-key="${def.key}" data-label="${def.label}" data-value="${val}"
                             style="accent-color:#0f766e;" />
                         <span class="font-bold text-stone-700 text-sm">${def.label}</span>

@@ -955,8 +955,7 @@ function weapons_createCreditPdfHtml(rowData, creditBy, creditSignature, ts, not
   };
   var itemRows = WEAPONS_ITEM_LIST.filter(function(item) { return rowData[item.col]; })
     .map(function(item) {
-      var display = rowData[item.col] === '1' ? 'כן' : rowData[item.col];
-      return f(item.label, display);
+      return f(item.label, rowData[item.col]);
     }).join('');
   var noteRows = WEAPONS_ITEM_LIST.filter(function(item) { return notesMap[item.key]; })
     .map(function(item) {
@@ -1012,12 +1011,12 @@ function weapons_createPartialCreditPdfHtml(rowData, selectedItems, selectedNote
     var def = ITEM_DEFS[key];
     if (!def) return '';
     var vals = def.cols.map(function(c) { return rowData[c]; }).filter(function(v) { return v && v !== '' && v != 0; });
-    return f(def.label, vals.length > 0 ? vals.join(' — ') : 'כן');
+    return f(def.label, vals.join(' — '));
   }).join('');
   var noteRows = selectedNoteItems.map(function(key) {
     var def = ITEM_DEFS[key];
     if (!def) return '';
-    return f('ציוד נלווה — ' + def.label, notesMap[key] || 'כן');
+    return f('ציוד נלווה — ' + def.label, notesMap[key] || '');
   }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
@@ -1059,12 +1058,14 @@ function weapons_createTransferPdfHtml(sourceData, targetData, selectedItems, se
     return val ? '<div class="field"><div class="field-label">' + label + ':</div><div class="field-value">' + val + '</div></div>' : '';
   };
   var itemRows = selectedItems.map(function(key) {
-    return f(WEAPONS_ITEM_NAMES_HE[key] || key, 'כן');
+    var cols = WEAPONS_ITEM_COLUMN_MAP[key] || [];
+    var vals = cols.map(function(ci) { return sourceData[ci]; }).filter(function(v) { return v && v !== ''; });
+    return f(WEAPONS_ITEM_NAMES_HE[key] || key, vals.join(' — '));
   }).join('');
   var noteRows = selectedNoteItems.map(function(key) {
     var label = WEAPONS_ITEM_NAMES_HE[key] || key;
     var note  = notesMap[key] || '';
-    return f('ציוד נלווה — ' + label, note || 'כן');
+    return f('ציוד נלווה — ' + label, note);
   }).join('');
 
   return '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><style>' +
@@ -1599,7 +1600,7 @@ function weapons_createPdfHtml(data, timestamp) {
     WEAPONS_ITEM_LIST.map(function(item) {
       var val = data[item.key];
       if (!val) return '';
-      var display = (val === '1' ? 'כן' : val);
+      var display = val;
       var note = data['note_' + item.key];
       if (note) display += ' <span style="color:#78716c;font-size:0.9em">— ' + note + '</span>';
       return '<div class="field"><div class="field-label">' + item.label + ':</div><div class="field-value">' + display + '</div></div>';
