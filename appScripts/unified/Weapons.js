@@ -74,7 +74,10 @@ const WEAPONS_ITEM_LIST = [
   { key: 'droneIbu',        label: 'רחפן איבו',         col: 62 },
   { key: 'droneAvatah',     label: 'רחפן אבטה',         col: 63 },
   { key: 'droneFlycard',    label: 'רחפן פלייקארד',     col: 64 },
-  { key: 'other',           label: 'אחר',               col: 65 }
+  { key: 'other',           label: 'אחר',               col: 65 },
+  { key: 'robotRoni',       label: 'רובוט רוני',         col: 66 },
+  { key: 'pinkLady',        label: 'פינק ליידי',          col: 67 },
+  { key: 'robotAlon',       label: 'רובוט אלון',          col: 68 }
 ];
 
 // נגזרים מ-WEAPONS_ITEM_LIST
@@ -643,14 +646,14 @@ function weapons_handlePartialCredit(data) {
         });
       }
     });
-    // עמודה 66: מיזוג רשימת פריטים שזוכו
-    const prev = creditSheet.getRange(existingCreditRow, 66).getValue() || '';
-    creditSheet.getRange(existingCreditRow, 66).setValue(
+    // עמודות metadata: אחרי 7 שדות בסיס + כל הפריטים (דינמי)
+    const META_COL = 7 + WEAPONS_ITEM_LIST.length + 1; // 1-indexed
+    const prev = creditSheet.getRange(existingCreditRow, META_COL).getValue() || '';
+    creditSheet.getRange(existingCreditRow, META_COL).setValue(
       prev ? prev + ', ' + selectedItems.join(', ') : selectedItems.join(', ')
     );
-    // עמודות 67, 68: עדכון תאריך ומבצע
-    creditSheet.getRange(existingCreditRow, 67).setValue(creditAt || new Date().toISOString());
-    creditSheet.getRange(existingCreditRow, 68).setValue(creditBy || 'unknown');
+    creditSheet.getRange(existingCreditRow, META_COL + 1).setValue(creditAt || new Date().toISOString());
+    creditSheet.getRange(existingCreditRow, META_COL + 2).setValue(creditBy || 'unknown');
     Logger.log('✓ Existing credit row updated for ' + personalNumber);
   }
 
