@@ -74,10 +74,10 @@ const WEAPONS_ITEM_LIST = [
   { key: 'droneIbu',        label: 'רחפן איבו',         col: 62 },
   { key: 'droneAvatah',     label: 'רחפן אבטה',         col: 63 },
   { key: 'droneFlycard',    label: 'רחפן פלייקארד',     col: 64 },
-  { key: 'other',           label: 'אחר',               col: 65 },
-  { key: 'robotRoni',       label: 'רובוט רוני',         col: 66 },
-  { key: 'pinkLady',        label: 'פינק ליידי',          col: 67 },
-  { key: 'robotAlon',       label: 'רובוט אלון',          col: 68 }
+  { key: 'robotRoni',       label: 'רובוט רוני',         col: 65 },
+  { key: 'pinkLady',        label: 'פינק ליידי',          col: 66 },
+  { key: 'robotAlon',       label: 'רובוט אלון',          col: 67 },
+  { key: 'other',           label: 'אחר',               col: 68 }
 ];
 
 // נגזרים מ-WEAPONS_ITEM_LIST
