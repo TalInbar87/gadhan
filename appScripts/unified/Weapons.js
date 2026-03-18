@@ -766,24 +766,35 @@ function weapons_handleTransferItems(data) {
     }
   }
 
-  // עדכן גיליון מסגרת יעד
+  // עדכן גיליון מסגרת יעד (יצירת שורה חדשה אם לא קיים)
   const tgtUnit = targetData[5];
   if (tgtUnit) {
-    const tgtSheet = ss.getSheetByName(tgtUnit);
-    if (tgtSheet) {
-      const td = tgtSheet.getDataRange().getValues();
-      for (let i = 1; i < td.length; i++) {
-        if (td[i][2] == targetPersonalNumber) {
-          selectedItems.forEach(key => {
-            const cols = WEAPONS_ITEM_COLUMN_MAP[key];
-            if (!cols) return;
-            cols.forEach(ci => {
-              tgtSheet.getRange(i + 1, ci + 1).setValue(sourceData[ci]);
-            });
-          });
-          break;
-        }
-      }
+    let tgtSheet = ss.getSheetByName(tgtUnit);
+    if (!tgtSheet) tgtSheet = weapons_createUnitSheet(ss, tgtUnit);
+    const td = tgtSheet.getDataRange().getValues();
+    let tgtUnitRow = -1;
+    for (let i = 1; i < td.length; i++) {
+      if (td[i][2] == targetPersonalNumber) { tgtUnitRow = i + 1; break; }
+    }
+    if (tgtUnitRow !== -1) {
+      // קיים — עדכן פריטים
+      selectedItems.forEach(key => {
+        const cols = WEAPONS_ITEM_COLUMN_MAP[key];
+        if (!cols) return;
+        cols.forEach(ci => {
+          tgtSheet.getRange(tgtUnitRow, ci + 1).setValue(sourceData[ci]);
+        });
+      });
+    } else {
+      // לא קיים — צור שורה חדשה מנתוני היעד עם הפריטים שהועברו
+      const newRow = [...targetData];
+      selectedItems.forEach(key => {
+        const cols = WEAPONS_ITEM_COLUMN_MAP[key];
+        if (!cols) return;
+        cols.forEach(ci => { newRow[ci] = sourceData[ci]; });
+      });
+      tgtSheet.appendRow(newRow);
+      Logger.log('✓ [Weapons] Created new row in target unit sheet: ' + tgtUnit);
     }
   }
 

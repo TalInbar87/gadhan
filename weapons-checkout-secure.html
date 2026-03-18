@@ -1212,6 +1212,7 @@
         }
         
         // Form validation and handling
+        let isSubmitting = false;
         const form = document.getElementById('armoryForm');
         const submitBtn = document.getElementById('submitBtn');
         const formContainer = document.getElementById('formContainer');
@@ -1326,6 +1327,8 @@
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
+            isSubmitting = true;
 
             // Clear all errors
             ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'itemList'].forEach(clearError);
@@ -1507,6 +1510,7 @@
 
         // New form button
         newFormBtn.addEventListener('click', () => {
+            isSubmitting = false;
             form.reset();
             ['fullName', 'personalNumber', 'phone', 'email', 'unit', 'team', 'itemList'].forEach(clearError);
 
