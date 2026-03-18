@@ -566,6 +566,9 @@ function weapons_handleCredit(data) {
     }
   }
 
+  // מחק טופס נוכחי (החייל הוסר מהמערכת)
+  weapons_updateCurrentPdf(personalNumber);
+
   // צור PDF ושמור ל-Drive (תמיד), שלח מייל רק אם קיים
   try {
     const email    = rowData[4];
@@ -692,6 +695,9 @@ function weapons_handlePartialCredit(data) {
     weapons_archiveZivudToCredit(ss, personalNumber, creditAt, creditBy, selectedNoteItems.map(function(k) { return WEAPONS_ITEM_NAMES_HE[k] || k; }).join(', '));
     weapons_clearNoteItems(ss, personalNumber, selectedNoteItems);
   }
+
+  // עדכן טופס נוכחי (החייל עדיין קיים, ציוד עודכן)
+  weapons_updateCurrentPdf(personalNumber);
 
   // צור PDF ושמור ל-Drive (תמיד), שלח מייל רק אם קיים
   try {
@@ -922,6 +928,10 @@ function weapons_handleTransferItems(data) {
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Transfer email failed: ' + emailErr);
   }
+
+  // עדכן טפסים נוכחיים לשני החיילים
+  weapons_updateCurrentPdf(sourcePersonalNumber);
+  weapons_updateCurrentPdf(targetPersonalNumber);
 
   Logger.log('✓ Transfer completed');
   return { success: true, message: 'Transfer completed' };
@@ -1249,6 +1259,10 @@ function weapons_handleSwap(data) {
     Logger.log('⚠️ [Weapons] Swap PDF/email failed: ' + e);
   }
 
+  // עדכן טפסים נוכחיים לשני החיילים
+  weapons_updateCurrentPdf(sourcePN);
+  weapons_updateCurrentPdf(targetPN);
+
   return { success: true, message: 'Swap completed' };
 }
 
@@ -1450,6 +1464,89 @@ function weapons_readNotesMap(ss, personalNumber) {
   return map;
 }
 
+// ================================================================
+// Current PDF — טפסים/מסגרת/[צוות]/{pn}.pdf
+// ================================================================
+
+/**
+ * שומר/מחליף PDF נוכחי של חייל בנתיב טפסים/מסגרת/[צוות]/
+ * מחפש ומוחק כל קובץ ישן עם אותו שם (גלובלי) לפני שמירה חדשה.
+ * @param {Blob}          pdfBlob
+ * @param {string|number} personalNumber  — שם הקובץ: {pn}.pdf
+ * @param {string}        unit
+ * @param {string}        team
+ */
+function weapons_saveCurrentPdf(pdfBlob, personalNumber, unit, team) {
+  var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
+  if (!rootId) return;
+  var filename = String(personalNumber) + '.pdf';
+  try {
+    // מחק ישנים בכל מקום
+    var old = DriveApp.searchFiles('title = "' + filename + '" and trashed = false');
+    while (old.hasNext()) { old.next().setTrashed(true); }
+
+    var root       = DriveApp.getFolderById(rootId);
+    var unitName   = unit || 'ללא מסגרת';
+    var formsIter  = root.getFoldersByName('טפסים');
+    var formsDir   = formsIter.hasNext() ? formsIter.next() : root.createFolder('טפסים');
+    var unitIter   = formsDir.getFoldersByName(unitName);
+    var unitDir    = unitIter.hasNext() ? unitIter.next() : formsDir.createFolder(unitName);
+    var targetDir  = unitDir;
+    if (team) {
+      var teamIter = unitDir.getFoldersByName(team);
+      targetDir = teamIter.hasNext() ? teamIter.next() : unitDir.createFolder(team);
+    }
+    pdfBlob.setName(filename);
+    targetDir.createFile(pdfBlob);
+    Logger.log('✅ [Weapons] Current PDF saved: טפסים/' + unitName + (team ? '/' + team : '') + '/' + filename);
+  } catch(e) {
+    Logger.log('⚠️ [Weapons] saveCurrentPdf failed: ' + e);
+  }
+}
+
+/**
+ * מחדש PDF נוכחי לחייל מתוך נתוני הגיליון (ללא חתימה).
+ * אם החייל לא קיים — מוחק את הטופס הישן שלו.
+ * משמש: העברה, ראש בראש, זיכוי חלקי, זיכוי מלא (מחיקה).
+ */
+function weapons_updateCurrentPdf(personalNumber) {
+  try {
+    var ss        = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+    var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!mainSheet) return;
+
+    var rows = mainSheet.getDataRange().getValues();
+    var rowData = null;
+    for (var i = 1; i < rows.length; i++) {
+      if (String(rows[i][2]) === String(personalNumber)) { rowData = rows[i]; break; }
+    }
+
+    if (!rowData) {
+      // חייל הוסר — מחק טופס ישן בלבד
+      var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
+      if (rootId) {
+        var old = DriveApp.searchFiles('title = "' + String(personalNumber) + '.pdf" and trashed = false');
+        while (old.hasNext()) { old.next().setTrashed(true); }
+        Logger.log('✅ [Weapons] Deleted current PDF for removed soldier: ' + personalNumber);
+      }
+      return;
+    }
+
+    var unit = rowData[5] || '', team = rowData[6] || '';
+    var ts   = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    var data = { fullName: rowData[1], personalNumber: rowData[2], phone: rowData[3], email: rowData[4], unit: unit, team: team };
+    WEAPONS_ITEM_LIST.forEach(function(item) { data[item.key] = rowData[item.col] || ''; });
+    var notesMap = weapons_readNotesMap(ss, personalNumber);
+    Object.keys(notesMap).forEach(function(k) { data['note_' + k] = notesMap[k]; });
+
+    var blob = Utilities.newBlob(weapons_createPdfHtml(data, ts), 'text/html', 'upd.html');
+    var pdf  = blob.getAs('application/pdf');
+    weapons_saveCurrentPdf(pdf, personalNumber, unit, team);
+  } catch(e) {
+    Logger.log('⚠️ [Weapons] updateCurrentPdf failed for ' + personalNumber + ': ' + e);
+  }
+}
+
 /**
  * שליחת מייל מהירה ללא PDF — HTML ישירות (חוסך 3-5 שניות של המרת PDF)
  */
@@ -1470,7 +1567,7 @@ function weapons_generateAndSendPDF(data) {
   const blob = Utilities.newBlob(weapons_createPdfHtml(data, ts), 'text/html', 'checkout.html');
   const pdf  = blob.getAs('application/pdf');
   pdf.setName('חתימה_' + data.fullName + '_' + weapons_driveTimestamp() + '.pdf');
-  weapons_savePdfToDrive(pdf, data.unit, data.team, null);
+  weapons_saveCurrentPdf(pdf.copyBlob(), data.personalNumber, data.unit, data.team);
   weapons_sendEmail(data, pdf, ts);
 }
 
