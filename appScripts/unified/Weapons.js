@@ -526,18 +526,18 @@ function weapons_handleCredit(data) {
     }
   }
 
-  // שלח מייל אישור זיכוי לחייל עם PDF מצורף
+  // צור PDF ושמור ל-Drive (תמיד), שלח מייל רק אם קיים
   try {
     const email    = rowData[4];
     const fullName = rowData[1];
+    const ts       = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    const html     = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts, notesMapCredit);
+    const blob     = Utilities.newBlob(html, 'text/html', 'credit.html');
+    const pdf      = blob.getAs('application/pdf');
+    pdf.setName('זיכוי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
+    weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
+    Logger.log('✅ [Weapons] Credit PDF saved to Drive');
     if (email) {
-      const ts  = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
-      const notesMap = notesMapCredit;
-      const html = weapons_createCreditPdfHtml(rowData, creditBy, data.creditSignature, ts, notesMap);
-      const blob = Utilities.newBlob(html, 'text/html', 'credit.html');
-      const pdf  = blob.getAs('application/pdf');
-      pdf.setName('זיכוי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
-      weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -550,7 +550,7 @@ function weapons_handleCredit(data) {
       Logger.log('✅ [Weapons] Credit email sent to: ' + email);
     }
   } catch (emailErr) {
-    Logger.log('⚠️ [Weapons] Credit email failed: ' + emailErr);
+    Logger.log('⚠️ [Weapons] Credit PDF/email failed: ' + emailErr);
   }
 
   return { success: true, message: 'Credit completed' };
@@ -652,19 +652,19 @@ function weapons_handlePartialCredit(data) {
     weapons_clearNoteItems(ss, personalNumber, selectedNoteItems);
   }
 
-  // שלח מייל אישור זיכוי חלקי לחייל עם PDF מצורף
+  // צור PDF ושמור ל-Drive (תמיד), שלח מייל רק אם קיים
   try {
     const email    = rowData[4];
     const fullName = rowData[1];
+    const ts       = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+    const notesMap = weapons_readNotesMap(ss, personalNumber);
+    const html     = weapons_createPartialCreditPdfHtml(rowData, selectedItems, selectedNoteItems, creditBy, data.creditSignature, ts, notesMap);
+    const blob     = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
+    const pdf      = blob.getAs('application/pdf');
+    pdf.setName('זיכוי_חלקי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
+    weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
+    Logger.log('✅ [Weapons] Partial credit PDF saved to Drive');
     if (email) {
-      const ts      = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
-      const itemsHe = selectedItems.map(k => WEAPONS_ITEM_NAMES_HE[k] || k).join(', ');
-      const notesMap = weapons_readNotesMap(ss, personalNumber);
-      const html    = weapons_createPartialCreditPdfHtml(rowData, selectedItems, selectedNoteItems, creditBy, data.creditSignature, ts, notesMap);
-      const blob    = Utilities.newBlob(html, 'text/html', 'partial_credit.html');
-      const pdf     = blob.getAs('application/pdf');
-      pdf.setName('זיכוי_חלקי_' + fullName + '_' + weapons_driveTimestamp() + '.pdf');
-      weapons_savePdfToDrive(pdf, rowData[5], null, 'זיכויים');
       weapons_sendEmailWithRotation({
         to:      email,
         subject: 'אישור זיכוי נשק - ' + fullName,
@@ -677,7 +677,7 @@ function weapons_handlePartialCredit(data) {
       Logger.log('✅ [Weapons] Partial credit email sent to: ' + email);
     }
   } catch (emailErr) {
-    Logger.log('⚠️ [Weapons] Partial credit email failed: ' + emailErr);
+    Logger.log('⚠️ [Weapons] Partial credit PDF/email failed: ' + emailErr);
   }
 
   return { success: true, message: 'Partial credit completed' };
@@ -710,6 +710,11 @@ function weapons_handleTransferItems(data) {
 
   if (sourceRow === -1) return { success: false, error: 'חייל המקור לא נמצא במערכת' };
   if (targetRow === -1) return { success: false, error: 'חייל היעד לא נמצא במערכת — יש להוסיפו תחילה דרך טופס הנשק' };
+
+  // בדוק שהמסגרות זהות
+  if (sourceData[5] !== targetData[5]) {
+    return { success: false, error: 'לא ניתן להעביר בין מסגרות שונות (' + sourceData[5] + ' → ' + targetData[5] + ')' };
+  }
 
   // בדוק שלחייל היעד אין כבר ציוד מהסוגים המועברים
   const conflictingItems = selectedItems.filter(key => {
@@ -806,8 +811,8 @@ function weapons_handleTransferItems(data) {
     transferAt || new Date().toISOString(),
     sourcePersonalNumber, sourceData[1],  // שם מקור
     targetPersonalNumber, targetData[1],  // שם יעד
-    selectedItems.concat(
-      (selectedNoteItems || []).map(function(k) { return 'ציוד נלווה:' + (WEAPONS_ITEM_NAMES_HE[k] || k); })
+    selectedItems.map(function(k) { return WEAPONS_ITEM_NAMES_HE[k] || k; }).concat(
+      (selectedNoteItems || []).map(function(k) { return 'ציוד נלווה: ' + (WEAPONS_ITEM_NAMES_HE[k] || k); })
     ).join(', '),
     transferBy || 'unknown'
   ]);
