@@ -87,8 +87,9 @@ function doPost(e) {
       case 'partial_credit': return handlePartialCredit(data, e);
       case 'transfer_items': return handleTransferItems(data, e);
       case 'swap_items':     return handleSwapItems(data, e);
-      case 'get_audit_log':  return handleGetAuditLog(data, e);
-      default:               return createResponse(400, 'Unknown action: ' + data.action, null);
+      case 'get_audit_log':        return handleGetAuditLog(data, e);
+      case 'get_weapons_inventory': return handleGetWeaponsInventory(data, e);
+      default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
   } catch (err) {
@@ -489,6 +490,31 @@ function handleGetAuditLog(data, request) {
   } catch (e) {
     Logger.log('❌ getAuditLog error: ' + e);
     return createResponse(500, 'Error reading audit log: ' + e.toString(), null);
+  }
+}
+
+/**
+ * סיכום מלאי נשקים - כמות לפי פריט ומסגרת
+ */
+function handleGetWeaponsInventory(data, request) {
+  const { token } = data;
+
+  const payload = JWTUtil.verify(token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+
+  if (!Authorization.canAccessResource(payload, null, 'view_reports')) {
+    return createResponse(403, 'Insufficient permissions', null);
+  }
+
+  try {
+    const result = weapons_getInventorySummary();
+    if (!result.success) return createResponse(500, result.error || 'Failed to retrieve inventory', null);
+
+    AuditLogger.log(payload.username, 'INVENTORY_VIEWED', 'weapons', null, {}, request);
+    return createResponse(200, 'Inventory summary retrieved', result.data);
+  } catch (e) {
+    Logger.log('❌ getWeaponsInventory error: ' + e);
+    return createResponse(500, 'Error: ' + e.toString(), null);
   }
 }
 

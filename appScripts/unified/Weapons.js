@@ -1772,3 +1772,56 @@ function weapons_sendEmailWithRotation(options) {
     MailApp.sendEmail(fbOpts);
   }
 }
+
+// ================================================================
+// Inventory Summary - סיכום מלאי
+// ================================================================
+
+/**
+ * מחזיר סיכום כמויות לכל 58 פריטים, מפוצל לפי מסגרת וסה"כ
+ * @returns {{ success: boolean, data?: { units, items, counts, totals }, error?: string }}
+ */
+function weapons_getInventorySummary() {
+  const ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  const sheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+  if (!sheet) return { success: false, error: 'Main sheet not found' };
+
+  const rows = sheet.getDataRange().getValues();
+
+  // איסוף מסגרות ייחודיות + ספירה
+  const unitsSet = {};
+  const counts   = {};
+  WEAPONS_ITEM_LIST.forEach(function(item) { counts[item.key] = {}; });
+
+  for (var i = 1; i < rows.length; i++) {
+    var unit = (rows[i][5] || '').toString().trim();
+    if (!unit) continue;
+    unitsSet[unit] = true;
+
+    WEAPONS_ITEM_LIST.forEach(function(item) {
+      if (rows[i][item.col]) {
+        counts[item.key][unit] = (counts[item.key][unit] || 0) + 1;
+      }
+    });
+  }
+
+  var units = Object.keys(unitsSet).sort();
+
+  // סה"כ לכל פריט
+  var totals = {};
+  WEAPONS_ITEM_LIST.forEach(function(item) {
+    totals[item.key] = units.reduce(function(sum, unit) {
+      return sum + (counts[item.key][unit] || 0);
+    }, 0);
+  });
+
+  return {
+    success: true,
+    data: {
+      units:  units,
+      items:  WEAPONS_ITEM_LIST.map(function(item) { return { key: item.key, label: item.label }; }),
+      counts: counts,
+      totals: totals
+    }
+  };
+}
