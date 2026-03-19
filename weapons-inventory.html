@@ -140,7 +140,7 @@
         /* corner cell: sticky top + sticky right */
         thead th:first-child { z-index: 4; background: #e55a00; }
 
-        /* total column */
+        /* total-issued column */
         th.col-total { background: #cc5200 !important; }
         td.col-total {
             background: rgba(255,102,0,0.18) !important;
@@ -156,6 +156,15 @@
             color: #4a9eff;
         }
         td.col-armory.count-zero { color: #2a4a6a; }
+
+        /* grand-total column */
+        th.col-grand { background: #2d7a2d !important; color: #fff !important; }
+        td.col-grand {
+            background: rgba(60,180,60,0.12) !important;
+            font-weight: 700;
+            color: #5dcc5d;
+        }
+        td.col-grand.count-zero { color: #1e4a1e; }
 
         tbody tr { transition: background 0.15s; }
         tbody tr:nth-child(even) { background: #222; }
@@ -342,8 +351,9 @@
             const thead = document.getElementById('tableHead');
             let hRow = '<tr><th>פריט</th>';
             units.forEach(u => { hRow += `<th>${escHtml(u)}</th>`; });
-            hRow += '<th class="col-total">סה"כ</th>';
-            hRow += '<th class="col-armory">🔒 נשקייה</th>';
+            hRow += '<th class="col-total">סה"כ נופק</th>';
+            hRow += '<th class="col-armory">נשקייה</th>';
+            hRow += '<th class="col-grand">סה"כ</th>';
             hRow += '</tr>';
             thead.innerHTML = hRow;
 
@@ -379,17 +389,22 @@
                 const arm = armory ? (armory.counts[item.key] || 0) : null;
                 if (arm === null) {
                     row += `<td class="col-armory count-zero">–</td>`;
+                    row += `<td class="col-grand count-zero">–</td>`;
                 } else {
                     row += arm > 0
                         ? `<td class="col-armory count-pos">${arm}</td>`
                         : `<td class="col-armory count-zero">–</td>`;
+                    const grand = tot + arm;
+                    row += grand > 0
+                        ? `<td class="col-grand count-pos">${grand}</td>`
+                        : `<td class="col-grand count-zero">–</td>`;
                 }
 
                 rows += `<tr>${row}</tr>`;
             });
 
             if (visible === 0) {
-                const cols = (inventoryData ? inventoryData.units.length : 0) + 3;
+                const cols = (inventoryData ? inventoryData.units.length : 0) + 4;
                 rows = `<tr><td colspan="${cols}" class="no-results">לא נמצאו פריטים תואמים</td></tr>`;
             }
 
