@@ -288,7 +288,6 @@
         <div class="section-title">מערכות חתימה</div>
         <div class="nav-grid">
             <a href="#" id="weaponsLink" class="nav-card weapons" onclick="navigateTo('weapons-checkout-secure.html', event)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">⬛</div>
                 <h2>מערכת חתימה - נשקים</h2>
                 <p>מערכת לניהול וחתימה על נשקים ואמצעי לחימה</p>
@@ -299,28 +298,24 @@
         <div class="section-title" id="reportsSection" style="display: none;">דוחות ומעקב</div>
         <div class="nav-grid" id="reportsCards" style="display: none;">
             <a href="#" id="armoryLink" class="nav-card report" onclick="navigateTo('armory-count.html', event)">
-                <div class="permission-badge">מנהל + סמל</div>
                 <div class="icon">📋</div>
                 <h2>ספירת מלאי נשקייה</h2>
                 <p>הזנת כמויות ציוד פיזי הנמצא בנשקייה</p>
             </a>
 
             <a href="#" id="inventoryLink" class="nav-card report" onclick="navigateTo('weapons-inventory.html', event)">
-                <div class="permission-badge">מנהל + סמל</div>
                 <div class="icon">📦</div>
                 <h2>סיכום מלאי נשקים</h2>
                 <p>כמות חיילים המחזיקים כל פריט, מפוצל לפי מסגרת וסה"כ</p>
             </a>
 
             <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">⬛</div>
                 <h2>דוח צלם</h2>
                 <p>מעקב אחר ציוד צילום ומצלמות</p>
             </a>
 
             <a href="#" id="radioReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1jUDDvC2PPYOcEWHgb2fc5Jds_K_YYhjveHYIgAurEBc/edit?usp=sharing', event, true)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">⬛</div>
                 <h2>דוח קשר</h2>
                 <p>דוח מרכז לאמצעי קשר</p>
@@ -330,28 +325,24 @@
         <div class="section-title" id="adminSection" style="display: none;">ניהול מערכת</div>
         <div class="nav-grid" id="adminCards" style="display: none;">
             <a href="#" id="auditLink" class="nav-card admin" onclick="navigateTo('audit-log.html', event)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">📊</div>
                 <h2>יומן ביקורת</h2>
                 <p>צפייה בכל הפעולות במערכת</p>
             </a>
 
             <a href="#" id="usersLink" class="nav-card admin" onclick="navigateTo('user-management.html', event)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">👥</div>
                 <h2>ניהול משתמשים</h2>
                 <p>הוספה ועריכת משתמשים והרשאות</p>
             </a>
 
             <a href="#" id="transferLink" class="nav-card admin" onclick="navigateTo('weapons-transfer.html', event)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">🔄</div>
                 <h2>העברת/זיכוי ציוד</h2>
                 <p>העברת או זיכוי ציוד נשקים בין חיילים</p>
             </a>
 
             <a href="#" id="driveLink" class="nav-card admin" onclick="navigateTo('https://drive.google.com/drive/folders/15Eav5uBd2QfxHzSeyje8iTEr7_4UnxCG', event, true)">
-                <div class="permission-badge">מנהל בלבד</div>
                 <div class="icon">📁</div>
                 <h2>ארכיון טפסים</h2>
                 <p>תיקיית Drive עם כל קובצי ה-PDF של החתימות</p>
@@ -419,14 +410,12 @@
         // ============================================================
         
         function setupPermissions(user) {
-            const isAdmin       = authClient.hasPermission('manage_users');
-            const hasReports    = authClient.hasPermission('view_reports');
-            const hasTransfer   = authClient.hasPermission('transfer');
+            const isAdmin     = authClient.hasPermission('manage_users');
+            const hasReports  = authClient.hasPermission('view_reports');
+            const hasTransfer = authClient.hasPermission('transfer');
 
-            // Weapons form — מנהלים בלבד
-            if (!isAdmin) {
-                disableCard('weaponsLink');
-            }
+            // מערכת חתימה — מנהל בלבד
+            if (!isAdmin) hideCard('weaponsLink');
 
             // דוחות — מנהל + סמל
             if (hasReports || isAdmin) {
@@ -434,9 +423,11 @@
                 document.getElementById('reportsCards').style.display = 'grid';
             }
 
-            // ספירת מלאי — מנהל בלבד
+            // ספירת מלאי, דוח צלם, דוח קשר — מנהל בלבד
             if (!isAdmin) {
-                disableCard('armoryLink');
+                hideCard('armoryLink');
+                hideCard('weaponsReportLink');
+                hideCard('radioReportLink');
             }
 
             // ניהול מערכת — סמל רואה רק העברות, מנהל רואה הכל
@@ -444,21 +435,16 @@
                 document.getElementById('adminSection').style.display = 'block';
                 document.getElementById('adminCards').style.display = 'grid';
                 if (!isAdmin) {
-                    document.getElementById('auditLink').style.display = 'none';
-                    document.getElementById('usersLink').style.display = 'none';
+                    hideCard('auditLink');
+                    hideCard('usersLink');
+                    hideCard('driveLink');
                 }
             }
         }
-        
-        function disableCard(cardId) {
+
+        function hideCard(cardId) {
             const card = document.getElementById(cardId);
-            if (card) {
-                card.classList.add('disabled');
-                card.onclick = (e) => {
-                    e.preventDefault();
-                    alert('אין לך הרשאה לגשת לדף זה. פנה למנהל המערכת.');
-                };
-            }
+            if (card) card.style.display = 'none';
         }
         
         // ============================================================
