@@ -293,7 +293,7 @@
             showError('');
 
             try {
-                const token = authClient.getToken();
+                const token = authClient.token;
                 const res   = await fetch(API_URL, {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
