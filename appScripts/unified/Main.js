@@ -89,6 +89,8 @@ function doPost(e) {
       case 'swap_items':     return handleSwapItems(data, e);
       case 'get_audit_log':        return handleGetAuditLog(data, e);
       case 'get_weapons_inventory': return handleGetWeaponsInventory(data, e);
+      case 'get_armory_count':     return handleGetArmoryCount(data, e);
+      case 'save_armory_count':    return handleSaveArmoryCount(data, e);
       default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -514,6 +516,45 @@ function handleGetWeaponsInventory(data, request) {
     return createResponse(200, 'Inventory summary retrieved', result.data);
   } catch (e) {
     Logger.log('❌ getWeaponsInventory error: ' + e);
+    return createResponse(500, 'Error: ' + e.toString(), null);
+  }
+}
+
+// ================================================================
+// Armory Handlers
+// ================================================================
+
+function handleGetArmoryCount(data, request) {
+  const payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'view_reports')) {
+    return createResponse(403, 'Insufficient permissions', null);
+  }
+  try {
+    const result = armory_getLatestCount();
+    return createResponse(200, 'Armory count retrieved', result.data);
+  } catch (e) {
+    Logger.log('❌ getArmoryCount error: ' + e);
+    return createResponse(500, 'Error: ' + e.toString(), null);
+  }
+}
+
+function handleSaveArmoryCount(data, request) {
+  const payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'view_reports')) {
+    return createResponse(403, 'Insufficient permissions', null);
+  }
+  try {
+    const result = armory_saveCount({
+      counts:      data.counts,
+      performedBy: payload.fullName || payload.username
+    });
+    AuditLogger.log(payload.username, 'ARMORY_COUNT_SAVED', 'armory', null,
+                   { by: payload.username }, request);
+    return createResponse(200, result.message, { timestamp: result.timestamp });
+  } catch (e) {
+    Logger.log('❌ saveArmoryCount error: ' + e);
     return createResponse(500, 'Error: ' + e.toString(), null);
   }
 }
