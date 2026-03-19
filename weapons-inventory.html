@@ -148,6 +148,15 @@
             color: #ff8c00;
         }
 
+        /* armory column */
+        th.col-armory { background: #1a5fa8 !important; color: #fff !important; }
+        td.col-armory {
+            background: rgba(74,158,255,0.12) !important;
+            font-weight: 700;
+            color: #4a9eff;
+        }
+        td.col-armory.count-zero { color: #2a4a6a; }
+
         tbody tr { transition: background 0.15s; }
         tbody tr:nth-child(even) { background: #222; }
         tbody tr:nth-child(odd)  { background: #2a2a2a; }
@@ -273,6 +282,7 @@
         const authGuard  = new AuthGuard(authClient);
 
         let inventoryData = null; // { units, items, counts, totals }
+        let armoryData    = null; // { counts: { itemKey: number } }
 
         window.addEventListener('DOMContentLoaded', async () => {
             const ok = await authGuard.checkAuth();
@@ -293,18 +303,24 @@
             showError('');
 
             try {
-                const postData = new URLSearchParams();
-                postData.append('data', JSON.stringify({
-                    action: 'get_weapons_inventory',
-                    token:  authClient.token
-                }));
+                const makePost = (action) => {
+                    const p = new URLSearchParams();
+                    p.append('data', JSON.stringify({ action, token: authClient.token }));
+                    return fetch(API_URL, { method: 'POST', body: p });
+                };
 
-                const res  = await fetch(API_URL, { method: 'POST', body: postData });
-                const json = await res.json();
-                if (json.statusCode !== 200) throw new Error(json.message || 'שגיאה בטעינת הנתונים');
+                const [invRes, armRes] = await Promise.all([
+                    makePost('get_weapons_inventory'),
+                    makePost('get_armory_count')
+                ]);
 
-                inventoryData = json.data;
-                renderTable(inventoryData);
+                const [invJson, armJson] = await Promise.all([invRes.json(), armRes.json()]);
+                if (invJson.statusCode !== 200) throw new Error(invJson.message || 'שגיאה בטעינת הנתונים');
+
+                inventoryData = invJson.data;
+                armoryData    = armJson.statusCode === 200 ? armJson.data : null;
+
+                renderTable(inventoryData, armoryData);
                 document.getElementById('summaryBadge').textContent =
                     inventoryData.units.length + ' מסגרות | ' + inventoryData.items.length + ' פריטים';
 
@@ -319,21 +335,23 @@
         // ============================================================
         // Render Table
         // ============================================================
-        function renderTable(data) {
+        function renderTable(data, armory) {
             const { units, items, counts, totals } = data;
 
             // ── Header ──
             const thead = document.getElementById('tableHead');
             let hRow = '<tr><th>פריט</th>';
             units.forEach(u => { hRow += `<th>${escHtml(u)}</th>`; });
-            hRow += '<th class="col-total">סה"כ</th></tr>';
+            hRow += '<th class="col-total">סה"כ</th>';
+            hRow += '<th class="col-armory">🔒 נשקייה</th>';
+            hRow += '</tr>';
             thead.innerHTML = hRow;
 
             // ── Body ──
-            buildBody(items, units, counts, totals);
+            buildBody(items, units, counts, totals, armory, '');
         }
 
-        function buildBody(items, units, counts, totals, filter) {
+        function buildBody(items, units, counts, totals, armory, filter) {
             const tbody  = document.getElementById('tableBody');
             const needle = (filter || '').trim().toLowerCase();
             let rows     = '';
@@ -346,26 +364,32 @@
 
                 let row = `<td>${escHtml(item.label)}</td>`;
 
-                if (inventoryData) {
-                    inventoryData.units.forEach(u => {
-                        const c = (counts[item.key] && counts[item.key][u]) || 0;
-                        row += c > 0
-                            ? `<td class="count-pos">${c}</td>`
-                            : `<td class="count-zero">–</td>`;
-                    });
-                    const tot = totals[item.key] || 0;
-                    row += tot > 0
-                        ? `<td class="col-total count-pos">${tot}</td>`
-                        : `<td class="col-total count-zero">–</td>`;
+                units.forEach(u => {
+                    const c = (counts[item.key] && counts[item.key][u]) || 0;
+                    row += c > 0
+                        ? `<td class="count-pos">${c}</td>`
+                        : `<td class="count-zero">–</td>`;
+                });
+
+                const tot = totals[item.key] || 0;
+                row += tot > 0
+                    ? `<td class="col-total count-pos">${tot}</td>`
+                    : `<td class="col-total count-zero">–</td>`;
+
+                const arm = armory ? (armory.counts[item.key] || 0) : null;
+                if (arm === null) {
+                    row += `<td class="col-armory count-zero">–</td>`;
+                } else {
+                    row += arm > 0
+                        ? `<td class="col-armory count-pos">${arm}</td>`
+                        : `<td class="col-armory count-zero">–</td>`;
                 }
 
                 rows += `<tr>${row}</tr>`;
             });
 
             if (visible === 0) {
-                const cols = inventoryData
-                    ? inventoryData.units.length + 2
-                    : 2;
+                const cols = (inventoryData ? inventoryData.units.length : 0) + 3;
                 rows = `<tr><td colspan="${cols}" class="no-results">לא נמצאו פריטים תואמים</td></tr>`;
             }
 
@@ -379,7 +403,7 @@
             if (!inventoryData) return;
             const needle = document.getElementById('searchInput').value;
             buildBody(inventoryData.items, inventoryData.units,
-                      inventoryData.counts, inventoryData.totals, needle);
+                      inventoryData.counts, inventoryData.totals, armoryData, needle);
         }
 
         // ============================================================
