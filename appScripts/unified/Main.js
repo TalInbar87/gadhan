@@ -223,7 +223,7 @@ function handleGetExisting(data, request) {
   const mainSheet = ss.getSheetByName(sheetName);
   if (!mainSheet) return createResponse(404, 'No existing data found', null);
 
-  const rows = mainSheet.getDataRange().getValues();
+  const rows = mainSheet.getDataRange().getDisplayValues();
   let existingData = null;
 
   for (let i = 1; i < rows.length; i++) {
