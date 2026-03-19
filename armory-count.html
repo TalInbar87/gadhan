@@ -328,7 +328,7 @@
         // Init
         // ============================================================
         const authClient = new SecureAuthClient(API_URL);
-        const authGuard  = new AuthGuard(authClient);
+        const authGuard  = new AuthGuard(authClient, 'manage_users');
 
         window.addEventListener('DOMContentLoaded', async () => {
             const ok = await authGuard.checkAuth();

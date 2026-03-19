@@ -434,6 +434,11 @@
                 document.getElementById('reportsCards').style.display = 'grid';
             }
 
+            // ספירת מלאי — מנהל בלבד
+            if (!isAdmin) {
+                disableCard('armoryLink');
+            }
+
             // ניהול מערכת — סמל רואה רק העברות, מנהל רואה הכל
             if (isAdmin || hasTransfer) {
                 document.getElementById('adminSection').style.display = 'block';
