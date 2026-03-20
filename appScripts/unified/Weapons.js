@@ -1796,7 +1796,7 @@ function weapons_getInventorySummary() {
 
   for (var i = 1; i < rows.length; i++) {
     var unit     = (rows[i][5] || '').toString().trim();
-    var fullName = (rows[i][2] || '').toString().trim();
+    var fullName = (rows[i][1] || '').toString().trim();
     if (!unit) continue;
     unitsSet[unit] = true;
 
