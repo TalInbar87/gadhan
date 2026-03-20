@@ -423,10 +423,9 @@
                 document.getElementById('reportsCards').style.display = 'grid';
             }
 
-            // ספירת מלאי, דוח צלם, דוח קשר — מנהל בלבד
+            // ספירת מלאי, דוח קשר — מנהל בלבד
             if (!isAdmin) {
                 hideCard('armoryLink');
-                hideCard('weaponsReportLink');
                 hideCard('radioReportLink');
             }
 

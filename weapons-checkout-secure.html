@@ -872,7 +872,7 @@
 
         // Initialize authentication
         const authClient = new SecureAuthClient(API_URL);
-        const authGuard = new AuthGuard(authClient, 'manage_users');
+        const authGuard = new AuthGuard(authClient, 'view_reports');
         
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
