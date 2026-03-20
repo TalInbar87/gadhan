@@ -191,6 +191,80 @@
         .count-zero { color: #444; }
         .count-pos  { color: #ff8c00; font-weight: 700; }
 
+        td.clickable {
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        td.clickable:hover {
+            background: rgba(255,102,0,0.25) !important;
+            transform: scale(1.1);
+        }
+
+        /* ── Names Popup ── */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.15s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .popup-box {
+            background: #1e1e1e;
+            border: 2px solid #ff6600;
+            border-radius: 14px;
+            padding: 24px 28px;
+            min-width: 280px;
+            max-width: 420px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            animation: slideUp 0.15s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .popup-title {
+            font-size: 1em;
+            font-weight: 700;
+            color: #ff8c00;
+            margin-bottom: 4px;
+        }
+        .popup-unit {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .popup-names { list-style: none; }
+        .popup-names li {
+            padding: 7px 10px;
+            border-radius: 7px;
+            color: #ddd;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .popup-names li:nth-child(even) { background: #2a2a2a; }
+        .popup-names li::before { content: '•'; color: #ff6600; font-weight: 700; }
+
+        .popup-close {
+            margin-top: 18px;
+            width: 100%;
+            background: #ff6600;
+            color: #000;
+            border: none;
+            padding: 9px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: background 0.2s;
+        }
+        .popup-close:hover { background: #ff8c00; }
+
         /* loading / error states */
         .loading-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -280,6 +354,16 @@
         </footer>
     </div>
 
+    <!-- Names Popup -->
+    <div id="namesPopup" class="popup-overlay" style="display:none;" onclick="closePopupOnOverlay(event)">
+        <div class="popup-box">
+            <div class="popup-title" id="popupTitle"></div>
+            <div class="popup-unit" id="popupUnit"></div>
+            <ul class="popup-names" id="popupNames"></ul>
+            <button class="popup-close" onclick="closePopup()">סגור</button>
+        </div>
+    </div>
+
     <script src="config.js"></script>
     <script src="auth-client.js"></script>
 
@@ -290,7 +374,7 @@
         const authClient = new SecureAuthClient(API_URL);
         const authGuard  = new AuthGuard(authClient);
 
-        let inventoryData = null; // { units, items, counts, totals }
+        let inventoryData = null; // { units, items, counts, totals, names }
         let armoryData    = null; // { counts: { itemKey: number } }
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -358,10 +442,10 @@
             thead.innerHTML = hRow;
 
             // ── Body ──
-            buildBody(items, units, counts, totals, armory, '');
+            buildBody(items, units, counts, totals, data.names || {}, armory, '');
         }
 
-        function buildBody(items, units, counts, totals, armory, filter) {
+        function buildBody(items, units, counts, totals, names, armory, filter) {
             const tbody  = document.getElementById('tableBody');
             const needle = (filter || '').trim().toLowerCase();
             let rows     = '';
@@ -376,9 +460,13 @@
 
                 units.forEach(u => {
                     const c = (counts[item.key] && counts[item.key][u]) || 0;
-                    row += c > 0
-                        ? `<td class="count-pos">${c}</td>`
-                        : `<td class="count-zero">–</td>`;
+                    if (c > 0) {
+                        const label = escHtml(item.label).replace(/'/g, "\\'");
+                        const unit  = escHtml(u).replace(/'/g, "\\'");
+                        row += `<td class="count-pos clickable" onclick="showNamesPopup('${item.key}','${unit}','${label}')">${c}</td>`;
+                    } else {
+                        row += `<td class="count-zero">–</td>`;
+                    }
                 });
 
                 const tot = totals[item.key] || 0;
@@ -418,8 +506,31 @@
             if (!inventoryData) return;
             const needle = document.getElementById('searchInput').value;
             buildBody(inventoryData.items, inventoryData.units,
-                      inventoryData.counts, inventoryData.totals, armoryData, needle);
+                      inventoryData.counts, inventoryData.totals,
+                      inventoryData.names || {}, armoryData, needle);
         }
+
+        // ============================================================
+        // Names Popup
+        // ============================================================
+        function showNamesPopup(itemKey, unit, itemLabel) {
+            const names = (inventoryData.names[itemKey] && inventoryData.names[itemKey][unit]) || [];
+            document.getElementById('popupTitle').textContent = itemLabel;
+            document.getElementById('popupUnit').textContent  = 'מסגרת: ' + unit + ' | ' + names.length + ' חיילים';
+            const ul = document.getElementById('popupNames');
+            ul.innerHTML = names.map(n => `<li>${escHtml(n)}</li>`).join('');
+            document.getElementById('namesPopup').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('namesPopup').style.display = 'none';
+        }
+
+        function closePopupOnOverlay(e) {
+            if (e.target === document.getElementById('namesPopup')) closePopup();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
 
         // ============================================================
         // Helpers

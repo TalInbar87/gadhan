@@ -1788,19 +1788,23 @@ function weapons_getInventorySummary() {
 
   const rows = sheet.getDataRange().getValues();
 
-  // איסוף מסגרות ייחודיות + ספירה
+  // איסוף מסגרות ייחודיות + ספירה + שמות
   const unitsSet = {};
   const counts   = {};
-  WEAPONS_ITEM_LIST.forEach(function(item) { counts[item.key] = {}; });
+  const names    = {};
+  WEAPONS_ITEM_LIST.forEach(function(item) { counts[item.key] = {}; names[item.key] = {}; });
 
   for (var i = 1; i < rows.length; i++) {
-    var unit = (rows[i][5] || '').toString().trim();
+    var unit     = (rows[i][5] || '').toString().trim();
+    var fullName = (rows[i][2] || '').toString().trim();
     if (!unit) continue;
     unitsSet[unit] = true;
 
     WEAPONS_ITEM_LIST.forEach(function(item) {
       if (rows[i][item.col]) {
         counts[item.key][unit] = (counts[item.key][unit] || 0) + 1;
+        if (!names[item.key][unit]) names[item.key][unit] = [];
+        names[item.key][unit].push(fullName);
       }
     });
   }
@@ -1821,7 +1825,8 @@ function weapons_getInventorySummary() {
       units:  units,
       items:  WEAPONS_ITEM_LIST.map(function(item) { return { key: item.key, label: item.label }; }),
       counts: counts,
-      totals: totals
+      totals: totals,
+      names:  names
     }
   };
 }
