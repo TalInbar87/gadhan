@@ -319,9 +319,21 @@
                                 <strong>איפסון:</strong> מעביר פריטים לגיליון האיפסון מבלי להסיר אותם מהדוח הנוכחי.
                             </p>
 
+                            <!-- חיווי טעינה -->
+                            <div id="apsonLoadingIndicator" class="hidden text-center text-orange-600 text-sm py-2">בודק פריטים באיפסון...</div>
+
+                            <!-- פריטים שכבר באיפסון עם צ'קבוקסים -->
                             <div id="apsonCurrentList" class="hidden space-y-2">
-                                <p class="font-bold text-orange-700 text-sm">פריטים שכבר באיפסון:</p>
+                                <p class="font-bold text-orange-700 text-sm">⚠️ פריטים שכבר באיפסון — בחר להוצאה:</p>
                                 <div id="apsonCurrentItems" class="space-y-1"></div>
+                                <button
+                                    type="button"
+                                    id="removeApsonBtn"
+                                    onclick="removeFromApson()"
+                                    class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg"
+                                >
+                                    להוציא מאפסון
+                                </button>
                             </div>
 
                             <button
@@ -330,16 +342,7 @@
                                 onclick="submitApson()"
                                 class="w-full py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xl rounded-xl transition-all shadow-lg"
                             >
-                                כפתור אפסון
-                            </button>
-
-                            <button
-                                type="button"
-                                id="removeApsonBtn"
-                                onclick="removeFromApson()"
-                                class="hidden w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-xl transition-all shadow-lg"
-                            >
-                                להוציא מאפסון
+                                איפסון
                             </button>
                         </div>
                     </div>
@@ -1115,38 +1118,38 @@
         async function fetchApsonItems() {
             if (!currentSourceData) return;
             const pn = sourceInput.value.trim();
+            const loader = document.getElementById('apsonLoadingIndicator');
+            loader.classList.remove('hidden');
             try {
                 const p = new URLSearchParams();
                 p.append('data', JSON.stringify({ action: 'apson_get', token: authClient.token, personalNumber: pn }));
                 const res = await fetch(API_URL, { method: 'POST', body: p });
                 const json = await res.json();
-                if (json.statusCode === 200) {
-                    apsonItems = json.data || [];
-                } else {
-                    apsonItems = [];
-                }
+                apsonItems = (json.statusCode === 200) ? (json.data || []) : [];
             } catch (e) {
                 apsonItems = [];
             }
+            loader.classList.add('hidden');
             renderApsonCurrentList();
         }
 
         function renderApsonCurrentList() {
             const container = document.getElementById('apsonCurrentItems');
             const wrapper   = document.getElementById('apsonCurrentList');
-            const removeBtn = document.getElementById('removeApsonBtn');
             container.innerHTML = '';
             if (apsonItems.length === 0) {
                 wrapper.classList.add('hidden');
-                removeBtn.classList.add('hidden');
                 return;
             }
             wrapper.classList.remove('hidden');
-            removeBtn.classList.remove('hidden');
-            apsonItems.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm';
-                div.innerHTML = `<span class="font-bold text-orange-800">${item.label}</span><span class="text-orange-600">${item.value || ''}</span>`;
+            apsonItems.forEach((item, idx) => {
+                const div = document.createElement('label');
+                div.className = 'flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-orange-100';
+                div.innerHTML = `
+                    <input type="checkbox" class="apson-remove-cb w-4 h-4" data-key="${item.key}" style="accent-color:#dc2626;" />
+                    <span class="font-bold text-orange-800 flex-1">${item.label}</span>
+                    <span class="text-orange-600 font-mono text-xs">${item.value || ''}</span>
+                `;
                 container.appendChild(div);
             });
         }
@@ -1193,15 +1196,20 @@
             } finally {
                 isApsonSubmitting = false;
                 btn.disabled = false;
-                btn.textContent = 'כפתור אפסון';
+                btn.textContent = 'איפסון';
             }
         }
 
         let isRemoveApsonSubmitting = false;
         async function removeFromApson() {
             if (isRemoveApsonSubmitting) return;
-            if (apsonItems.length === 0) return;
-            if (!confirm('להוציא את כל הפריטים הנמצאים באיפסון עבור חייל זה?')) return;
+            const checked = [...document.querySelectorAll('.apson-remove-cb:checked')];
+            if (checked.length === 0) {
+                alert('יש לסמן לפחות פריט אחד להוצאה מאיפסון');
+                return;
+            }
+            const selectedKeys = checked.map(cb => cb.dataset.key);
+            if (!confirm(`להוציא ${checked.length} פריטים מהאיפסון?`)) return;
             const pn  = sourceInput.value.trim();
             const btn = document.getElementById('removeApsonBtn');
             isRemoveApsonSubmitting = true;
@@ -1213,14 +1221,13 @@
                     action: 'apson_remove',
                     token: authClient.token,
                     personalNumber: pn,
-                    itemKeys: apsonItems.map(i => i.key)
+                    itemKeys: selectedKeys
                 }));
                 const res  = await fetch(API_URL, { method: 'POST', body: p });
                 const json = await res.json();
                 if (json.statusCode === 200) {
                     alert('פריטים הוצאו מהאיפסון בהצלחה.');
-                    apsonItems = [];
-                    renderApsonCurrentList();
+                    await fetchApsonItems();
                 } else {
                     alert('שגיאה: ' + (json.message || 'נסה שוב'));
                 }
