@@ -249,6 +249,10 @@
         }
         .popup-names li:nth-child(even) { background: #2a2a2a; }
         .popup-names li::before { content: '•'; color: #ff6600; font-weight: 700; }
+        .popup-names li.in-apson { background: #7c2d00 !important; color: #fed7aa; border-right: 3px solid #f97316; }
+        .popup-names li.in-apson::before { color: #f97316; }
+        .popup-item-value { margin-right: auto; font-size: 0.82em; color: #999; font-family: monospace; }
+        .popup-names li.in-apson .popup-item-value { color: #fb923c; }
 
         .popup-close {
             margin-top: 18px;
@@ -518,7 +522,13 @@
             document.getElementById('popupTitle').textContent = itemLabel;
             document.getElementById('popupUnit').textContent  = 'מסגרת: ' + unit + ' | ' + names.length + ' חיילים';
             const ul = document.getElementById('popupNames');
-            ul.innerHTML = names.map(n => `<li>${escHtml(n)}</li>`).join('');
+            ul.innerHTML = names.map(entry => {
+                const n = (typeof entry === 'object') ? entry : { name: entry, value: '', inApson: false };
+                const cls = n.inApson ? ' class="in-apson"' : '';
+                const apsonTag = n.inApson ? ' <span style="font-size:0.75em;background:#f97316;color:#fff;border-radius:4px;padding:1px 5px;margin-right:4px;">באיפסון</span>' : '';
+                const valSpan = n.value ? `<span class="popup-item-value">${escHtml(n.value)}</span>` : '';
+                return `<li${cls}>${apsonTag}${escHtml(n.name)}${valSpan}</li>`;
+            }).join('');
             document.getElementById('namesPopup').style.display = 'flex';
         }
 

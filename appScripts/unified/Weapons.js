@@ -1788,6 +1788,20 @@ function weapons_getInventorySummary() {
 
   const rows = sheet.getDataRange().getValues();
 
+  // טעינת גיליון האיפסון לצורך סימון
+  var apsonSet = {}; // { 'pn_itemKey': true }
+  try {
+    var apsonSheet = ss.getSheetByName('איפסון');
+    if (apsonSheet) {
+      var apsonRows = apsonSheet.getDataRange().getValues();
+      for (var a = 1; a < apsonRows.length; a++) {
+        var apsonPn  = String(apsonRows[a][1] || '').trim();
+        var apsonKey = String(apsonRows[a][4] || '').trim();
+        if (apsonPn && apsonKey) apsonSet[apsonPn + '_' + apsonKey] = true;
+      }
+    }
+  } catch (apsonErr) { /* גיליון לא קיים עדיין */ }
+
   // איסוף מסגרות ייחודיות + ספירה + שמות
   const unitsSet = {};
   const counts   = {};
@@ -1797,14 +1811,21 @@ function weapons_getInventorySummary() {
   for (var i = 1; i < rows.length; i++) {
     var unit     = (rows[i][5] || '').toString().trim();
     var fullName = (rows[i][1] || '').toString().trim();
+    var pn       = (rows[i][2] || '').toString().trim();
     if (!unit) continue;
     unitsSet[unit] = true;
 
     WEAPONS_ITEM_LIST.forEach(function(item) {
-      if (rows[i][item.col]) {
+      var val = rows[i][item.col];
+      if (val) {
         counts[item.key][unit] = (counts[item.key][unit] || 0) + 1;
         if (!names[item.key][unit]) names[item.key][unit] = [];
-        names[item.key][unit].push(fullName);
+        names[item.key][unit].push({
+          name:    fullName,
+          value:   val.toString(),
+          pn:      pn,
+          inApson: !!(apsonSet[pn + '_' + item.key])
+        });
       }
     });
   }
