@@ -62,6 +62,10 @@
             background: #0f766e;
             color: white;
         }
+        .mode-btn.active-apson {
+            background: #ea580c;
+            color: white;
+        }
         .mode-btn.inactive {
             background: #e7e5e4;
             color: #78716c;
@@ -178,6 +182,7 @@
                             <button type="button" id="modeCreditBtn" class="mode-btn active-credit" onclick="setMode('credit')">זיכוי</button>
                             <button type="button" id="modeTransferBtn" class="mode-btn inactive" onclick="setMode('transfer')">העברה</button>
                             <button type="button" id="modeSwapBtn" class="mode-btn inactive" onclick="setMode('swap')">ראש בראש</button>
+                            <button type="button" id="modeApsonBtn" class="mode-btn inactive" onclick="setMode('apson')">איפסון</button>
                         </div>
 
                         <!-- Credit section -->
@@ -305,6 +310,36 @@
                                 class="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xl rounded-xl transition-all shadow-lg transform hover:scale-105"
                             >
                                 העברה
+                            </button>
+                        </div>
+
+                        <!-- Apson section (איפסון) -->
+                        <div id="apsonSection" class="hidden mt-5 space-y-4">
+                            <p class="text-stone-600 text-sm bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                <strong>איפסון:</strong> מעביר פריטים לגיליון האיפסון מבלי להסיר אותם מהדוח הנוכחי.
+                            </p>
+
+                            <div id="apsonCurrentList" class="hidden space-y-2">
+                                <p class="font-bold text-orange-700 text-sm">פריטים שכבר באיפסון:</p>
+                                <div id="apsonCurrentItems" class="space-y-1"></div>
+                            </div>
+
+                            <button
+                                type="button"
+                                id="submitApsonBtn"
+                                onclick="submitApson()"
+                                class="w-full py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xl rounded-xl transition-all shadow-lg"
+                            >
+                                כפתור אפסון
+                            </button>
+
+                            <button
+                                type="button"
+                                id="removeApsonBtn"
+                                onclick="removeFromApson()"
+                                class="hidden w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-xl transition-all shadow-lg"
+                            >
+                                להוציא מאפסון
                             </button>
                         </div>
                     </div>
@@ -673,17 +708,23 @@
         // MODE TOGGLE
         // ============================================================
 
+        let apsonItems = []; // items currently in apson for loaded soldier
+
         function setMode(mode) {
             currentMode = mode;
             const creditBtn   = document.getElementById('modeCreditBtn');
             const transferBtn = document.getElementById('modeTransferBtn');
             const swapBtn     = document.getElementById('modeSwapBtn');
+            const apsonBtn    = document.getElementById('modeApsonBtn');
             creditBtn.className   = 'mode-btn ' + (mode === 'credit'   ? 'active-credit'   : 'inactive');
             transferBtn.className = 'mode-btn ' + (mode === 'transfer' ? 'active-transfer' : 'inactive');
             swapBtn.className     = 'mode-btn ' + (mode === 'swap'     ? 'active-swap'     : 'inactive');
+            apsonBtn.className    = 'mode-btn ' + (mode === 'apson'    ? 'active-apson'    : 'inactive');
             document.getElementById('creditSection').classList.toggle('hidden',   mode !== 'credit');
             document.getElementById('transferSection').classList.toggle('hidden', mode !== 'transfer');
             document.getElementById('swapSection').classList.toggle('hidden',     mode !== 'swap');
+            document.getElementById('apsonSection').classList.toggle('hidden',    mode !== 'apson');
+            if (mode === 'apson' && currentSourceData) fetchApsonItems();
         }
 
         // ============================================================
@@ -1064,6 +1105,131 @@
             } finally {
                 btn.disabled = false; btn.textContent = 'בצע החלפה';
                 updateSwapSubmitState();
+            }
+        }
+
+        // ============================================================
+        // APSON (איפסון) FUNCTIONALITY
+        // ============================================================
+
+        async function fetchApsonItems() {
+            if (!currentSourceData) return;
+            const pn = sourceInput.value.trim();
+            try {
+                const p = new URLSearchParams();
+                p.append('data', JSON.stringify({ action: 'apson_get', token: authClient.token, personalNumber: pn }));
+                const res = await fetch(API_URL, { method: 'POST', body: p });
+                const json = await res.json();
+                if (json.statusCode === 200) {
+                    apsonItems = json.data || [];
+                } else {
+                    apsonItems = [];
+                }
+            } catch (e) {
+                apsonItems = [];
+            }
+            renderApsonCurrentList();
+        }
+
+        function renderApsonCurrentList() {
+            const container = document.getElementById('apsonCurrentItems');
+            const wrapper   = document.getElementById('apsonCurrentList');
+            const removeBtn = document.getElementById('removeApsonBtn');
+            container.innerHTML = '';
+            if (apsonItems.length === 0) {
+                wrapper.classList.add('hidden');
+                removeBtn.classList.add('hidden');
+                return;
+            }
+            wrapper.classList.remove('hidden');
+            removeBtn.classList.remove('hidden');
+            apsonItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm';
+                div.innerHTML = `<span class="font-bold text-orange-800">${item.label}</span><span class="text-orange-600">${item.value || ''}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        let isApsonSubmitting = false;
+        async function submitApson() {
+            if (isApsonSubmitting) return;
+            const selectedItems     = getSelectedKeys();
+            const selectedNoteItems = getSelectedNoteKeys();
+            if (selectedItems.length + selectedNoteItems.length === 0) {
+                alert('יש לבחור לפחות פריט אחד לאיפסון');
+                return;
+            }
+            const pn  = sourceInput.value.trim();
+            const btn = document.getElementById('submitApsonBtn');
+            isApsonSubmitting = true;
+            btn.disabled = true;
+            btn.textContent = 'מאפסן...';
+            try {
+                const p = new URLSearchParams();
+                p.append('data', JSON.stringify({
+                    action: 'apson_add',
+                    token: authClient.token,
+                    apsonData: {
+                        personalNumber: pn,
+                        fullName:       currentSourceData.fullName,
+                        unit:           currentSourceData.unit,
+                        selectedItems,
+                        selectedNoteItems,
+                        itemsWithValues: getSelectedItemsWithValues(),
+                        doneBy:          authClient.user.username
+                    }
+                }));
+                const res  = await fetch(API_URL, { method: 'POST', body: p });
+                const json = await res.json();
+                if (json.statusCode === 200) {
+                    alert(`איפסון בוצע בהצלחה! ${selectedItems.length + selectedNoteItems.length} פריטים נוספו לגיליון האיפסון.`);
+                    await fetchApsonItems();
+                } else {
+                    alert('שגיאה באיפסון: ' + (json.message || 'נסה שוב'));
+                }
+            } catch (err) {
+                alert('שגיאה באיפסון: ' + (err.message || 'נסה שוב'));
+            } finally {
+                isApsonSubmitting = false;
+                btn.disabled = false;
+                btn.textContent = 'כפתור אפסון';
+            }
+        }
+
+        let isRemoveApsonSubmitting = false;
+        async function removeFromApson() {
+            if (isRemoveApsonSubmitting) return;
+            if (apsonItems.length === 0) return;
+            if (!confirm('להוציא את כל הפריטים הנמצאים באיפסון עבור חייל זה?')) return;
+            const pn  = sourceInput.value.trim();
+            const btn = document.getElementById('removeApsonBtn');
+            isRemoveApsonSubmitting = true;
+            btn.disabled = true;
+            btn.textContent = 'מוציא מאיפסון...';
+            try {
+                const p = new URLSearchParams();
+                p.append('data', JSON.stringify({
+                    action: 'apson_remove',
+                    token: authClient.token,
+                    personalNumber: pn,
+                    itemKeys: apsonItems.map(i => i.key)
+                }));
+                const res  = await fetch(API_URL, { method: 'POST', body: p });
+                const json = await res.json();
+                if (json.statusCode === 200) {
+                    alert('פריטים הוצאו מהאיפסון בהצלחה.');
+                    apsonItems = [];
+                    renderApsonCurrentList();
+                } else {
+                    alert('שגיאה: ' + (json.message || 'נסה שוב'));
+                }
+            } catch (err) {
+                alert('שגיאה: ' + (err.message || 'נסה שוב'));
+            } finally {
+                isRemoveApsonSubmitting = false;
+                btn.disabled = false;
+                btn.textContent = 'להוציא מאפסון';
             }
         }
     </script>

@@ -91,6 +91,9 @@ function doPost(e) {
       case 'get_weapons_inventory': return handleGetWeaponsInventory(data, e);
       case 'get_armory_count':     return handleGetArmoryCount(data, e);
       case 'save_armory_count':    return handleSaveArmoryCount(data, e);
+      case 'apson_get':            return handleApsonGet(data, e);
+      case 'apson_add':            return handleApsonAdd(data, e);
+      case 'apson_remove':         return handleApsonRemove(data, e);
       default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -555,6 +558,47 @@ function handleSaveArmoryCount(data, request) {
     return createResponse(200, result.message, { timestamp: result.timestamp });
   } catch (e) {
     Logger.log('❌ saveArmoryCount error: ' + e);
+    return createResponse(500, 'Error: ' + e.toString(), null);
+  }
+}
+
+// ================================================================
+// Apson (איפסון)
+// ================================================================
+
+function handleApsonGet(data, request) {
+  const payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    const items = weapons_apson_get(data.personalNumber);
+    return createResponse(200, 'OK', items);
+  } catch (e) {
+    return createResponse(500, 'Error: ' + e.toString(), null);
+  }
+}
+
+function handleApsonAdd(data, request) {
+  const payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    const result = weapons_apson_add(data.apsonData);
+    AuditLogger.log(payload.username, 'APSON_ADD', 'weapons', data.apsonData.personalNumber,
+                   { items: data.apsonData.selectedItems }, request);
+    return createResponse(200, 'איפסון בוצע בהצלחה', result);
+  } catch (e) {
+    return createResponse(500, 'Error: ' + e.toString(), null);
+  }
+}
+
+function handleApsonRemove(data, request) {
+  const payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    const result = weapons_apson_remove(data.personalNumber, data.itemKeys);
+    AuditLogger.log(payload.username, 'APSON_REMOVE', 'weapons', data.personalNumber,
+                   { keys: data.itemKeys }, request);
+    return createResponse(200, 'הוצא מאיפסון בהצלחה', result);
+  } catch (e) {
     return createResponse(500, 'Error: ' + e.toString(), null);
   }
 }

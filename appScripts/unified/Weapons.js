@@ -1830,3 +1830,68 @@ function weapons_getInventorySummary() {
     }
   };
 }
+
+// ================================================================
+// APSON (איפסון) — שמירת פריטים בגיליון האיפסון
+// ================================================================
+
+var APSON_SHEET_NAME = 'איפסון';
+var APSON_HEADERS    = ['תאריך', 'מספר אישי', 'שם מלא', 'מסגרת', 'מפתח פריט', 'תווית פריט', 'ערך', 'בוצע ע"י'];
+
+function weapons_apson_ensureSheet() {
+  var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  var sheet = ss.getSheetByName(APSON_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(APSON_SHEET_NAME);
+    sheet.appendRow(APSON_HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function weapons_apson_get(pn) {
+  var sheet = weapons_apson_ensureSheet();
+  var rows  = sheet.getDataRange().getValues();
+  var result = [];
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]).trim() === String(pn).trim()) {
+      result.push({ key: rows[i][4], label: rows[i][5], value: rows[i][6] });
+    }
+  }
+  return result;
+}
+
+function weapons_apson_add(data) {
+  var sheet    = weapons_apson_ensureSheet();
+  var now      = new Date();
+  var items    = (data.selectedItems      || []);
+  var noteItems= (data.selectedNoteItems  || []);
+  var values   = data.itemsWithValues     || {};
+
+  items.forEach(function(key) {
+    var label = (WEAPONS_ITEM_LIST.find(function(i) { return i.key === key; }) || {}).label || key;
+    var val   = values[key] || '';
+    sheet.appendRow([now, data.personalNumber, data.fullName, data.unit, key, label, val, data.doneBy]);
+  });
+  noteItems.forEach(function(key) {
+    var label = (WEAPONS_ITEM_LIST.find(function(i) { return i.key === key; }) || {}).label || key;
+    var val   = 'ציוד נלווה';
+    sheet.appendRow([now, data.personalNumber, data.fullName, data.unit, key + '_note', label + ' (נלווה)', val, data.doneBy]);
+  });
+
+  return { success: true, added: items.length + noteItems.length };
+}
+
+function weapons_apson_remove(pn, itemKeys) {
+  var sheet = weapons_apson_ensureSheet();
+  var rows  = sheet.getDataRange().getValues();
+  var toDelete = [];
+  for (var i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][1]).trim() === String(pn).trim() &&
+        itemKeys.indexOf(rows[i][4]) !== -1) {
+      toDelete.push(i + 1);
+    }
+  }
+  toDelete.forEach(function(rowNum) { sheet.deleteRow(rowNum); });
+  return { success: true, removed: toDelete.length };
+}
