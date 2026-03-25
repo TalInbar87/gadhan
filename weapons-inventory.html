@@ -345,6 +345,19 @@
             <button class="btn-refresh" id="refreshBtn" onclick="loadInventory()">↻ רענן</button>
         </div>
 
+        <!-- חיפוש לפי מספר מוצר -->
+        <div class="toolbar" style="margin-bottom:10px;">
+            <input
+                type="text"
+                id="serialSearchInput"
+                class="search-box"
+                placeholder="🔎 חיפוש לפי מספר מוצר..."
+                oninput="searchBySerial()"
+                style="border-color:#4a9eff;"
+            />
+        </div>
+        <div id="serialSearchResult" style="display:none; margin-bottom:20px; background:#1e2a3a; border:2px solid #4a9eff; border-radius:12px; padding:16px;"></div>
+
         <div class="table-wrapper">
             <table id="inventoryTable">
                 <thead id="tableHead"></thead>
@@ -530,6 +543,49 @@
                 return `<li${cls}>${apsonTag}${escHtml(n.name)}${valSpan}</li>`;
             }).join('');
             document.getElementById('namesPopup').style.display = 'flex';
+        }
+
+        function searchBySerial() {
+            const query   = document.getElementById('serialSearchInput').value.trim();
+            const resultEl = document.getElementById('serialSearchResult');
+            if (!query || !inventoryData) { resultEl.style.display = 'none'; return; }
+
+            const results = [];
+            inventoryData.items.forEach(item => {
+                const byUnit = inventoryData.names[item.key] || {};
+                Object.keys(byUnit).forEach(unit => {
+                    (byUnit[unit] || []).forEach(entry => {
+                        const e = (typeof entry === 'object') ? entry : { name: entry, value: '' };
+                        if (e.value && String(e.value).toLowerCase().includes(query.toLowerCase())) {
+                            results.push({ item, unit, entry: e });
+                        }
+                    });
+                });
+            });
+
+            if (results.length === 0) {
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `<div style="color:#888;text-align:center;">לא נמצאו תוצאות עבור "${escHtml(query)}"</div>`;
+                return;
+            }
+
+            resultEl.style.display = 'block';
+            resultEl.innerHTML = `
+                <div style="color:#4a9eff;font-weight:700;margin-bottom:12px;">נמצאו ${results.length} תוצאות:</div>
+                ${results.map(r => {
+                    const apsonTag = r.entry.inApson
+                        ? `<span style="font-size:0.75em;background:#f97316;color:#fff;border-radius:4px;padding:1px 6px;margin-right:4px;">באיפסון</span>`
+                        : '';
+                    return `
+                        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#263547;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
+                            <span style="color:#ff8c00;font-weight:700;min-width:120px;">${escHtml(r.item.label)}</span>
+                            <span style="color:#fff;font-weight:600;">${escHtml(r.entry.name)}</span>
+                            <span style="color:#4a9eff;font-family:monospace;">${escHtml(r.entry.value)}</span>
+                            <span style="color:#aaa;font-size:0.85em;">${escHtml(r.unit)}</span>
+                            ${apsonTag}
+                        </div>`;
+                }).join('')}
+            `;
         }
 
         function closePopup() {
