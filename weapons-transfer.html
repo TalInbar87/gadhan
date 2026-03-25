@@ -393,6 +393,16 @@
                 displayUserInfo();
                 setupUIForRole();
                 setupSignatureCanvas();
+
+                // מילוי אוטומטי מ-URL param ?pn=
+                const urlPn = new URLSearchParams(window.location.search).get('pn');
+                if (urlPn) {
+                    const srcInput = document.getElementById('sourcePersonalNumber');
+                    if (srcInput) {
+                        srcInput.value = urlPn;
+                        srcInput.dispatchEvent(new Event('input'));
+                    }
+                }
             }
         });
 
