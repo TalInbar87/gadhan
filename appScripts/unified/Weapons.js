@@ -272,88 +272,6 @@ function weapons_prepareZivudRowData(data, timestamp) {
   return row;
 }
 
-// ================================================================
-// Async Email Queue
-// ================================================================
-
-/**
- * מכניס משימת מייל לתור ב-PropertiesService ומפעיל טריגר
- * (לא מחכה לשליחת המייל — חוזר מיידית)
- */
-function weapons_queueEmail(data) {
-  try {
-    const key = 'wepEmail_' + data.personalNumber + '_' + Date.now();
-    PropertiesService.getScriptProperties().setProperty(key, JSON.stringify({
-      pn:        String(data.personalNumber),
-      email:     data.email     || '',
-      fullName:  data.fullName  || '',
-      unit:      data.unit      || '',
-      submittedAt: data.submittedAt || new Date().toISOString()
-    }));
-    // יצירת טריגר חד-פעמי רק אם אין כבר אחד ממתין
-    const exists = ScriptApp.getProjectTriggers().some(function(t) {
-      return t.getHandlerFunction() === 'weapons_sendQueuedEmails';
-    });
-    if (!exists) {
-      ScriptApp.newTrigger('weapons_sendQueuedEmails').timeBased().after(3000).create();
-    }
-    Logger.log('📧 [Weapons] Email queued for PN: ' + data.personalNumber);
-  } catch(e) {
-    Logger.log('⚠️ [Weapons] Failed to queue email: ' + e);
-  }
-}
-
-/**
- * מופעל ע"י טריגר — שולח מיילים ממתינים מהתור
- */
-function weapons_sendQueuedEmails() {
-  const props = PropertiesService.getScriptProperties();
-  const all   = props.getProperties();
-  const ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
-  const mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
-
-  for (var key in all) {
-    if (!key.startsWith('wepEmail_')) continue;
-    var job;
-    try { job = JSON.parse(all[key]); } catch(e) { props.deleteProperty(key); continue; }
-    props.deleteProperty(key);
-
-    try {
-      if (!mainSheet) continue;
-      // קרא נתונים עדכניים מהגיליון
-      var rows = mainSheet.getDataRange().getValues();
-      var rowData = null;
-      for (var i = 1; i < rows.length; i++) {
-        if (String(rows[i][2]) === String(job.pn)) { rowData = rows[i]; break; }
-      }
-      if (!rowData) continue;
-
-      var emailData = {
-        fullName:       rowData[1],
-        personalNumber: rowData[2],
-        phone:          rowData[3],
-        email:          rowData[4],
-        unit:           rowData[5] || '',
-        team:           rowData[6] || ''
-      };
-      WEAPONS_ITEM_LIST.forEach(function(item) {
-        emailData[item.key] = rowData[item.col] || '';
-      });
-
-      weapons_generateAndSendPDF(emailData);
-      Logger.log('✅ [Weapons] Queued email sent for PN: ' + job.pn);
-    } catch(e) {
-      Logger.log('⚠️ [Weapons] Queued email failed for PN ' + (job && job.pn) + ': ' + e);
-    }
-  }
-
-  // נקה את הטריגר הזה לאחר הרצה
-  ScriptApp.getProjectTriggers().forEach(function(t) {
-    if (t.getHandlerFunction() === 'weapons_sendQueuedEmails') {
-      try { ScriptApp.deleteTrigger(t); } catch(e) {}
-    }
-  });
-}
 
 function weapons_createUnitSheet(ss, sheetName) {
   const sheet = ss.insertSheet(sheetName);
@@ -369,42 +287,6 @@ function weapons_createUnitSheet(ss, sheetName) {
   return sheet;
 }
 
-/**
- * פונקציית מיגרציה חד-פעמית: מוסיפה כותרת 'מטול' בעמודה W (23) לכל גיליונות הנשקים הקיימים
- * יש להריץ פעם אחת מה-GAS editor
- */
-function weapons_addMatolHeaderToExistingSheets() {
-  const ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
-  const sheets = ss.getSheets();
-  const MATOL_COL = 23; // עמודה W, 1-indexed
-
-  sheets.forEach(function(sheet) {
-    const name = sheet.getName();
-    // דלג על גיליון זיכויים
-    if (name === CONFIG.WEAPONS.CREDIT_SHEET_NAME) return;
-
-    const lastCol = sheet.getLastColumn();
-    const firstRow = sheet.getRange(1, 1, 1, Math.max(lastCol, MATOL_COL)).getValues()[0];
-
-    // בדוק אם כבר קיים 'מטול' בעמודה W
-    if (firstRow[MATOL_COL - 1] === 'מטול') {
-      Logger.log('✓ [Migration] Sheet "' + name + '" already has מטול header');
-      return;
-    }
-
-    // הוסף כותרת מטול בעמודה W
-    sheet.getRange(1, MATOL_COL).setValue('מטול');
-    // עצב את הכותרת החדשה כמו שאר הכותרות
-    const cell = sheet.getRange(1, MATOL_COL);
-    cell.setBackground(CONFIG.WEAPONS.HEADER_COLOR);
-    cell.setFontColor('#FFFFFF');
-    cell.setFontWeight('bold');
-    cell.setHorizontalAlignment('right');
-    Logger.log('✓ [Migration] Added מטול header to sheet "' + name + '"');
-  });
-
-  Logger.log('✅ [Migration] weapons_addMatolHeaderToExistingSheets complete');
-}
 
 function weapons_prepareRowData(data, timestamp) {
   var row = [
@@ -1564,20 +1446,6 @@ function weapons_updateCurrentPdf(personalNumber) {
   }
 }
 
-/**
- * שליחת מייל מהירה ללא PDF — HTML ישירות (חוסך 3-5 שניות של המרת PDF)
- */
-function weapons_sendEmailFast(data) {
-  if (!data.email) return;
-  const ts = formatTimestamp();
-  weapons_sendEmailWithRotation({
-    to:       data.email,
-    subject:  'אישור חתימה על נשק - ' + data.fullName,
-    body:     'שלום ' + data.fullName + ',\nאישור חתימתך על נשק ואמצעי לחימה נקלט במערכת בהצלחה.\n\nתאריך: ' + ts + '\nמספר אישי: ' + data.personalNumber + (data.unit ? '\nמסגרת: ' + data.unit : '') + '\n\nבברכה,\nמערכת דוח צלם מקוון\nגדחה"ו קומנדו 8219',
-    htmlBody: weapons_createPdfHtml(data, ts)
-  });
-  Logger.log('✅ [Weapons] Fast email sent to: ' + data.email);
-}
 
 function weapons_generateAndSendPDF(data) {
   const ts = formatTimestamp();
