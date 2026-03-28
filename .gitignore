@@ -27,6 +27,9 @@ Thumbs.db
 *.swp
 *.swo
 .claude
+
+# Salesforce (לא שייך לפרויקט)
+.sfdx/
 # Temporary
 *.tmp
 .cache/
