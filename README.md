@@ -9,37 +9,43 @@
 
 | מודול | תיאור |
 |-------|--------|
-| 🔫 **קבלת נשק** | טופס קבלת נשק + ציוד נלווה עם חתימה דיגיטלית |
+| 🔫 **קבלת נשק** | טופס קבלת נשק + 58 פריטי ציוד נלווה עם חתימה דיגיטלית |
 | 📻 **קבלת קשר** | טופס קבלת ציוד קשר עם חתימה דיגיטלית |
-| 🔄 **העברה/זיכוי** | זיכוי ציוד — מלא או חלקי — עם PDF מצורף למייל |
+| 🔄 **העברה / זיכוי / ראש-בראש / איפסון** | העברת ציוד בין חיילים, זיכוי מלא/חלקי, השוואה, ואיפסון לגיליון נפרד |
+| 📦 **סיכום מלאי נשקים** | טבלה חיה: כל 58 פריטים × כל מסגרת + חיפוש לפי מספר מוצר |
+| 📋 **ספירת מלאי נשקייה** | GUI לספירת מלאי פיזי עם היסטוריה (מנהל בלבד) |
 | 👤 **ניהול משתמשים** | הוספה/עריכה/מחיקה של משתמשים ותפקידים |
 | 📊 **דוחות** | צפייה בכל הרשומות, סינון וייצוא |
 | 📋 **יומן ביקורת** | תיעוד כל הפעולות במערכת עם timestamps |
+| 💾 **גיבוי אוטומטי** | גיבוי יומי (08:00 + 21:00) לכל ה-Sheets כ-Excel ב-Google Drive |
 
 ---
 
 ## 🏗️ ארכיטקטורה
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (HTML)                   │
-│  index.html  │  weapons  │  radio  │  management   │
-│              └──────────────────────────────────────│
-│                    auth-client.js                   │
-│              JWT Authentication + API calls         │
-└────────────────────────┬────────────────────────────┘
-                         │ HTTPS
-                         ▼
-┌─────────────────────────────────────────────────────┐
-│            Google Apps Script (Backend)             │
-│   Auth.js │ Weapons.js │ Radio.js │ Main.js        │
-└────────────────────────┬────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────┐
-│              Google Sheets (Database)               │
-│  משתמשים │ יומן ביקורת │ נשקים │ קשר              │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                        Frontend (HTML)                       │
+│  index-secure    │  weapons-checkout  │  radio-checkout      │
+│  weapons-transfer│  weapons-inventory │  armory-count        │
+│  user-management │  audit-log                                │
+│─────────────────────────────────────────────────────────────│
+│                      auth-client.js                          │
+│              SecureAuthClient + AuthGuard (JWT)              │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ HTTPS — URLSearchParams POST
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│               Google Apps Script (Backend)                   │
+│  Main.js  │  Auth.js  │  Weapons.js  │  Radio.js            │
+│  Armory.js│  Backup.js│  Utils.js    │  Config.js           │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  Google Sheets (Database)                    │
+│  משתמשים │ יומן ביקורת │ נשקים │ קשר │ נשקייה              │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -76,19 +82,34 @@ bash init.sh
 ```
 שלב 1 — כניסה לחשבון Google (clasp login)
 שלב 2 — יצירת / חיבור פרויקט Google Apps Script
-שלב 3 — הגדרת 4 גיליונות Google Sheets
+שלב 3 — הגדרת 5 גיליונות Google Sheets (כולל נשקייה)
 שלב 4 — יצירת מפתח אבטחה JWT
 שלב 5 — העלאת הקוד ל-Google (clasp push + deploy)
 שלב 6 — יצירת .env ו-config.js
 שלב 7 — הגדרת Hosting (Netlify / Vercel / סטטי)
+שלב 8 — הפעלת גיבוי אוטומטי (backup_setupTriggers)
 ```
+
+---
+
+## ⚙️ הגדרת גיבוי אוטומטי (פעם אחת)
+
+לאחר הפריסה הראשונית, יש להפעיל את הטריגרים ב-GAS Editor **פעם אחת**:
+
+1. פתח [GAS Editor](https://script.google.com) ← בחר את הפרויקט
+2. ב-Triggers (⏰) ← Add Trigger:
+   - Function: `backup_morning` | Time-driven | Every day | Hour 8
+3. Add Trigger נוסף:
+   - Function: `backup_evening` | Time-driven | Every day | Hour 21
+
+גיבויים נשמרים ב-Drive תחת: `גיבוי / DD.MM.YYYY / גיבוי בוקר|ערב - [שם גיליון].xlsx`
 
 ---
 
 ## 🔐 אבטחה
 
-- **JWT Authentication** — כל בקשה מאומתת עם טוקן חתום
-- **תפקידים והרשאות** — Admin / Operator / Viewer / User
+- **JWT Authentication** — כל בקשה מאומתת עם טוקן חתום (תוקף: שעה)
+- **תפקידים והרשאות** — admin / sergeant
 - **אין סודות בקוד** — כל הערכים הרגישים ב-`.env` (gitignored)
 - **HTTPS בלבד** — כל התקשורת מוצפנת
 
@@ -96,10 +117,8 @@ bash init.sh
 
 | תפקיד | הרשאות |
 |--------|--------|
-| `admin` | הכל — כולל ניהול משתמשים ודוחות |
-| `operator` | קריאה, כתיבה, צפייה בדוחות |
-| `viewer` | קריאה + צפייה בדוחות בלבד |
-| `user` | כתיבה בלבד (הגשת טפסים) |
+| `admin` | הכל — כולל ניהול משתמשים, דוחות, ספירת מלאי נשקייה |
+| `sergeant` | קריאה, כתיבה, דוחות, העברות — ללא ניהול משתמשים / נשקייה |
 
 ---
 
@@ -107,62 +126,70 @@ bash init.sh
 
 ```
 gadhan/
-├── 📄 index.html                  # דף כניסה
-├── 📄 index-secure.html           # דשבורד ראשי
-├── 📄 weapons-checkout-secure.html # קבלת נשק
-├── 📄 radio-checkout-secure.html  # קבלת קשר
-├── 📄 weapons-transfer.html       # העברה / זיכוי
-├── 📄 user-management.html        # ניהול משתמשים
-├── 📄 audit-log.html              # יומן ביקורת
-├── 📄 auth-client.js              # ספריית אימות
+├── 📄 index.html                      # דף כניסה
+├── 📄 index-secure.html               # דשבורד ראשי (לפי תפקיד)
+├── 📄 weapons-checkout-secure.html    # קבלת נשק + ציוד נלווה
+├── 📄 radio-checkout-secure.html      # קבלת ציוד קשר
+├── 📄 weapons-transfer.html           # העברה / זיכוי / ראש-בראש / איפסון
+├── 📄 weapons-inventory.html          # סיכום מלאי נשקים + חיפוש מוצר
+├── 📄 armory-count.html               # ספירת מלאי נשקייה (מנהל בלבד)
+├── 📄 user-management.html            # ניהול משתמשים
+├── 📄 audit-log.html                  # יומן ביקורת
+├── 📄 auth-client.js                  # ספריית אימות (SecureAuthClient + AuthGuard)
 │
-├── 🔧 init.sh                     # אשף התקנה ראשוני
-├── 🔧 deploy.sh                   # פריסה מקומית
-├── 🔧 build.sh                    # יצירת config.js
+├── 🔧 init.sh                         # אשף התקנה ראשוני
+├── 🔧 deploy.sh                       # פריסה + commit + push
+├── 🔧 build.sh                        # יצירת config.js
 │
 ├── 📁 appScripts/unified/
-│   ├── Auth.js                    # אימות והרשאות
-│   ├── Main.js                    # ניתוב בקשות
-│   ├── Weapons.js                 # מודול נשק
-│   ├── Radio.js                   # מודול קשר
-│   ├── Config.js                  # קונפיגורציה (gitignored)
-│   └── Utils.js                   # פונקציות עזר
+│   ├── Main.js                        # ניתוב כל הבקשות (doPost / doGet)
+│   ├── Auth.js                        # אימות JWT + ניהול משתמשים
+│   ├── Weapons.js                     # מודול נשק (58 פריטים)
+│   ├── Radio.js                       # מודול קשר
+│   ├── Armory.js                      # מודול ספירת מלאי נשקייה
+│   ├── Backup.js                      # גיבוי אוטומטי ל-Drive
+│   ├── Config.js                      # קונפיגורציה (gitignored)
+│   ├── Utils.js                       # פונקציות עזר משותפות
+│   └── appsscript.json               # הגדרות GAS (scopes, timezone)
 │
-├── 📄 .env                        # סודות (gitignored)
-├── 📄 config.js                   # URL (gitignored, נוצר אוטומטית)
-├── 📄 netlify.toml                # הגדרות Netlify
-└── 📄 vercel.json                 # הגדרות Vercel
+├── 📄 .env                            # סודות (gitignored)
+├── 📄 config.js                       # URL ציבורי (gitignored, נוצר אוטומטית)
+├── 📄 LEARNING.md                     # מסמך ידע — כל הפונקציות והמבנים
+├── 📄 netlify.toml                    # הגדרות Netlify
+└── 📄 vercel.json                     # הגדרות Vercel
 ```
 
 ---
 
 ## 🔄 תהליך עבודה יומיומי
 
-לאחר ההתקנה הראשונית, לכל שינוי עתידי:
-
 ```bash
 # ערוך קבצים...
 # ואז:
-./deploy.sh
+bash deploy.sh
 ```
 
 הסקריפט יבצע אוטומטית:
 - ✅ הזרקת ערכי `.env` ל-`Config.js`
 - ✅ `clasp push` אם היו שינויים ב-GAS
-- ✅ עדכון deployment אם ה-URL השתנה
+- ✅ עדכון deployment חדש
 - ✅ `git commit + push`
 
 ---
 
 ## ☁️ Hosting
 
-המערכת תומכת בשלוש אפשרויות:
-
 | אפשרות | הגדרה |
 |--------|-------|
 | **Netlify** | חבר GitHub repo ← הוסף `GAS_URL` ב-Environment Variables |
 | **Vercel** | חבר GitHub repo ← הוסף `GAS_URL` ב-Environment Variables |
 | **סטטי** | העלה את כל קבצי ה-HTML + `config.js` לשרת |
+
+---
+
+## 📚 תיעוד מפורט
+
+ראה [`LEARNING.md`](./LEARNING.md) — מסמך ידע מלא לכל מפתח/תהליך חדש.
 
 ---
 
