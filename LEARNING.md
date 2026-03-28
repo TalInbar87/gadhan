@@ -536,5 +536,90 @@ backup_run('בוקר')  // או backup_run('ערב')
 
 ---
 
+## 11. המלצות Refactoring עתידיות
+
+> ⚠️ **לא לבצע ללא סביבת בדיקות** — שינויים אלה משפיעים על לוגיקת הליב הפנימית.
+> לכל שלב יש לבדוק ידנית: קבלת נשק, זיכוי, העברה — ב-staging לפני פרוס לייב.
+
+---
+
+### שלב א' — הושלם ✅
+**מחיקת קוד מת** (בוצע 2026-03-28):
+- `weapons_queueEmail` — נמחק
+- `weapons_sendQueuedEmails` — נמחק
+- `weapons_sendEmailFast` — נמחק
+- `weapons_addMatolHeaderToExistingSheets` — נמחק
+
+---
+
+### שלב ב' — ממתין 🔲
+**איחוד Sheet Operations ל-`Utils.js`**
+
+**הבעיה:** 4 פונקציות מוגדרות פעמיים — פעם ב-`Weapons.js` ופעם ב-`Radio.js`:
+
+| כפילות | הבדל בפועל |
+|--------|------------|
+| `weapons_saveToMainSheet` ↔ `radio_saveToMainSheet` | רק שם הגיליון |
+| `weapons_saveToUnitSheet` ↔ `radio_saveToUnitSheet` | רק שם הגיליון |
+| `weapons_createUnitSheet` ↔ `radio_createUnitSheet` | רק headers וצבע |
+| `weapons_prepareRowData` ↔ `radio_prepareRowData` | רק סדר העמודות |
+
+**הפתרון:**
+```javascript
+// Utils.js — פונקציה אחת כללית
+function saveToMainSheet(ss, data, timestamp, config, prepareFn) { ... }
+
+// Weapons.js — wrapper קצר
+function weapons_saveToMainSheet(ss, data, ts) {
+  return saveToMainSheet(ss, data, ts, CONFIG.WEAPONS, weapons_prepareRowData);
+}
+
+// Radio.js — wrapper קצר
+function radio_saveToMainSheet(ss, data, ts) {
+  return saveToMainSheet(ss, data, ts, CONFIG.RADIO, radio_prepareRowData);
+}
+```
+
+**תוצאה משוערת:** ~200 שורות פחות, תיקון באג אחד מתקן גם נשקים וגם קשר.
+
+**לפני ביצוע — לבדוק:**
+- [ ] קבלת נשק מחייל חדש (שמירה לכל הגיליונות)
+- [ ] קבלת ציוד קשר מחייל חדש
+- [ ] עדכון רשומה קיימת (שניהם)
+
+---
+
+### שלב ג' — ממתין 🔲
+**איחוד PDF Generation + Credit Operations**
+
+**הבעיה:** 8 פונקציות PDF עם מבנה HTML זהה, ו-2 פונקציות credit (weapons/radio) עם 70%+ לוגיקה משותפת.
+
+**פונקציות PDF לאיחוד:**
+- `weapons_createPdfHtml` ↔ `radio_createPdfHtml`
+- `weapons_createCreditPdfHtml` ↔ `radio_createCreditPdfHtml`
+- `weapons_createPartialCreditPdfHtml` ↔ `radio_createPartialCreditPdfHtml`
+
+**פונקציות Credit לאיחוד:**
+- `weapons_handleCredit` ↔ `radio_handleCredit`
+- `weapons_handlePartialCredit` ↔ `radio_handlePartialCredit`
+
+**הפתרון המוצע:**
+```javascript
+// Utils.js
+function createPdfHtml(type, data, timestamp, schema) {
+  // type: 'checkout' | 'credit' | 'partial_credit' | 'transfer' | 'swap'
+  // schema: { title, fields, color, itemList }
+}
+```
+
+**תוצאה משוערת:** ~550 שורות פחות (~9% מהקוד הכולל).
+
+**לפני ביצוע — לבדוק:**
+- [ ] זיכוי מלא נשק + PDF שנשלח במייל
+- [ ] זיכוי חלקי נשק + קשר
+- [ ] העברה + ראש-בראש
+
+---
+
 *מסמך זה עודכן לאחרונה: 2026-03-28*
-*גרסת מערכת: deployment @104+*
+*גרסת מערכת: deployment @106+*
