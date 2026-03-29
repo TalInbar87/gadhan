@@ -473,13 +473,12 @@
         // ============================================================
         // TAB 1 — מלאי
         // ============================================================
+        const UNITS = ['פלוגה א׳','פלוגה ב׳','פלוגה ג׳','מפג"ד','מחס"ר','ניוד','תאג"ד','הדרכה','פלס"ם','צמ"ה'];
+
         async function loadItems() {
-            const [itemsJson, unitsJson] = await Promise.all([
-                apiPost('bunker_get_items'),
-                apiPost('get_units')
-            ]);
-            if (itemsJson.statusCode === 200) bunkerItems = itemsJson.data || [];
-            if (unitsJson.statusCode === 200) populateUnitSelects(unitsJson.data || []);
+            const json = await apiPost('bunker_get_items');
+            if (json.statusCode === 200) bunkerItems = json.data || [];
+            populateUnitSelects(UNITS);
         }
 
         async function loadInventory() {
