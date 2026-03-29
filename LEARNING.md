@@ -430,6 +430,9 @@ function handleMyAction(data, request) {
 
 > ⚠️ **אין `AuthMiddleware` במערכת** — אל תשתמש בו. תמיד `JWTUtil.verify` + `Authorization.canAccessResource`.
 
+> ❌ **שגיאה נפוצה**: `CONFIG.AUTH.JWT_SECRET` — **לא קיים**. הנתיב הנכון הוא תמיד `CONFIG.JWT_SECRET`.
+> בכל handler חדש שנכתב עם `CONFIG.AUTH.JWT_SECRET` יתקבל: `TypeError: Cannot read properties of undefined (reading 'JWT_SECRET')`.
+
 ---
 
 ## 8. Config — מפתחות חשובים
