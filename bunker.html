@@ -287,6 +287,7 @@
             <button class="tab-btn active" onclick="switchTab('inventory')">📦 מלאי</button>
             <button class="tab-btn"        onclick="switchTab('dispense')">⬇️ ניפוק</button>
             <button class="tab-btn"        onclick="switchTab('credit')">⬆️ זיכוי</button>
+            <button class="tab-btn"        onclick="switchTab('transfer')">🔄 העברה</button>
         </div>
 
         <!-- ═══════════════════════════════════════
@@ -303,7 +304,19 @@
                 <div id="inventoryLoader" style="display:none; justify-content:center; padding:30px;">
                     <div class="spinner"></div>
                 </div>
-                <div class="items-grid" id="inventoryGrid"></div>
+                <div class="table-wrapper" style="margin-bottom:16px;">
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th style="text-align:right;">פריט</th>
+                                <th style="background:#1a4a1a;color:#4ade80;">נפתלי</th>
+                                <th style="background:#1a1a4a;color:#60a5fa;">בילו</th>
+                                <th style="background:#4a2a1a;color:#fb923c;">סה"כ נפוק</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody"></tbody>
+                    </table>
+                </div>
                 <div style="margin-top:20px; text-align:center;">
                     <button class="btn btn-primary" id="saveInventoryBtn" onclick="saveInventory()" style="min-width:200px;">
                         💾 שמור ספירה
@@ -437,6 +450,55 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════
+             TAB 4: העברה בין מחסנים
+        ═══════════════════════════════════════ -->
+        <div id="tab-transfer" class="tab-panel">
+            <div class="card">
+                <h2>🔄 העברה בין מחסנים</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מחסן מקור</label>
+                        <select id="transferFrom">
+                            <option value="">— בחר מחסן —</option>
+                            <option value="נפתלי">מחסן א — נפתלי</option>
+                            <option value="בילו">מחסן ב — בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>מחסן יעד</label>
+                        <select id="transferTo">
+                            <option value="">— בחר מחסן —</option>
+                            <option value="נפתלי">מחסן א — נפתלי</option>
+                            <option value="בילו">מחסן ב — בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>שם מלא</label>
+                        <input type="text" id="transferBy" placeholder="שם המעביר..." />
+                    </div>
+                </div>
+
+                <div id="transferItemsSection" style="display:none;">
+                    <p style="color:#aaa; font-size:0.85em; margin-bottom:12px;">בחר פריטים וכמויות להעברה:</p>
+                    <div class="items-grid" id="transferGrid"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-primary" id="submitTransferBtn" onclick="submitTransfer()" style="min-width:200px;">
+                            🔄 בצע העברה
+                        </button>
+                    </div>
+                </div>
+
+                <div id="transferPrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מחסן מקור ויעד כדי להמשיך
+                </div>
+
+                <div class="msg-success" id="transferSuccess"></div>
+                <div class="msg-error"   id="transferError"></div>
+            </div>
+        </div>
+
     </div><!-- /container -->
 
     <script src="config.js"></script>
@@ -517,28 +579,38 @@
 
         function renderInventoryGrid() {
             const query   = (document.getElementById('inventorySearch').value || '').toLowerCase();
-            const grid    = document.getElementById('inventoryGrid');
+            const tbody   = document.getElementById('inventoryTableBody');
             const visible = inventoryItems.filter(item => !query || item.label.includes(query));
-            if (!visible.length) { grid.innerHTML = '<div style="color:#666;grid-column:1/-1;text-align:center;padding:20px;">לא נמצאו פריטים</div>'; return; }
-            grid.innerHTML = visible.map(item => `
-                <div class="item-card" style="text-align:right;">
-                    <div class="item-name">${item.label}</div>
-                    <div style="display:flex;justify-content:space-between;margin-top:8px;gap:8px;">
-                        <div style="flex:1;background:#1a2a1a;border-radius:6px;padding:6px;text-align:center;">
-                            <div style="color:#aaa;font-size:0.7em;margin-bottom:3px;">נפתלי</div>
-                            <input type="number" min="0" id="inv_nafatli_${item.key}"
-                                   value="${item.nafatli ?? 0}"
-                                   style="width:100%;text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;background:#0d1a0d;border:1px solid #2d4a2d;border-radius:4px;padding:2px;" />
-                        </div>
-                        <div style="flex:1;background:#1a1a2a;border-radius:6px;padding:6px;text-align:center;">
-                            <div style="color:#aaa;font-size:0.7em;margin-bottom:3px;">בילו</div>
-                            <input type="number" min="0" id="inv_bilo_${item.key}"
-                                   value="${item.bilo ?? 0}"
-                                   style="width:100%;text-align:center;font-size:1.2em;font-weight:700;color:#60a5fa;background:#0d0d1a;border:1px solid #2d2d4a;border-radius:4px;padding:2px;" />
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+
+            // סה"כ נפוק לכל פריט מתוך activeDispenses
+            const dispensedMap = {};
+            activeDispenses.forEach(d => {
+                dispensedMap[d.itemKey] = (dispensedMap[d.itemKey] || 0) + (d.qty || 0);
+            });
+
+            if (!visible.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#666;padding:20px;">לא נמצאו פריטים</td></tr>';
+                return;
+            }
+            tbody.innerHTML = visible.map(item => {
+                const nafatli  = item.nafatli ?? 0;
+                const bilo     = item.bilo    ?? 0;
+                const dispensed = dispensedMap[item.key] || 0;
+                return `<tr>
+                    <td style="text-align:right;font-weight:600;color:#fff;">${item.label}</td>
+                    <td style="background:rgba(74,222,128,0.08);">
+                        <input type="number" min="0" id="inv_nafatli_${item.key}" value="${nafatli}"
+                               style="width:70px;text-align:center;font-size:1em;font-weight:700;color:#4ade80;background:#0d1a0d;border:1px solid #2d4a2d;border-radius:4px;padding:2px;" />
+                    </td>
+                    <td style="background:rgba(96,165,250,0.08);">
+                        <input type="number" min="0" id="inv_bilo_${item.key}" value="${bilo}"
+                               style="width:70px;text-align:center;font-size:1em;font-weight:700;color:#60a5fa;background:#0d0d1a;border:1px solid #2d2d4a;border-radius:4px;padding:2px;" />
+                    </td>
+                    <td style="background:rgba(251,146,60,0.08);font-weight:700;color:${dispensed > 0 ? '#fb923c' : '#444'};">
+                        ${dispensed > 0 ? dispensed : '—'}
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function filterInventoryItems() { renderInventoryGrid(); }
@@ -705,6 +777,64 @@
         // ============================================================
         // Helpers
         // ============================================================
+        // ============================================================
+        // TAB 4 — העברה בין מחסנים
+        // ============================================================
+        function onTransferWarehouseChange() {
+            const from = document.getElementById('transferFrom').value;
+            const to   = document.getElementById('transferTo').value;
+            const show = from && to && from !== to;
+            document.getElementById('transferPrompt').style.display       = show ? 'none'  : 'block';
+            document.getElementById('transferItemsSection').style.display = show ? 'block' : 'none';
+            if (show) renderTransferGrid(from);
+        }
+
+        document.getElementById('transferFrom').addEventListener('change', onTransferWarehouseChange);
+        document.getElementById('transferTo').addEventListener('change', onTransferWarehouseChange);
+
+        function renderTransferGrid(from) {
+            const grid = document.getElementById('transferGrid');
+            grid.innerHTML = inventoryItems.map(item => {
+                const stock = from === 'נפתלי' ? (item.nafatli ?? 0) : (item.bilo ?? 0);
+                const color = stock > 0 ? '#4ade80' : '#666';
+                return `
+                    <div class="item-card">
+                        <div class="item-name">${item.label}</div>
+                        <div style="color:#aaa;font-size:0.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
+                        <input type="number" min="0" max="${stock}" value="0" id="tr_${item.key}"
+                               style="text-align:center;font-size:1.2em;font-weight:700;color:#a78bfa;"
+                               ${stock === 0 ? 'disabled' : ''} />
+                    </div>`;
+            }).join('');
+        }
+
+        async function submitTransfer() {
+            const from = document.getElementById('transferFrom').value;
+            const to   = document.getElementById('transferTo').value;
+            const by   = document.getElementById('transferBy').value.trim();
+            if (!from || !to || from === to) { showMsg('transfer', false, 'יש לבחור מחסן מקור ויעד שונים'); return; }
+            if (!by) { showMsg('transfer', false, 'יש להזין שם מעביר'); return; }
+
+            const items = [];
+            inventoryItems.forEach(item => {
+                const qty = parseInt(document.getElementById('tr_' + item.key)?.value) || 0;
+                if (qty > 0) items.push({ key: item.key, label: item.label, qty });
+            });
+            if (!items.length) { showMsg('transfer', false, 'יש לבחור לפחות פריט אחד'); return; }
+
+            const btn = document.getElementById('submitTransferBtn');
+            btn.disabled = true; btn.textContent = 'מעביר...';
+            try {
+                const json = await apiPost('bunker_transfer', { from, to, by, items });
+                showMsg('transfer', json.statusCode === 200,
+                    json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) {
+                    await loadInventory();
+                    renderTransferGrid(from);
+                }
+            } finally { btn.disabled = false; btn.textContent = '🔄 בצע העברה'; }
+        }
+
         function showMsg(section, success, errText) {
             const s = document.getElementById(section + 'Success');
             const e = document.getElementById(section + 'Error');

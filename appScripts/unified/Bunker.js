@@ -267,3 +267,43 @@ function bunker_credit(data) {
 
   return { success: true, credited: credited };
 }
+
+// ================================================================
+// 6. העברה בין מחסנים
+// ================================================================
+function bunker_transfer(data) {
+  var from  = (data.from  || '').trim();
+  var to    = (data.to    || '').trim();
+  var by    = (data.by    || '').trim();
+  var items = data.items  || [];
+
+  if (!from || !to || from === to || !items.length) {
+    return { success: false, error: 'חסרים נתונים' };
+  }
+
+  var fromCol = BUNKER_WAREHOUSE_COLS[from];
+  var toCol   = BUNKER_WAREHOUSE_COLS[to];
+  if (!fromCol || !toCol) return { success: false, error: 'מחסן לא מוכר' };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var errors = [];
+
+  items.forEach(function(item) {
+    var rowIdx = bunker_findItemRow(main, item.key);
+    if (rowIdx < 0) { errors.push(item.key + ': לא נמצא'); return; }
+
+    var currentFrom = Number(main.getRange(rowIdx, fromCol).getValue()) || 0;
+    var qty         = Number(item.qty) || 0;
+    if (qty > currentFrom) { errors.push(item.label + ': אין מספיק מלאי (יש ' + currentFrom + ')'); return; }
+
+    main.getRange(rowIdx, fromCol).setValue(currentFrom - qty);
+    var currentTo = Number(main.getRange(rowIdx, toCol).getValue()) || 0;
+    main.getRange(rowIdx, toCol).setValue(currentTo + qty);
+  });
+
+  if (errors.length) return { success: false, error: errors.join(' | ') };
+  return { success: true };
+}
