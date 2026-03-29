@@ -290,7 +290,8 @@
 <div id="pageOverlay"><div class="overlay-spinner"></div></div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyBt7kUJ8_w9Tpo7I5UNYyujKv7rBkXJOfN5XByBqGJOlNHRiFkF8F9Y1N4MxGWKG9E/exec';
+const API_URL    = 'https://script.google.com/macros/s/AKfycbyBt7kUJ8_w9Tpo7I5UNYyujKv7rBkXJOfN5XByBqGJOlNHRiFkF8F9Y1N4MxGWKG9E/exec';
+const authClient = new SecureAuthClient(API_URL);
 const OVERDUE_DAYS = 14;
 
 let allRows = [];
