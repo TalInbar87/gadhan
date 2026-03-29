@@ -687,17 +687,17 @@ function handleBunkerCredit(data, request) {
 
 function handleBunkerReceive(data, request) {
   try {
-    var auth = JWTUtil.verify(data.token, CONFIG.AUTH.JWT_SECRET);
-    if (!auth.valid) return createResponse(401, 'אינך מורשה', null);
-    var result = bunker_receive({ warehouse: data.warehouse, items: data.items, by: data.by });
+    var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+    if (!payload) return createResponse(401, 'Invalid or expired token', null);
+    var result = bunker_receive({ warehouse: data.warehouse, items: data.items, by: data.by, source: data.source });
     return result.success ? createResponse(200, 'קבלה נרשמה בהצלחה', null) : createResponse(400, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerAddItem(data, request) {
   try {
-    var auth = JWTUtil.verify(data.token, CONFIG.AUTH.JWT_SECRET);
-    if (!auth.valid) return createResponse(401, 'אינך מורשה', null);
+    var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+    if (!payload) return createResponse(401, 'Invalid or expired token', null);
     var result = bunker_addItem(data.name);
     return result.success ? createResponse(200, 'פריט נוסף', null) : createResponse(400, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
@@ -705,8 +705,8 @@ function handleBunkerAddItem(data, request) {
 
 function handleBunkerTransfer(data, request) {
   try {
-    var auth = JWTUtil.verify(data.token, CONFIG.AUTH.JWT_SECRET);
-    if (!auth.valid) return createResponse(401, 'אינך מורשה', null);
+    var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+    if (!payload) return createResponse(401, 'Invalid or expired token', null);
     var result = bunker_transfer({ from: data.from, to: data.to, items: data.items, by: data.by });
     return result.success ? createResponse(200, 'העברה בוצעה בהצלחה', null) : createResponse(400, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
