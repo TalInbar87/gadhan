@@ -94,6 +94,13 @@ function doPost(e) {
       case 'apson_get':            return handleApsonGet(data, e);
       case 'apson_add':            return handleApsonAdd(data, e);
       case 'apson_remove':         return handleApsonRemove(data, e);
+      // ── Bunker ──
+      case 'bunker_get_items':     return handleBunkerGetItems(data, e);
+      case 'bunker_get_inventory': return handleBunkerGetInventory(data, e);
+      case 'bunker_save_inventory':return handleBunkerSaveInventory(data, e);
+      case 'bunker_get_dispenses': return handleBunkerGetDispenses(data, e);
+      case 'bunker_dispense':      return handleBunkerDispense(data, e);
+      case 'bunker_credit':        return handleBunkerCredit(data, e);
       default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -601,6 +608,46 @@ function handleApsonRemove(data, request) {
   } catch (e) {
     return createResponse(500, 'Error: ' + e.toString(), null);
   }
+}
+
+// ================================================================
+// Bunker Handlers
+// ================================================================
+
+function handleBunkerGetItems(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_getItems();
+  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+}
+
+function handleBunkerGetInventory(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'view_reports')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_getInventory();
+  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+}
+
+function handleBunkerSaveInventory(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_saveInventory({ counts: data.counts, by: data.by });
+  return result.success ? createResponse(200, 'ספירה נשמרה', null) : createResponse(500, result.error, null);
+}
+
+function handleBunkerGetDispenses(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_getDispenses(data.unit || null);
+  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+}
+
+function handleBunkerDispense(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_dispense({ unit: data.unit, items: data.items, by: data.by });
+  return result.success ? createResponse(200, 'ניפוק בוצע', null) : createResponse(500, result.error, null);
+}
+
+function handleBunkerCredit(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
+  var result = bunker_credit({ unit: data.unit, ids: data.ids, by: data.by });
+  return result.success ? createResponse(200, 'זיכוי בוצע — ' + result.credited + ' פריטים', null) : createResponse(500, result.error, null);
 }
 
 // ================================================================

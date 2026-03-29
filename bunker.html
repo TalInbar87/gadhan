@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בונקר — גדחה"ו קומנדו 8219</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; }
+
+        /* ── Header ── */
+        header {
+            background: linear-gradient(135deg, #ff6600 0%, #ff8c00 100%);
+            padding: 25px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255,102,0,0.3);
+            margin-bottom: 30px;
+            position: relative;
+        }
+        header h1 { color: #000; font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+        header .subtitle { color: #1a1a1a; font-size: 1em; font-weight: 600; }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.25);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: rgba(0,0,0,0.35); }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #ff6600;
+            padding-bottom: 0;
+        }
+        .tab-btn {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            transition: all 0.2s;
+            background: #2d2d2d;
+            color: #888;
+        }
+        .tab-btn.active {
+            background: #ff6600;
+            color: #000;
+        }
+        .tab-btn:hover:not(.active) { background: #3a3a3a; color: #fff; }
+
+        /* ── Tab Panels ── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Cards ── */
+        .card {
+            background: #242424;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        .card h2 {
+            color: #ff6600;
+            font-size: 1.1em;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        /* ── Form Controls ── */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+        .form-group label { color: #aaa; font-size: 0.85em; font-weight: 600; }
+        input[type="text"],
+        input[type="number"],
+        select {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        input:focus, select:focus { border-color: #ff6600; }
+        select option { background: #2d2d2d; }
+
+        /* ── Item Grid (מלאי) ── */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .item-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .item-card .item-name {
+            font-size: 0.85em;
+            color: #ccc;
+            font-weight: 600;
+        }
+        .item-card input[type="number"] {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #ff8c00;
+        }
+
+        /* ── Dispensing Table ── */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        th {
+            background: #ff6600;
+            color: #000;
+            padding: 10px 14px;
+            text-align: center;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            color: #ddd;
+        }
+        tr:nth-child(even) td { background: #1e1e1e; }
+        tr:nth-child(odd)  td { background: #242424; }
+        tr:hover td { background: #2d2d2d; }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 11px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary   { background: #ff6600; color: #000; }
+        .btn-primary:hover { background: #ff8c00; }
+        .btn-success   { background: #15803d; color: #fff; }
+        .btn-success:hover { background: #166534; }
+        .btn-danger    { background: #dc2626; color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #444; color: #fff; }
+        .btn-secondary:hover { background: #555; }
+        .btn:disabled  { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Status Messages ── */
+        .msg-success {
+            background: rgba(21,128,61,0.2);
+            border: 1px solid #15803d;
+            color: #4ade80;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            display: none;
+        }
+        .msg-error {
+            background: rgba(220,38,38,0.2);
+            border: 1px solid #dc2626;
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* ── Summary badge ── */
+        .badge {
+            display: inline-block;
+            background: rgba(255,102,0,0.15);
+            border: 1px solid #ff6600;
+            color: #ff8c00;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        /* ── Loading ── */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999;
+        }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 5px solid #333;
+            border-top-color: #ff6600;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Search ── */
+        .search-box {
+            background: #1a1a1a;
+            border: 2px solid #ff6600;
+            border-radius: 10px;
+            color: #fff;
+            padding: 10px 16px;
+            font-size: 0.95em;
+            outline: none;
+            width: 100%;
+            max-width: 320px;
+        }
+        .search-box::placeholder { color: #666; }
+
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.4em; }
+            .back-btn { position: static; margin-bottom: 10px; }
+            .tab-btn { padding: 8px 14px; font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container" id="mainContent" style="display:none;">
+
+        <header>
+            <a href="index-secure.html" class="back-btn">← חזרה</a>
+            <h1>🏗️ בונקר</h1>
+            <div class="subtitle">ניהול מלאי, ניפוק וזיכוי לפי מסגרת</div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('inventory')">📦 מלאי</button>
+            <button class="tab-btn"        onclick="switchTab('dispense')">⬇️ ניפוק</button>
+            <button class="tab-btn"        onclick="switchTab('credit')">⬆️ זיכוי</button>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             TAB 1: מלאי — ספירת מלאי
+        ═══════════════════════════════════════ -->
+        <div id="tab-inventory" class="tab-panel active">
+            <div class="card">
+                <h2>📦 ספירת מלאי נוכחי</h2>
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                    <input type="text" class="search-box" id="inventorySearch" placeholder="🔍 סינון פריט..." oninput="filterInventoryItems()" />
+                    <span class="badge" id="inventoryBadge">טוען...</span>
+                    <button class="btn btn-secondary" onclick="loadInventory()">↻ רענן</button>
+                </div>
+                <div class="items-grid" id="inventoryGrid">
+                    <div style="color:#666; grid-column:1/-1; text-align:center; padding:30px;">טוען מלאי...</div>
+                </div>
+                <div style="margin-top:20px; text-align:center;">
+                    <button class="btn btn-primary" id="saveInventoryBtn" onclick="saveInventory()" style="min-width:200px;">
+                        💾 שמור ספירה
+                    </button>
+                </div>
+                <div class="msg-success" id="inventorySuccess">✅ ספירת מלאי נשמרה בהצלחה.</div>
+                <div class="msg-error"   id="inventoryError"></div>
+            </div>
+
+            <!-- היסטוריית ספירות -->
+            <div class="card">
+                <h2>📋 ספירה אחרונה</h2>
+                <div id="lastCountInfo" style="color:#888;">טוען...</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             TAB 2: ניפוק
+        ═══════════════════════════════════════ -->
+        <div id="tab-dispense" class="tab-panel">
+            <div class="card">
+                <h2>⬇️ ניפוק לפי מסגרת</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מסגרת</label>
+                        <select id="dispenseUnit">
+                            <option value="">— בחר מסגרת —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>מנפק (שם + תפקיד)</label>
+                        <input type="text" id="dispenseBy" placeholder="שם המנפק..." />
+                    </div>
+                </div>
+
+                <div id="dispenseItemsSection" style="display:none;">
+                    <p style="color:#aaa; font-size:0.85em; margin-bottom:12px;">בחר פריטים וכמויות לניפוק:</p>
+                    <div class="items-grid" id="dispenseGrid"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-success" id="submitDispenseBtn" onclick="submitDispense()" style="min-width:200px;">
+                            ✅ בצע ניפוק
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dispensePrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מסגרת כדי להמשיך
+                </div>
+
+                <div class="msg-success" id="dispenseSuccess"></div>
+                <div class="msg-error"   id="dispenseError"></div>
+            </div>
+
+            <!-- ניפוקים פעילים -->
+            <div class="card">
+                <h2>📋 ניפוקים פעילים</h2>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <select id="filterDispenseUnit" onchange="loadActiveDispenses()">
+                        <option value="">כל המסגרות</option>
+                    </select>
+                </div>
+                <div class="table-wrapper">
+                    <table id="activeDispensesTable">
+                        <thead>
+                            <tr>
+                                <th>תאריך</th>
+                                <th>מסגרת</th>
+                                <th>פריט</th>
+                                <th>כמות</th>
+                                <th>מנפק</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeDispensesBody">
+                            <tr><td colspan="5" style="color:#666;">טוען...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             TAB 3: זיכוי
+        ═══════════════════════════════════════ -->
+        <div id="tab-credit" class="tab-panel">
+            <div class="card">
+                <h2>⬆️ זיכוי לפי מסגרת</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מסגרת</label>
+                        <select id="creditUnit" onchange="loadUnitDispenses()">
+                            <option value="">— בחר מסגרת —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>מזכה (שם + תפקיד)</label>
+                        <input type="text" id="creditBy" placeholder="שם המזכה..." />
+                    </div>
+                </div>
+
+                <div id="creditItemsSection" style="display:none;">
+                    <p style="color:#aaa; font-size:0.85em; margin-bottom:12px;">בחר פריטים להחזרה:</p>
+                    <div id="creditItemsList"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-danger" id="submitCreditBtn" onclick="submitCredit()" style="min-width:200px;">
+                            ↩️ בצע זיכוי
+                        </button>
+                    </div>
+                </div>
+
+                <div id="creditPrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מסגרת כדי לראות ניפוקים פעילים
+                </div>
+
+                <div class="msg-success" id="creditSuccess"></div>
+                <div class="msg-error"   id="creditError"></div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <script src="config.js"></script>
+    <script src="auth-client.js"></script>
+    <script>
+        // ============================================================
+        // AUTH
+        // ============================================================
+        const authClient = new SecureAuthClient(API_URL);
+        const authGuard  = new AuthGuard(authClient, 'write');
+
+        // ── State ──
+        let bunkerItems    = [];   // רשימת הפריטים מה-GAS
+        let inventoryState = {};   // { itemKey: quantity }
+        let activeDispenses = [];  // ניפוקים פעילים
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            const ok = await authGuard.checkAuth();
+            if (!ok) return;
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('mainContent').style.display    = 'block';
+            await Promise.all([loadItems(), loadInventory(), loadActiveDispenses()]);
+        });
+
+        // ============================================================
+        // TABS
+        // ============================================================
+        function switchTab(name) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ============================================================
+        // API Helper
+        // ============================================================
+        async function apiPost(action, payload = {}) {
+            const p = new URLSearchParams();
+            p.append('data', JSON.stringify({ action, token: authClient.token, ...payload }));
+            const res  = await fetch(API_URL, { method: 'POST', body: p });
+            return res.json();
+        }
+
+        // ============================================================
+        // TAB 1 — מלאי
+        // ============================================================
+        async function loadItems() {
+            const json = await apiPost('bunker_get_items');
+            if (json.statusCode === 200) {
+                bunkerItems = json.data || [];
+                populateUnitSelects();
+            }
+        }
+
+        async function loadInventory() {
+            const json = await apiPost('bunker_get_inventory');
+            if (json.statusCode === 200) {
+                inventoryState = json.data.counts  || {};
+                const last     = json.data.lastCount;
+                renderInventoryGrid();
+                document.getElementById('lastCountInfo').innerHTML = last
+                    ? `<span style="color:#aaa;">ספירה אחרונה: </span><strong>${last.timestamp}</strong> — בוצע ע"י <strong>${last.by}</strong>`
+                    : '<span style="color:#666;">לא נמצאה ספירה קודמת</span>';
+                document.getElementById('inventoryBadge').textContent = bunkerItems.length + ' פריטים';
+            }
+        }
+
+        function renderInventoryGrid() {
+            const query = (document.getElementById('inventorySearch').value || '').toLowerCase();
+            const grid  = document.getElementById('inventoryGrid');
+            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
+            if (!visible.length) { grid.innerHTML = '<div style="color:#666;grid-column:1/-1;text-align:center;padding:20px;">לא נמצאו פריטים</div>'; return; }
+            grid.innerHTML = visible.map(item => `
+                <div class="item-card">
+                    <div class="item-name">${item.label}</div>
+                    <input type="number" min="0" id="inv_${item.key}"
+                           value="${inventoryState[item.key] || 0}"
+                           style="text-align:center;font-size:1.2em;font-weight:700;color:#ff8c00;" />
+                </div>
+            `).join('');
+        }
+
+        function filterInventoryItems() { renderInventoryGrid(); }
+
+        async function saveInventory() {
+            const counts = {};
+            bunkerItems.forEach(item => {
+                const el = document.getElementById('inv_' + item.key);
+                if (el) counts[item.key] = parseInt(el.value) || 0;
+            });
+            const btn = document.getElementById('saveInventoryBtn');
+            btn.disabled = true; btn.textContent = 'שומר...';
+            try {
+                const json = await apiPost('bunker_save_inventory', { counts, by: authClient.user.username });
+                showMsg('inventory', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) await loadInventory();
+            } finally { btn.disabled = false; btn.textContent = '💾 שמור ספירה'; }
+        }
+
+        // ============================================================
+        // TAB 2 — ניפוק
+        // ============================================================
+        function populateUnitSelects() {
+            // TODO: כשה-GAS יחזיר רשימת מסגרות — נמלא כאן
+            // כרגע — מסגרות קבועות. אפשר למשוך מה-users sheet
+        }
+
+        document.getElementById('dispenseUnit').addEventListener('change', function() {
+            const val = this.value;
+            document.getElementById('dispensePrompt').style.display       = val ? 'none'  : 'block';
+            document.getElementById('dispenseItemsSection').style.display = val ? 'block' : 'none';
+            if (val) renderDispenseGrid();
+        });
+
+        function renderDispenseGrid() {
+            const grid = document.getElementById('dispenseGrid');
+            grid.innerHTML = bunkerItems.map(item => `
+                <div class="item-card">
+                    <div class="item-name">${item.label}</div>
+                    <input type="number" min="0" value="0" id="disp_${item.key}" style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;" />
+                </div>
+            `).join('');
+        }
+
+        async function submitDispense() {
+            const unit = document.getElementById('dispenseUnit').value;
+            const by   = document.getElementById('dispenseBy').value.trim();
+            if (!unit) { showMsg('dispense', false, 'יש לבחור מסגרת'); return; }
+            if (!by)   { showMsg('dispense', false, 'יש להזין שם מנפק'); return; }
+
+            const items = [];
+            bunkerItems.forEach(item => {
+                const qty = parseInt(document.getElementById('disp_' + item.key)?.value) || 0;
+                if (qty > 0) items.push({ key: item.key, label: item.label, qty });
+            });
+            if (!items.length) { showMsg('dispense', false, 'יש לבחור לפחות פריט אחד'); return; }
+
+            const btn = document.getElementById('submitDispenseBtn');
+            btn.disabled = true; btn.textContent = 'מנפק...';
+            try {
+                const json = await apiPost('bunker_dispense', { unit, by, items });
+                showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) { renderDispenseGrid(); await loadActiveDispenses(); }
+            } finally { btn.disabled = false; btn.textContent = '✅ בצע ניפוק'; }
+        }
+
+        async function loadActiveDispenses() {
+            const json = await apiPost('bunker_get_dispenses');
+            if (json.statusCode === 200) {
+                activeDispenses = json.data || [];
+                renderActiveDispenses();
+            }
+        }
+
+        function renderActiveDispenses() {
+            const filterUnit = document.getElementById('filterDispenseUnit').value;
+            const tbody = document.getElementById('activeDispensesBody');
+            const rows = filterUnit ? activeDispenses.filter(r => r.unit === filterUnit) : activeDispenses;
+            if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:#666;">אין ניפוקים פעילים</td></tr>'; return; }
+            tbody.innerHTML = rows.map(r => `
+                <tr>
+                    <td>${r.timestamp}</td>
+                    <td>${r.unit}</td>
+                    <td>${r.itemLabel}</td>
+                    <td style="color:#ff8c00;font-weight:700;">${r.qty}</td>
+                    <td>${r.by}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ============================================================
+        // TAB 3 — זיכוי
+        // ============================================================
+        async function loadUnitDispenses() {
+            const unit = document.getElementById('creditUnit').value;
+            document.getElementById('creditPrompt').style.display       = unit ? 'none'  : 'block';
+            document.getElementById('creditItemsSection').style.display = unit ? 'block' : 'none';
+            if (!unit) return;
+
+            const json = await apiPost('bunker_get_dispenses', { unit });
+            if (json.statusCode !== 200 || !json.data.length) {
+                document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין ניפוקים פעילים למסגרת זו</p>';
+                return;
+            }
+
+            const items = json.data;
+            document.getElementById('creditItemsList').innerHTML = items.map(r => `
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;cursor:pointer;">
+                    <input type="checkbox" class="credit-cb" data-id="${r.id}" data-item="${r.itemLabel}" data-qty="${r.qty}"
+                           style="width:18px;height:18px;accent-color:#dc2626;" />
+                    <span style="flex:1;color:#fff;font-weight:600;">${r.itemLabel}</span>
+                    <span style="color:#ff8c00;font-weight:700;font-size:1.1em;">${r.qty}</span>
+                    <span style="color:#888;font-size:0.8em;">${r.timestamp}</span>
+                </label>
+            `).join('');
+        }
+
+        async function submitCredit() {
+            const unit    = document.getElementById('creditUnit').value;
+            const by      = document.getElementById('creditBy').value.trim();
+            const checked = [...document.querySelectorAll('.credit-cb:checked')];
+            if (!unit)            { showMsg('credit', false, 'יש לבחור מסגרת'); return; }
+            if (!by)              { showMsg('credit', false, 'יש להזין שם מזכה'); return; }
+            if (!checked.length)  { showMsg('credit', false, 'יש לסמן לפחות פריט אחד'); return; }
+
+            const ids = checked.map(cb => cb.dataset.id);
+            const btn = document.getElementById('submitCreditBtn');
+            btn.disabled = true; btn.textContent = 'מזכה...';
+            try {
+                const json = await apiPost('bunker_credit', { unit, by, ids });
+                showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${ids.length} פריטים` : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) { await loadUnitDispenses(); await loadActiveDispenses(); }
+            } finally { btn.disabled = false; btn.textContent = '↩️ בצע זיכוי'; }
+        }
+
+        // ============================================================
+        // Helpers
+        // ============================================================
+        function showMsg(section, success, errText) {
+            const s = document.getElementById(section + 'Success');
+            const e = document.getElementById(section + 'Error');
+            if (success) {
+                s.style.display = 'block';
+                e.style.display = 'none';
+                setTimeout(() => { s.style.display = 'none'; }, 4000);
+            } else {
+                e.style.display  = 'block';
+                e.textContent    = '❌ ' + errText;
+                s.style.display  = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

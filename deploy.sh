@@ -45,6 +45,11 @@ if [ -z "$SHEET_ARMORY" ]; then
   SHEET_ARMORY='1FP0Iz2I1971updRT4G7MR7xytwjaMg8ngOi5dvPdZSo'
 fi
 
+# SHEET_BUNKER is optional (new sheet)
+if [ -z "$SHEET_BUNKER" ]; then
+  SHEET_BUNKER='1W-MGx1y39iB_0-b3WqHu9AxM4jrI7rdNDhtnPFXiwng'
+fi
+
 echo "📋 Using deployment: $GAS_DEPLOYMENT_ID"
 
 # ────────────────────────────────────────────────
@@ -94,6 +99,7 @@ content = re.sub(r"AUDIT_LOG:\s*'[^']*'",     "AUDIT_LOG: '$SHEET_AUDIT_LOG'",  
 content = re.sub(r"WEAPONS:\s*'[^']*'",       "WEAPONS:   '$SHEET_WEAPONS'",        content)
 content = re.sub(r"RADIO:\s*'[^']*'",         "RADIO:     '$SHEET_RADIO'",          content)
 content = re.sub(r"ARMORY:\s*'[^']*'",        "ARMORY:    '$SHEET_ARMORY'",         content)
+content = re.sub(r"BUNKER:\s*'[^']*'",        "BUNKER:    '$SHEET_BUNKER'",         content)
 import os
 content = re.sub(r"GADHAN:\s*'[^']*'",        "GADHAN:      '" + os.environ.get('GADHAN_EMAIL','') + "'",   content)
 content = re.sub(r"RELAY_URL_2:\s*'[^']*'",   "RELAY_URL_2: '" + os.environ.get('RELAY_URL_2','')  + "'",  content)

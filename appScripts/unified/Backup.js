@@ -25,7 +25,8 @@ function backup_evening() { backup_run('ערב');  }
 function backup_run(timeLabel) {
   var sheetList = [
     { id: CONFIG.SHEETS.WEAPONS, name: 'נשקים'  },
-    { id: CONFIG.SHEETS.ARMORY,  name: 'נשקייה' }
+    { id: CONFIG.SHEETS.ARMORY,  name: 'נשקייה' },
+    { id: CONFIG.SHEETS.BUNKER,  name: 'בונקר'  }
   ];
 
   var tz      = CONFIG.TIMEZONE;
