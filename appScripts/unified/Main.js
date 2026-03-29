@@ -626,39 +626,60 @@ function handleGetUnits(data, request) {
 // ================================================================
 
 function handleBunkerGetItems(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_getItems();
-  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_getItems();
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerGetInventory(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'view_reports')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_getInventory();
-  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_getInventory();
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerSaveInventory(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_saveInventory({ counts: data.counts, by: data.by });
-  return result.success ? createResponse(200, 'ספירה נשמרה', null) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'Insufficient permissions', null);
+  try {
+    var result = bunker_saveInventory({ counts: data.counts, by: data.by });
+    return result.success ? createResponse(200, 'ספירה נשמרה', null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerGetDispenses(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_getDispenses(data.unit || null);
-  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_getDispenses(data.unit || null);
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerDispense(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_dispense({ unit: data.unit, items: data.items, by: data.by });
-  return result.success ? createResponse(200, 'ניפוק בוצע', null) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'Insufficient permissions', null);
+  try {
+    var result = bunker_dispense({ warehouse: data.warehouse, unit: data.unit, items: data.items, by: data.by });
+    return result.success ? createResponse(200, 'ניפוק בוצע', null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 function handleBunkerCredit(data, request) {
-  if (!AuthMiddleware.requirePermission(data, 'write')) return createResponse(403, 'אין הרשאה', null);
-  var result = bunker_credit({ unit: data.unit, ids: data.ids, by: data.by });
-  return result.success ? createResponse(200, 'זיכוי בוצע — ' + result.credited + ' פריטים', null) : createResponse(500, result.error, null);
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'Insufficient permissions', null);
+  try {
+    var result = bunker_credit({ ids: data.ids, by: data.by });
+    return result.success ? createResponse(200, 'זיכוי בוצע — ' + result.credited + ' פריטים', null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
 // ================================================================
