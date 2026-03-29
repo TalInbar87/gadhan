@@ -249,12 +249,9 @@
       .stat-card .num { font-size: 16px; }
       .stat-card .lbl { font-size: 10px; }
 
-      /* Hide: # | מספר אישי | טלפון | מייל | צוות */
+      /* Hide: # | צוות */
       th:nth-child(1), td:nth-child(1),
-      th:nth-child(3), td:nth-child(3),
-      th:nth-child(4), td:nth-child(4),
-      th:nth-child(5), td:nth-child(5),
-      th:nth-child(6), td:nth-child(6) { display: none; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
 
       /* Keep: שם מלא | אופטיקה | נשק | פעולות */
       th, td { padding: 7px 6px; font-size: 12px; }
@@ -304,9 +301,6 @@
         <tr>
           <th>#</th>
           <th>שם מלא</th>
-          <th>מספר אישי</th>
-          <th>טלפון</th>
-          <th>מייל</th>
           <th>צוות</th>
           <th>בדיקת אופטיקה אחרונה</th>
           <th>בדיקת נשק אחרונה</th>
@@ -389,14 +383,11 @@ function renderTable(rows) {
   let html = '';
   let counter = 1;
   teamOrder.forEach(team => {
-    html += `<tr class="team-row"><td colspan="9">👥 ${team}</td></tr>`;
+    html += `<tr class="team-row"><td colspan="6">👥 ${team}</td></tr>`;
     byTeam[team].forEach(r => {
       html += `<tr>
         <td>${counter++}</td>
         <td>${r.name}</td>
-        <td>${r.pn}</td>
-        <td>${r.phone}</td>
-        <td>${r.email}</td>
         <td>${r.team}</td>
         <td>${dateCellHtml(r.lastOptics)}</td>
         <td>${dateCellHtml(r.lastWeapon)}</td>
