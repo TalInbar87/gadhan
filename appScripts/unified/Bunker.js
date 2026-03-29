@@ -120,6 +120,28 @@ function bunker_getInventory() {
 }
 
 // ================================================================
+// 2b. שמור מלאי — עדכן עמודות B (נפתלי) ו-C (בילו) בגליון מלאים
+// ================================================================
+function bunker_saveInventory(data) {
+  if (!data || (!data.nafatli && !data.bilo)) return { success: false, error: 'חסרים נתונים' };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var rows = main.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    var key = String(rows[i][0] || '').trim();
+    if (!key) continue;
+    if (data.nafatli && data.nafatli[key] !== undefined)
+      main.getRange(i + 1, 2).setValue(Number(data.nafatli[key]) || 0);
+    if (data.bilo && data.bilo[key] !== undefined)
+      main.getRange(i + 1, 3).setValue(Number(data.bilo[key]) || 0);
+  }
+  return { success: true };
+}
+
+// ================================================================
 // 3. ניפוק — רשום עסקה + עדכן גליון מלאים
 // ================================================================
 function bunker_dispense(data) {
