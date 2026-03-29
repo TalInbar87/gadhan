@@ -292,6 +292,7 @@
 <script>
 const API_URL    = 'https://script.google.com/macros/s/AKfycbyBt7kUJ8_w9Tpo7I5UNYyujKv7rBkXJOfN5XByBqGJOlNHRiFkF8F9Y1N4MxGWKG9E/exec';
 const authClient = new SecureAuthClient(API_URL);
+const authGuard  = new AuthGuard(authClient);
 const OVERDUE_DAYS = 14;
 
 let allRows = [];
@@ -453,12 +454,8 @@ async function loadData() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await authClient.init();
-  if (!authClient.isAuthenticated()) {
-    window.location.href = 'login.html';
-    return;
-  }
-  await loadData();
+  const ok = await authGuard.checkAuth();
+  if (ok) await loadData();
 });
 </script>
 </body>
