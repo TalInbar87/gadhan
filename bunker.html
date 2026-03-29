@@ -592,6 +592,7 @@
         let inventoryState = {};   // { itemKey: quantity }
         let activeDispenses = [];  // ניפוקים פעילים
         let dispenseValues  = {};  // שמירת ערכי ניפוק בין סינונים
+        let receiveValues   = {};  // שמירת ערכי קבלות בין סינונים
 
         // ============================================================
         // INIT
@@ -615,7 +616,7 @@
             if (name === 'inventory') loadInventory();
             if (name === 'dispense')  { dispenseValues = {}; loadInventory(); loadActiveDispenses(); }
             if (name === 'transfer')  loadInventory();
-            if (name === 'receive')   loadInventory();
+            if (name === 'receive')   { receiveValues = {}; loadInventory(); }
         }
 
         // ============================================================
@@ -864,17 +865,13 @@
         });
 
         function renderReceiveGrid() {
-            const query = (document.getElementById('receiveSearch')?.value || '').toLowerCase();
-            const saved = {};
-            inventoryItems.forEach(item => {
-                const el = document.getElementById('rec_' + item.key);
-                if (el && parseInt(el.value) > 0) saved[item.key] = el.value;
-            });
+            const query   = (document.getElementById('receiveSearch')?.value || '').toLowerCase();
             const visible = inventoryItems.filter(item => !query || item.label.includes(query));
             document.getElementById('receiveGrid').innerHTML = visible.map(item => `
                 <div class="item-card">
                     <div class="item-name">${item.label}</div>
-                    <input type="number" min="0" value="${saved[item.key] || 0}" id="rec_${item.key}"
+                    <input type="number" min="0" value="${receiveValues[item.key] || 0}" id="rec_${item.key}"
+                           oninput="receiveValues['${item.key}']=+this.value"
                            style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;" />
                 </div>`).join('');
         }
@@ -887,7 +884,7 @@
             if (!by)        { showMsg('receive', false, 'יש להזין שם מקבל'); return; }
             const items = [];
             inventoryItems.forEach(item => {
-                const qty = parseInt(document.getElementById('rec_' + item.key)?.value) || 0;
+                const qty = receiveValues[item.key] || 0;
                 if (qty > 0) items.push({ key: item.key, label: item.label, qty });
             });
             if (!items.length) { showMsg('receive', false, 'יש להזין כמות לפחות לפריט אחד'); return; }
@@ -897,7 +894,7 @@
                 const json = await apiPost('bunker_receive', { warehouse, by, source, items });
                 showMsg('receive', json.statusCode === 200,
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { await loadInventory(); renderReceiveGrid(); }
+                if (json.statusCode === 200) { receiveValues = {}; await loadInventory(); renderReceiveGrid(); }
             } finally { btn.disabled = false; btn.textContent = '📥 אשר קבלה'; }
         }
 
