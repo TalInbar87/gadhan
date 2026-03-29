@@ -328,6 +328,14 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label>מחסן</label>
+                        <select id="dispenseWarehouse">
+                            <option value="">— בחר מחסן —</option>
+                            <option value="נפתלי">מחסן א — נפתלי</option>
+                            <option value="בילו">מחסן ב — בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>מסגרת</label>
                         <select id="dispenseUnit">
                             <option value="">— בחר מסגרת —</option>
@@ -473,7 +481,8 @@
         // ============================================================
         // TAB 1 — מלאי
         // ============================================================
-        const UNITS = ['פלוגה א׳','פלוגה ב׳','פלוגה ג׳','מפג"ד','מחס"ר','ניוד','תאג"ד','הדרכה','פלס"ם','צמ"ה'];
+        const UNITS = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+        const WAREHOUSES = [{ value: 'נפתלי', label: 'מחסן א — נפתלי' }, { value: 'בילו', label: 'מחסן ב — בילו' }];
 
         async function loadItems() {
             const json = await apiPost('bunker_get_items');
@@ -556,10 +565,12 @@
         }
 
         async function submitDispense() {
-            const unit = document.getElementById('dispenseUnit').value;
-            const by   = document.getElementById('dispenseBy').value.trim();
-            if (!unit) { showMsg('dispense', false, 'יש לבחור מסגרת'); return; }
-            if (!by)   { showMsg('dispense', false, 'יש להזין שם מנפק'); return; }
+            const warehouse = document.getElementById('dispenseWarehouse').value;
+            const unit      = document.getElementById('dispenseUnit').value;
+            const by        = document.getElementById('dispenseBy').value.trim();
+            if (!warehouse) { showMsg('dispense', false, 'יש לבחור מחסן'); return; }
+            if (!unit)      { showMsg('dispense', false, 'יש לבחור מסגרת'); return; }
+            if (!by)        { showMsg('dispense', false, 'יש להזין שם מנפק'); return; }
 
             const items = [];
             bunkerItems.forEach(item => {
@@ -571,7 +582,7 @@
             const btn = document.getElementById('submitDispenseBtn');
             btn.disabled = true; btn.textContent = 'מנפק...';
             try {
-                const json = await apiPost('bunker_dispense', { unit, by, items });
+                const json = await apiPost('bunker_dispense', { warehouse, unit, by, items });
                 showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { renderDispenseGrid(); await loadActiveDispenses(); }
             } finally { btn.disabled = false; btn.textContent = '✅ בצע ניפוק'; }

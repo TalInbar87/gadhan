@@ -2,22 +2,40 @@
  * ================================================================
  * Bunker Module — מודול בונקר
  * ================================================================
- * גיליון: CONFIG.SHEETS.BUNKER
- * טאבים:
- *   פריטים   — A=key | B=label
- *   מלאי     — A=timestamp | B=by | C=counts_json
- *   ניפוקים  — A=id | B=timestamp | C=unit | D=key | E=label | F=qty | G=by | H=status | I=credited_at | J=credited_by
+ * גליון "מלאים" (CONFIG.SHEETS.BUNKER):
+ *   שורה 1 = headers
+ *   A = שם פריט
+ *   B = מחסן א — נפתלי (מלאי נוכחי)
+ *   C = מחסן ב — בילו  (מלאי נוכחי)
+ *   D = פלוגה א | E = פלוגה ב | F = פלוגה ג | G = צמה
+ *   H = ניוד | I = מחסר | J = חפק
+ *   K = סה"כ נופק מנפתלי | L = סה"כ נופק מבילו
  *
- * status: 'פעיל' | 'זוכה'
+ * גליון "ניפוקים" (היסטוריית עסקאות):
+ *   A=id | B=timestamp | C=warehouse | D=unit | E=item | F=qty
+ *   G=by | H=status (פעיל/זוכה) | I=credited_at | J=credited_by
  * ================================================================
  */
 
-// ── עזר: פתח גיליון בונקר ──
+// ── מיפוי עמודות (1-indexed לשימוש ב-getRange) ──
+var BUNKER_WAREHOUSE_COLS = { 'נפתלי': 2, 'בילו': 3 };
+var BUNKER_UNIT_COLS = {
+  'פלוגה א': 4,
+  'פלוגה ב': 5,
+  'פלוגה ג': 6,
+  'צמה':     7,
+  'ניוד':    8,
+  'מחסר':    9,
+  'חפק':    10
+};
+var BUNKER_TOTAL_COLS = { 'נפתלי': 11, 'בילו': 12 };
+
+// ── עזר: פתח גליון ──
 function bunker_ss() {
   return SpreadsheetApp.openById(CONFIG.SHEETS.BUNKER);
 }
 
-// ── עזר: צור טאב אם לא קיים ──
+// ── עזר: צור גליון אם לא קיים ──
 function bunker_ensureSheet(ss, name, headers) {
   var sh = ss.getSheetByName(name);
   if (!sh) {
@@ -43,77 +61,133 @@ function bunker_ts() {
   return Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'dd/MM/yyyy HH:mm');
 }
 
+// ── עזר: מצא שורה לפי שם פריט בגליון מלאים ──
+function bunker_findItemRow(sheet, itemName) {
+  var rows = sheet.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0] || '').trim() === itemName.trim()) return i + 1; // 1-indexed
+  }
+  return -1;
+}
+
 // ================================================================
-// 1. פריטים — קרא רשימת פריטים
+// 1. קרא רשימת פריטים מגליון מלאים
 // ================================================================
 function bunker_getItems() {
-  var ss = bunker_ss();
-  bunker_ensureSheet(ss, CONFIG.BUNKER.ITEMS_SHEET, ['key', 'label']);
-  var sh   = ss.getSheetByName(CONFIG.BUNKER.ITEMS_SHEET);
-  var rows = sh.getDataRange().getValues();
+  var ss   = bunker_ss();
+  var sh   = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!sh) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var rows  = sh.getDataRange().getValues();
   var items = [];
   for (var i = 1; i < rows.length; i++) {
-    var key   = String(rows[i][0] || '').trim();
-    var label = String(rows[i][1] || '').trim();
-    if (key && label) items.push({ key: key, label: label });
+    var name = String(rows[i][0] || '').trim();
+    if (name) items.push({ key: name, label: name });
   }
   return { success: true, data: items };
 }
 
 // ================================================================
-// 2. מלאי — קרא ספירה אחרונה
+// 2. קרא מלאי נוכחי (נפתלי + בילו + כמויות לפי מסגרת)
 // ================================================================
 function bunker_getInventory() {
   var ss = bunker_ss();
-  bunker_ensureSheet(ss, CONFIG.BUNKER.INVENTORY_SHEET, ['תאריך', 'בוצע ע"י', 'ספירה (JSON)']);
-  var sh   = ss.getSheetByName(CONFIG.BUNKER.INVENTORY_SHEET);
-  var rows = sh.getDataRange().getValues();
+  var sh = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!sh) return { success: false, error: 'גליון מלאים לא נמצא' };
 
-  var lastCount = null;
-  var counts    = {};
+  var rows  = sh.getDataRange().getValues();
+  var items = [];
 
-  if (rows.length > 1) {
-    var last = rows[rows.length - 1];
-    try {
-      counts    = JSON.parse(last[2] || '{}');
-      lastCount = { timestamp: last[0], by: last[1] };
-    } catch (e) { counts = {}; }
+  for (var i = 1; i < rows.length; i++) {
+    var name = String(rows[i][0] || '').trim();
+    if (!name) continue;
+    var entry = {
+      label:    name,
+      key:      name,
+      nafatli:  Number(rows[i][1]) || 0,
+      bilo:     Number(rows[i][2]) || 0,
+      units:    {},
+      totalNafatli: Number(rows[i][10]) || 0,
+      totalBilo:    Number(rows[i][11]) || 0
+    };
+    Object.keys(BUNKER_UNIT_COLS).forEach(function(unit) {
+      entry.units[unit] = Number(rows[i][BUNKER_UNIT_COLS[unit] - 1]) || 0;
+    });
+    items.push(entry);
   }
-
-  return { success: true, data: { counts: counts, lastCount: lastCount } };
+  return { success: true, data: items };
 }
 
 // ================================================================
-// 3. מלאי — שמור ספירה חדשה
+// 3. ניפוק — רשום עסקה + עדכן גליון מלאים
 // ================================================================
-function bunker_saveInventory(data) {
-  if (!data || !data.counts) return { success: false, error: 'חסרים נתונים' };
-  var ss = bunker_ss();
-  var sh = bunker_ensureSheet(ss, CONFIG.BUNKER.INVENTORY_SHEET, ['תאריך', 'בוצע ע"י', 'ספירה (JSON)']);
-  sh.appendRow([bunker_ts(), data.by || 'לא ידוע', JSON.stringify(data.counts)]);
-  return { success: true };
+function bunker_dispense(data) {
+  if (!data || !data.warehouse || !data.unit || !data.items || !data.items.length)
+    return { success: false, error: 'חסרים נתונים לניפוק' };
+
+  var warehouseCol = BUNKER_WAREHOUSE_COLS[data.warehouse];
+  var unitCol      = BUNKER_UNIT_COLS[data.unit];
+  var totalCol     = BUNKER_TOTAL_COLS[data.warehouse];
+
+  if (!warehouseCol) return { success: false, error: 'מחסן לא מזוהה: ' + data.warehouse };
+  if (!unitCol)      return { success: false, error: 'מסגרת לא מזוהה: ' + data.unit };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var disp = bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
+    ['מזהה', 'תאריך', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
+
+  var ts      = bunker_ts();
+  var errors  = [];
+
+  data.items.forEach(function(item) {
+    var rowIdx = bunker_findItemRow(main, item.key);
+    if (rowIdx === -1) { errors.push('פריט לא נמצא: ' + item.key); return; }
+
+    var qty = Number(item.qty) || 0;
+
+    // הפחת ממלאי המחסן
+    var currentStock = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
+    main.getRange(rowIdx, warehouseCol).setValue(Math.max(0, currentStock - qty));
+
+    // הוסף לעמודת המסגרת
+    var currentUnit = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
+    main.getRange(rowIdx, unitCol).setValue(currentUnit + qty);
+
+    // עדכן סה"כ
+    var currentTotal = Number(main.getRange(rowIdx, totalCol).getValue()) || 0;
+    main.getRange(rowIdx, totalCol).setValue(currentTotal + qty);
+
+    // רשום היסטוריה
+    disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, item.key, qty, data.by || 'לא ידוע', 'פעיל', '', '']);
+  });
+
+  if (errors.length) return { success: false, error: errors.join(', ') };
+  return { success: true, dispensed: data.items.length };
 }
 
 // ================================================================
-// 4. ניפוקים — קרא ניפוקים פעילים (אופציונלי: לפי מסגרת)
+// 4. קרא ניפוקים פעילים (אופציונלי: לפי מסגרת)
 // ================================================================
 function bunker_getDispenses(unit) {
   var ss = bunker_ss();
-  bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
-    ['מזהה', 'תאריך', 'מסגרת', 'מפתח', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
-  var sh   = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
-  var rows = sh.getDataRange().getValues();
+  var sh = bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
+    ['מזהה', 'תאריך', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
 
+  var rows   = sh.getDataRange().getValues();
   var result = [];
+
   for (var i = 1; i < rows.length; i++) {
-    var status = String(rows[i][7] || '').trim();
-    if (status !== 'פעיל') continue;
-    if (unit && String(rows[i][2] || '').trim() !== unit) continue;
+    if (String(rows[i][7] || '').trim() !== 'פעיל') continue;
+    if (unit && String(rows[i][3] || '').trim() !== unit) continue;
     result.push({
       id:        String(rows[i][0]),
       timestamp: String(rows[i][1]),
-      unit:      String(rows[i][2]),
-      itemKey:   String(rows[i][3]),
+      warehouse: String(rows[i][2]),
+      unit:      String(rows[i][3]),
+      itemKey:   String(rows[i][4]),
       itemLabel: String(rows[i][4]),
       qty:       Number(rows[i][5]) || 0,
       by:        String(rows[i][6])
@@ -123,60 +197,56 @@ function bunker_getDispenses(unit) {
 }
 
 // ================================================================
-// 5. ניפוקים — בצע ניפוק
-// ================================================================
-function bunker_dispense(data) {
-  if (!data || !data.unit || !data.items || !data.items.length)
-    return { success: false, error: 'חסרים נתונים לניפוק' };
-
-  var ss = bunker_ss();
-  var sh = bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
-    ['מזהה', 'תאריך', 'מסגרת', 'מפתח', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
-  var ts = bunker_ts();
-
-  data.items.forEach(function(item) {
-    sh.appendRow([
-      bunker_uid(),
-      ts,
-      data.unit,
-      item.key,
-      item.label,
-      item.qty,
-      data.by || 'לא ידוע',
-      'פעיל',
-      '',
-      ''
-    ]);
-  });
-
-  return { success: true, dispensed: data.items.length };
-}
-
-// ================================================================
-// 6. זיכוי — זכה ניפוקים לפי מזהה
+// 5. זיכוי — זכה ניפוקים לפי מזהה + עדכן גליון מלאים
 // ================================================================
 function bunker_credit(data) {
   if (!data || !data.ids || !data.ids.length)
     return { success: false, error: 'חסרים מזהי ניפוק לזיכוי' };
 
-  var ss     = bunker_ss();
-  var sh     = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
-  if (!sh)   return { success: false, error: 'גיליון ניפוקים לא נמצא' };
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  var disp = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
+  if (!disp) return { success: false, error: 'גליון ניפוקים לא נמצא' };
 
-  var rows   = sh.getDataRange().getValues();
+  var rows   = disp.getDataRange().getValues();
   var idsSet = {};
   data.ids.forEach(function(id) { idsSet[id] = true; });
-  var ts     = bunker_ts();
+  var ts       = bunker_ts();
   var credited = 0;
 
   for (var i = 1; i < rows.length; i++) {
     var rowId = String(rows[i][0] || '').trim();
-    if (idsSet[rowId] && String(rows[i][7]).trim() === 'פעיל') {
-      sh.getRange(i + 1, 8).setValue('זוכה');
-      sh.getRange(i + 1, 9).setValue(ts);
-      sh.getRange(i + 1, 10).setValue(data.by || 'לא ידוע');
-      credited++;
+    if (!idsSet[rowId] || String(rows[i][7]).trim() !== 'פעיל') continue;
+
+    var warehouse = String(rows[i][2]).trim();
+    var unit      = String(rows[i][3]).trim();
+    var itemKey   = String(rows[i][4]).trim();
+    var qty       = Number(rows[i][5]) || 0;
+
+    var warehouseCol = BUNKER_WAREHOUSE_COLS[warehouse];
+    var unitCol      = BUNKER_UNIT_COLS[unit];
+    var totalCol     = BUNKER_TOTAL_COLS[warehouse];
+
+    // החזר למלאי המחסן + הפחת ממסגרת + עדכן סה"כ
+    if (main && warehouseCol && unitCol) {
+      var rowIdx = bunker_findItemRow(main, itemKey);
+      if (rowIdx !== -1) {
+        var stock = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
+        main.getRange(rowIdx, warehouseCol).setValue(stock + qty);
+
+        var unitQty = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
+        main.getRange(rowIdx, unitCol).setValue(Math.max(0, unitQty - qty));
+
+        var total = Number(main.getRange(rowIdx, totalCol).getValue()) || 0;
+        main.getRange(rowIdx, totalCol).setValue(Math.max(0, total - qty));
+      }
     }
+
+    // עדכן סטטוס בגליון ניפוקים
+    disp.getRange(i + 1, 8).setValue('זוכה');
+    disp.getRange(i + 1, 9).setValue(ts);
+    disp.getRange(i + 1, 10).setValue(data.by || 'לא ידוע');
+    credited++;
   }
 
   return { success: true, credited: credited };
