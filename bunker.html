@@ -264,9 +264,24 @@
         .search-box::placeholder { color: #666; }
 
         @media (max-width: 600px) {
+            body { padding: 10px; }
+            header { padding: 15px 15px 15px; }
             header h1 { font-size: 1.4em; }
-            .back-btn { position: static; margin-bottom: 10px; }
-            .tab-btn { padding: 8px 14px; font-size: 0.85em; }
+            .back-btn { position: static; margin-bottom: 10px; display: inline-block; }
+            .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; gap: 4px; }
+            .tab-btn { padding: 8px 12px; font-size: 0.8em; white-space: nowrap; flex-shrink: 0; }
+            .form-row { flex-direction: column; }
+            .form-group { min-width: unset; width: 100%; }
+            .items-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .card { padding: 14px; }
+            table { font-size: 0.8em; }
+            th, td { padding: 7px 8px; }
+            .btn { width: 100%; padding: 12px 16px; }
+            .search-box { max-width: 100% !important; width: 100%; }
+        }
+        @media (max-width: 380px) {
+            .items-grid { grid-template-columns: 1fr 1fr; }
+            .tab-btn { font-size: 0.72em; padding: 7px 9px; }
         }
     </style>
 </head>
@@ -297,12 +312,31 @@
              TAB 1: מלאי — ספירת מלאי
         ═══════════════════════════════════════ -->
         <div id="tab-inventory" class="tab-panel active">
+
+            <!-- הוספת פריט חדש — ראש הטאב -->
+            <div class="card">
+                <h2>➕ הוספת פריט חדש</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>שם הפריט</label>
+                        <input type="text" id="newItemName" placeholder="שם הפריט..." />
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end;">
+                        <button class="btn btn-success" id="addItemBtn" onclick="addItem()" style="margin-top:22px;">
+                            ➕ הוסף פריט
+                        </button>
+                    </div>
+                </div>
+                <div class="msg-success" id="addItemSuccess">✅ פריט נוסף בהצלחה.</div>
+                <div class="msg-error"   id="addItemError"></div>
+            </div>
+
             <div class="card">
                 <h2>📦 ספירת מלאי נוכחי</h2>
                 <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
                     <input type="text" class="search-box" id="inventorySearch" placeholder="🔍 סינון פריט..." oninput="filterInventoryItems()" />
                     <span class="badge" id="inventoryBadge">טוען...</span>
-                    <button class="btn btn-secondary" onclick="loadInventory()">↻ רענן</button>
+                    <button class="btn btn-secondary" onclick="loadInventory()" style="width:auto;">↻ רענן</button>
                 </div>
                 <div id="inventoryLoader" style="display:none; justify-content:center; padding:30px;">
                     <div class="spinner"></div>
@@ -321,28 +355,10 @@
                     </table>
                 </div>
                 <div style="margin-top:16px; text-align:center;">
-                    <button class="btn btn-secondary" onclick="exportInventoryCSV()" style="min-width:150px;">
+                    <button class="btn btn-secondary" onclick="exportInventoryCSV()" style="min-width:150px; width:auto;">
                         📤 ייצוא CSV
                     </button>
                 </div>
-            </div>
-
-            <!-- הוספת פריט חדש -->
-            <div class="card">
-                <h2>➕ הוספת פריט חדש</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>שם הפריט</label>
-                        <input type="text" id="newItemName" placeholder="שם הפריט..." />
-                    </div>
-                    <div class="form-group" style="justify-content:flex-end;">
-                        <button class="btn btn-success" id="addItemBtn" onclick="addItem()" style="margin-top:22px;">
-                            ➕ הוסף פריט
-                        </button>
-                    </div>
-                </div>
-                <div class="msg-success" id="addItemSuccess">✅ פריט נוסף בהצלחה.</div>
-                <div class="msg-error"   id="addItemError"></div>
             </div>
         </div>
 
@@ -575,6 +591,7 @@
         let bunkerItems    = [];   // רשימת הפריטים מה-GAS
         let inventoryState = {};   // { itemKey: quantity }
         let activeDispenses = [];  // ניפוקים פעילים
+        let dispenseValues  = {};  // שמירת ערכי ניפוק בין סינונים
 
         // ============================================================
         // INIT
@@ -596,7 +613,7 @@
             document.getElementById('tab-' + name).classList.add('active');
             event.target.classList.add('active');
             if (name === 'inventory') loadInventory();
-            if (name === 'dispense')  { loadInventory(); loadActiveDispenses(); }
+            if (name === 'dispense')  { dispenseValues = {}; loadInventory(); loadActiveDispenses(); }
             if (name === 'transfer')  loadInventory();
             if (name === 'receive')   loadInventory();
         }
@@ -717,22 +734,18 @@
             const warehouse = document.getElementById('dispenseWarehouse').value;
             const query     = (document.getElementById('dispenseSearch')?.value || '').toLowerCase();
             const grid      = document.getElementById('dispenseGrid');
-            // שמור ערכים קיימים לפני ריענון
-            const saved = {};
-            bunkerItems.forEach(item => {
-                const el = document.getElementById('disp_' + item.key);
-                if (el && parseInt(el.value) > 0) saved[item.key] = el.value;
-            });
-            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
-            grid.innerHTML = visible.map(item => {
+            const visible   = bunkerItems.filter(item => !query || item.label.includes(query));
+            grid.innerHTML  = visible.map(item => {
                 const inv   = inventoryItems.find(i => i.key === item.key);
                 const stock = inv ? (warehouse === 'נפתלי' ? (inv.nafatli ?? 0) : (inv.bilo ?? 0)) : 0;
                 const color = stock > 0 ? '#4ade80' : '#666';
+                const val   = dispenseValues[item.key] || 0;
                 return `
                     <div class="item-card">
                         <div class="item-name">${item.label}</div>
                         <div style="color:#aaa;font-size:0.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
-                        <input type="number" min="0" max="${stock}" value="${saved[item.key] || 0}" id="disp_${item.key}"
+                        <input type="number" min="0" max="${stock}" value="${val}" id="disp_${item.key}"
+                               oninput="dispenseValues['${item.key}']=+this.value"
                                style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;"
                                ${stock === 0 ? 'disabled title="אין מלאי"' : ''} />
                     </div>`;
@@ -749,18 +762,17 @@
 
             const items = [];
             bunkerItems.forEach(item => {
-                const qty = parseInt(document.getElementById('disp_' + item.key)?.value) || 0;
+                const qty = dispenseValues[item.key] || 0;
                 if (qty > 0) items.push({ key: item.key, label: item.label, qty });
             });
             if (!items.length) { showMsg('dispense', false, 'יש לבחור לפחות פריט אחד'); return; }
 
-            const btn = document.getElementById('submitDispenseBtn');
-            btn.disabled = true; btn.textContent = 'מנפק...';
+            setPageDisabled(true);
             try {
                 const json = await apiPost('bunker_dispense', { warehouse, unit, by, items });
                 showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { renderDispenseGrid(); await loadActiveDispenses(); }
-            } finally { btn.disabled = false; btn.textContent = '✅ בצע ניפוק'; }
+                if (json.statusCode === 200) { dispenseValues = {}; renderDispenseGrid(); await loadActiveDispenses(); }
+            } finally { setPageDisabled(false); }
         }
 
         async function loadActiveDispenses() {
@@ -830,13 +842,12 @@
             if (!checked.length) { showMsg('credit', false, 'יש לסמן לפחות פריט אחד'); return; }
 
             const ids = checked.map(cb => cb.dataset.id);
-            const btn = document.getElementById('submitCreditBtn');
-            btn.disabled = true; btn.textContent = 'מזכה...';
+            setPageDisabled(true);
             try {
                 const json = await apiPost('bunker_credit', { unit, by, ids });
                 showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${ids.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { await loadUnitDispenses(); await loadActiveDispenses(); }
-            } finally { btn.disabled = false; btn.textContent = '↩️ בצע זיכוי'; }
+            } finally { setPageDisabled(false); }
         }
 
         // ============================================================
@@ -981,6 +992,10 @@
                     renderTransferGrid(from);
                 }
             } finally { btn.disabled = false; btn.textContent = '🔄 בצע העברה'; }
+        }
+
+        function setPageDisabled(disabled) {
+            document.getElementById('loadingOverlay').style.display = disabled ? 'flex' : 'none';
         }
 
         function showMsg(section, success, errText) {
