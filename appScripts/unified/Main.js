@@ -94,6 +94,7 @@ function doPost(e) {
       case 'apson_get':            return handleApsonGet(data, e);
       case 'apson_add':            return handleApsonAdd(data, e);
       case 'apson_remove':         return handleApsonRemove(data, e);
+      case 'get_units':            return handleGetUnits(data, e);
       // ── Bunker ──
       case 'bunker_get_items':     return handleBunkerGetItems(data, e);
       case 'bunker_get_inventory': return handleBunkerGetInventory(data, e);
@@ -608,6 +609,16 @@ function handleApsonRemove(data, request) {
   } catch (e) {
     return createResponse(500, 'Error: ' + e.toString(), null);
   }
+}
+
+// ================================================================
+// Units Handler
+// ================================================================
+
+function handleGetUnits(data, request) {
+  if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
+  var result = weapons_getUnits();
+  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
 }
 
 // ================================================================

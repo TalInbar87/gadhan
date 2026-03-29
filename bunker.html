@@ -474,11 +474,12 @@
         // TAB 1 — מלאי
         // ============================================================
         async function loadItems() {
-            const json = await apiPost('bunker_get_items');
-            if (json.statusCode === 200) {
-                bunkerItems = json.data || [];
-                populateUnitSelects();
-            }
+            const [itemsJson, unitsJson] = await Promise.all([
+                apiPost('bunker_get_items'),
+                apiPost('get_units')
+            ]);
+            if (itemsJson.statusCode === 200) bunkerItems = itemsJson.data || [];
+            if (unitsJson.statusCode === 200) populateUnitSelects(unitsJson.data || []);
         }
 
         async function loadInventory() {
@@ -529,9 +530,13 @@
         // ============================================================
         // TAB 2 — ניפוק
         // ============================================================
-        function populateUnitSelects() {
-            // TODO: כשה-GAS יחזיר רשימת מסגרות — נמלא כאן
-            // כרגע — מסגרות קבועות. אפשר למשוך מה-users sheet
+        function populateUnitSelects(units) {
+            const opts = ['<option value="">— בחר מסגרת —</option>',
+                          ...units.map(u => `<option value="${u}">${u}</option>`)].join('');
+            document.getElementById('dispenseUnit').innerHTML      = opts;
+            document.getElementById('filterDispenseUnit').innerHTML = '<option value="">כל המסגרות</option>' +
+                units.map(u => `<option value="${u}">${u}</option>`).join('');
+            document.getElementById('creditUnit').innerHTML        = opts;
         }
 
         document.getElementById('dispenseUnit').addEventListener('change', function() {

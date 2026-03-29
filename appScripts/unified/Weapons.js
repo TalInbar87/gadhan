@@ -1784,3 +1784,19 @@ function weapons_apson_remove(pn, itemKeys) {
   toDelete.forEach(function(rowNum) { sheet.deleteRow(rowNum); });
   return { success: true, removed: toDelete.length };
 }
+
+// ================================================================
+// מסגרות — רשימה ייחודית מגליון הנשקים
+// ================================================================
+function weapons_getUnits() {
+  var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+  var sheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+  if (!sheet) return { success: false, error: 'גיליון לא נמצא' };
+  var rows  = sheet.getDataRange().getValues();
+  var seen  = {};
+  for (var i = 1; i < rows.length; i++) {
+    var unit = (rows[i][5] || '').toString().trim();
+    if (unit) seen[unit] = true;
+  }
+  return { success: true, data: Object.keys(seen).sort() };
+}
