@@ -177,6 +177,13 @@ function bunker_dispense(data) {
     // הפחת ממלאי המחסן
     main.getRange(rowIdx, warehouseCol).setValue(currentStock - qty);
 
+    // עדכן עמודת מסגרת (D-J)
+    var unitCol = BUNKER_UNIT_COLS[data.unit];
+    if (unitCol) {
+      var currentUnitQty = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
+      main.getRange(rowIdx, unitCol).setValue(currentUnitQty + qty);
+    }
+
     // רשום בגליון ניפוקים
     disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, item.key, qty, data.by || 'לא ידוע', 'פעיל', '', '']);
   });
@@ -246,12 +253,19 @@ function bunker_credit(data) {
     var qty          = Number(rows[i][5]) || 0;
     var warehouseCol = BUNKER_WAREHOUSE_COLS[warehouse];
 
-    // החזר למלאי המחסן
-    if (main && warehouseCol) {
-      var rowIdx = bunker_findItemRow(main, itemKey);
-      if (rowIdx !== -1) {
-        var stock = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
-        main.getRange(rowIdx, warehouseCol).setValue(stock + qty);
+    // החזר למלאי המחסן + הפחת מעמודת מסגרת
+    if (main) {
+      var rowIdx2 = bunker_findItemRow(main, itemKey);
+      if (rowIdx2 !== -1) {
+        if (warehouseCol) {
+          var stock = Number(main.getRange(rowIdx2, warehouseCol).getValue()) || 0;
+          main.getRange(rowIdx2, warehouseCol).setValue(stock + qty);
+        }
+        var unitCol2 = BUNKER_UNIT_COLS[unit];
+        if (unitCol2) {
+          var unitQty = Number(main.getRange(rowIdx2, unitCol2).getValue()) || 0;
+          main.getRange(rowIdx2, unitCol2).setValue(Math.max(0, unitQty - qty));
+        }
       }
     }
 
