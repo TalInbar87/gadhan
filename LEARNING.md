@@ -184,6 +184,8 @@ Google Sheets (5 spreadsheets נפרדים)
 | `weapons_apson_get(pn)` | שליפת פריטי איפסון לחייל לפי מספר אישי |
 | `weapons_apson_add(data)` | הוספת פריטים לגיליון האיפסון |
 | `weapons_apson_remove(pn, itemKeys)` | הסרת פריטים ספציפיים מהאיפסון |
+| `weapons_getInspections()` | שליפת כל רשומות מעקב בדיקות (גיליון "מעקב בדיקות") |
+| `weapons_updateInspection(type, pn, by)` | עדכון תאריך בדיקה: type='optics'\|'weapon', pn=מספר אישי |
 
 #### עזר
 | פונקציה | תיאור |
@@ -308,6 +310,8 @@ fetch(API_URL, { method: 'POST', body: p });
 | `apson_get` | `write` | פריטי איפסון לחייל |
 | `apson_add` | `write` | הוספה לאיפסון |
 | `apson_remove` | `write` | הסרה מאיפסון |
+| `inspections_get` | `read` | כל רשומות מעקב הבדיקות |
+| `inspection_update` | `write` | עדכון תאריך בדיקה (type + pn) |
 
 ---
 
@@ -322,6 +326,7 @@ fetch(API_URL, { method: 'POST', body: p });
 | `weapons-transfer.html` | העברה / זיכוי / ראש-בראש / איפסון | `write` |
 | `weapons-inventory.html` | מלאי: טבלה 58×מסגרות + חיפוש מוצר | מאומת |
 | `armory-count.html` | ספירת מלאי פיזי נשקייה | `manage_users` (מנהל בלבד) |
+| `inspections.html` | מעקב בדיקות צלם ואופטיקה — טבלה לפי מסגרת+צוות, כפתורי עדכון | `view_reports` |
 | `user-management.html` | CRUD משתמשים | `manage_users` |
 | `audit-log.html` | צפייה ביומן פעולות | `audit_log` |
 

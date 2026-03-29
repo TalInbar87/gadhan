@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מעקב בדיקות צלם ואופטיקה</title>
+  <script src="auth-client.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      direction: rtl;
+    }
+    header {
+      background: #2d2d2d;
+      border-bottom: 2px solid #ff6600;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: 1px solid #555;
+      color: #ccc;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .back-btn:hover { border-color: #ff6600; color: #ff6600; }
+    header h1 { font-size: 20px; color: #ff6600; flex: 1; }
+    header .subtitle { font-size: 13px; color: #888; }
+
+    /* Loading */
+    #loadingScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      gap: 16px;
+      color: #888;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #333;
+      border-top-color: #ff6600;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Main content */
+    #mainContent { display: none; padding: 16px 20px; }
+
+    /* Filters bar */
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .filters label { font-size: 14px; color: #aaa; }
+    .filters select, .filters input {
+      background: #2d2d2d;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      min-width: 160px;
+    }
+    .filters select:focus, .filters input:focus {
+      outline: none;
+      border-color: #ff6600;
+    }
+    .legend {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 12px;
+      color: #888;
+      margin-right: auto;
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .legend-dot.red   { background: #ef4444; }
+    .legend-dot.green { background: #22c55e; }
+    .legend-dot.gray  { background: #555; }
+
+    /* Summary stats */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: #2d2d2d;
+      border-radius: 8px;
+      padding: 10px 18px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .stat-card .num { font-size: 22px; font-weight: bold; }
+    .stat-card .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+    .stat-card.red-card .num  { color: #ef4444; }
+    .stat-card.green-card .num{ color: #22c55e; }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: #2d2d2d; position: sticky; top: 0; z-index: 1; }
+    th {
+      padding: 10px 12px;
+      text-align: right;
+      color: #ff6600;
+      font-weight: 600;
+      border-bottom: 2px solid #ff6600;
+      white-space: nowrap;
+    }
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #2d2d2d;
+      vertical-align: middle;
+    }
+    tr:hover td { background: #252525; }
+
+    /* Team separator row */
+    .team-row td {
+      background: #252525;
+      color: #ff6600;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    /* Date cell */
+    .date-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .date-cell.overdue  { color: #ef4444; }
+    .date-cell.ok       { color: #22c55e; }
+    .date-cell.never    { color: #666; font-style: italic; }
+    .date-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .date-dot.red   { background: #ef4444; }
+    .date-dot.green { background: #22c55e; }
+    .date-dot.gray  { background: #555; }
+
+    /* Action buttons */
+    .action-btn {
+      background: #333;
+      border: 1px solid #555;
+      color: #ccc;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .action-btn:hover { background: #444; border-color: #ff6600; color: #ff6600; }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-optics { border-color: #3b82f6; }
+    .btn-optics:hover { border-color: #3b82f6; color: #3b82f6; background: #1e3a5f; }
+    .btn-weapon { border-color: #22c55e; }
+    .btn-weapon:hover { border-color: #22c55e; color: #22c55e; background: #14532d; }
+    .btns-cell { display: flex; gap: 6px; flex-wrap: nowrap; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #e0e0e0;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+      z-index: 999;
+      border: 1px solid #555;
+    }
+    #toast.success { border-color: #22c55e; color: #22c55e; }
+    #toast.error   { border-color: #ef4444; color: #ef4444; }
+
+    /* Page disable overlay */
+    #pageOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #pageOverlay.active { display: flex; }
+    #pageOverlay .overlay-spinner { width: 48px; height: 48px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      header h1 { font-size: 16px; }
+      #mainContent { padding: 10px 12px; }
+      .filters { gap: 8px; }
+      .filters select, .filters input { min-width: 130px; font-size: 13px; padding: 7px 10px; }
+      th, td { padding: 8px 8px; font-size: 13px; }
+      .action-btn { padding: 5px 8px; font-size: 11px; }
+      .stat-card { min-width: 90px; padding: 8px 12px; }
+      .stat-card .num { font-size: 18px; }
+    }
+    @media (max-width: 480px) {
+      .legend { display: none; }
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='index-secure.html'">← חזרה</button>
+  <h1>מעקב בדיקות צלם ואופטיקה</h1>
+  <span class="subtitle" id="headerSubtitle"></span>
+</header>
+
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <span>טוען נתונים...</span>
+</div>
+
+<div id="mainContent">
+  <div class="filters">
+    <label>מסגרת:</label>
+    <select id="unitFilter" onchange="applyFilter()">
+      <option value="">כל המסגרות</option>
+    </select>
+    <label>חיפוש:</label>
+    <input type="text" id="searchInput" placeholder="שם / מספר אישי" oninput="applyFilter()">
+    <div class="legend">
+      <span><span class="legend-dot red"></span> פג תוקף (&gt;14 יום)</span>
+      <span><span class="legend-dot green"></span> תקין</span>
+      <span><span class="legend-dot gray"></span> לא בוצע</span>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="table-wrap">
+    <table id="inspTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>שם מלא</th>
+          <th>מספר אישי</th>
+          <th>טלפון</th>
+          <th>מייל</th>
+          <th>צוות</th>
+          <th>בדיקת אופטיקה אחרונה</th>
+          <th>בדיקת נשק אחרונה</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="inspTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="pageOverlay"><div class="overlay-spinner"></div></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyBt7kUJ8_w9Tpo7I5UNYyujKv7rBkXJOfN5XByBqGJOlNHRiFkF8F9Y1N4MxGWKG9E/exec';
+const OVERDUE_DAYS = 14;
+
+let allRows = [];
+
+async function apiPost(action, payload) {
+  const p = new URLSearchParams();
+  p.append('data', JSON.stringify({ action, token: authClient.token, ...payload }));
+  const res = await fetch(API_URL, { method: 'POST', body: p });
+  return res.json();
+}
+
+function isOverdue(isoDate) {
+  if (!isoDate) return false;
+  const diff = (Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24);
+  return diff > OVERDUE_DAYS;
+}
+
+function formatDate(isoDate) {
+  if (!isoDate) return '—';
+  const d = new Date(isoDate);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function dateCellHtml(isoDate) {
+  if (!isoDate) return `<div class="date-cell never"><span class="date-dot gray"></span>לא בוצע</div>`;
+  const over = isOverdue(isoDate);
+  const cls  = over ? 'overdue' : 'ok';
+  const dot  = over ? 'red' : 'green';
+  return `<div class="date-cell ${cls}"><span class="date-dot ${dot}"></span>${formatDate(isoDate)}</div>`;
+}
+
+function buildStats(rows) {
+  const total         = rows.length;
+  const overdueOptics = rows.filter(r => !r.lastOptics || isOverdue(r.lastOptics)).length;
+  const overdueWeapon = rows.filter(r => !r.lastWeapon || isOverdue(r.lastWeapon)).length;
+  const okOptics      = total - overdueOptics;
+  const okWeapon      = total - overdueWeapon;
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">סה"כ חיילים</div></div>
+    <div class="stat-card red-card"><div class="num">${overdueOptics}</div><div class="lbl">אופטיקה לא תקינה</div></div>
+    <div class="stat-card green-card"><div class="num">${okOptics}</div><div class="lbl">אופטיקה תקינה</div></div>
+    <div class="stat-card red-card"><div class="num">${overdueWeapon}</div><div class="lbl">נשק לא תקין</div></div>
+    <div class="stat-card green-card"><div class="num">${okWeapon}</div><div class="lbl">נשק תקין</div></div>
+  `;
+}
+
+function renderTable(rows) {
+  buildStats(rows);
+
+  // Group by team
+  const byTeam = {};
+  const teamOrder = [];
+  rows.forEach(r => {
+    const t = r.team || 'ללא צוות';
+    if (!byTeam[t]) { byTeam[t] = []; teamOrder.push(t); }
+    byTeam[t].push(r);
+  });
+
+  let html = '';
+  let counter = 1;
+  teamOrder.forEach(team => {
+    html += `<tr class="team-row"><td colspan="9">👥 ${team}</td></tr>`;
+    byTeam[team].forEach(r => {
+      html += `<tr>
+        <td>${counter++}</td>
+        <td>${r.name}</td>
+        <td>${r.pn}</td>
+        <td>${r.phone}</td>
+        <td>${r.email}</td>
+        <td>${r.team}</td>
+        <td>${dateCellHtml(r.lastOptics)}</td>
+        <td>${dateCellHtml(r.lastWeapon)}</td>
+        <td>
+          <div class="btns-cell">
+            <button class="action-btn btn-optics" onclick="doUpdate('optics','${r.pn}',this)">🔭 בדיקת אופטיקה</button>
+            <button class="action-btn btn-weapon" onclick="doUpdate('weapon','${r.pn}',this)">🔫 בדיקת נשק</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  });
+
+  document.getElementById('inspTbody').innerHTML = html;
+}
+
+function applyFilter() {
+  const unit   = document.getElementById('unitFilter').value;
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  let rows = allRows;
+  if (unit)   rows = rows.filter(r => r.unit === unit);
+  if (search) rows = rows.filter(r =>
+    r.name.toLowerCase().includes(search) ||
+    r.pn.toString().includes(search)
+  );
+  renderTable(rows);
+}
+
+async function doUpdate(type, pn, btn) {
+  setPageDisabled(true);
+  try {
+    const json = await apiPost('inspection_update', { type, pn });
+    if (json.statusCode === 200) {
+      // update local data
+      const label = type === 'optics' ? 'אופטיקה' : 'נשק';
+      const field = type === 'optics' ? 'lastOptics' : 'lastWeapon';
+      const rec = allRows.find(r => r.pn.toString() === pn.toString());
+      if (rec) rec[field] = new Date().toISOString();
+      showToast('✅ בדיקת ' + label + ' עודכנה', 'success');
+      applyFilter();
+    } else {
+      showToast('❌ ' + (json.message || 'שגיאה'), 'error');
+    }
+  } catch (e) {
+    showToast('❌ שגיאת רשת', 'error');
+  } finally {
+    setPageDisabled(false);
+  }
+}
+
+function setPageDisabled(on) {
+  document.getElementById('pageOverlay').classList.toggle('active', on);
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type || '';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+async function loadData() {
+  try {
+    const json = await apiPost('inspections_get', {});
+    if (json.statusCode !== 200) throw new Error(json.message);
+    allRows = json.data || [];
+
+    // Build unit dropdown
+    const units = [...new Set(allRows.map(r => r.unit).filter(Boolean))].sort();
+    const sel = document.getElementById('unitFilter');
+    units.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u; opt.textContent = u;
+      sel.appendChild(opt);
+    });
+
+    document.getElementById('headerSubtitle').textContent = allRows.length + ' חיילים';
+    renderTable(allRows);
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display   = 'block';
+  } catch (e) {
+    document.getElementById('loadingScreen').innerHTML =
+      `<div style="color:#ef4444">❌ שגיאה בטעינת נתונים: ${e.message}</div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await authClient.init();
+  if (!authClient.isAuthenticated()) {
+    window.location.href = 'login.html';
+    return;
+  }
+  await loadData();
+});
+</script>
+</body>
+</html>

@@ -95,6 +95,9 @@ function doPost(e) {
       case 'apson_add':            return handleApsonAdd(data, e);
       case 'apson_remove':         return handleApsonRemove(data, e);
       case 'get_units':            return handleGetUnits(data, e);
+      // ── Inspections ──
+      case 'inspections_get':      return handleInspectionsGet(data, e);
+      case 'inspection_update':    return handleInspectionUpdate(data, e);
       // ── Bunker ──
       case 'bunker_get_items':     return handleBunkerGetItems(data, e);
       case 'bunker_get_inventory': return handleBunkerGetInventory(data, e);
@@ -747,4 +750,30 @@ function testConnection() {
   } catch (err) {
     Logger.log('❌ Connection test failed: ' + err);
   }
+}
+// ================================================================
+// Inspections Handlers
+// ================================================================
+
+function handleInspectionsGet(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = weapons_getInspections();
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleInspectionUpdate(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'אין הרשאה', null);
+  try {
+    if (!data.type || !data.pn) return createResponse(400, 'חסרים נתונים', null);
+    var result = weapons_updateInspection(data.type, data.pn, payload.fullName || payload.username);
+    if (result.success) {
+      AuditLogger.log(payload.username, 'INSPECTION_UPDATE', 'weapons', data.pn, { type: data.type }, request);
+    }
+    return result.success ? createResponse(200, result.message, null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
