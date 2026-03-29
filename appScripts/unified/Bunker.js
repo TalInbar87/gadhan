@@ -176,28 +176,33 @@ function bunker_dispense(data) {
 }
 
 // ================================================================
-// 4. קרא ניפוקים פעילים (אופציונלי: לפי מסגרת)
+// 4. קרא ניפוקים נוכחיים מעמודות D-J של גליון מלאים
 // ================================================================
 function bunker_getDispenses(unit) {
-  var ss = bunker_ss();
-  var sh = bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
-    ['מזהה', 'תאריך', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
 
-  var rows   = sh.getDataRange().getValues();
-  var result = [];
+  var rows         = main.getDataRange().getValues();
+  var result       = [];
+  var unitsToCheck = unit ? [unit] : Object.keys(BUNKER_UNIT_COLS);
 
   for (var i = 1; i < rows.length; i++) {
-    if (String(rows[i][7] || '').trim() !== 'פעיל') continue;
-    if (unit && String(rows[i][3] || '').trim() !== unit) continue;
-    result.push({
-      id:        String(rows[i][0]),
-      timestamp: String(rows[i][1]),
-      warehouse: String(rows[i][2]),
-      unit:      String(rows[i][3]),
-      itemKey:   String(rows[i][4]),
-      itemLabel: String(rows[i][4]),
-      qty:       Number(rows[i][5]) || 0,
-      by:        String(rows[i][6])
+    var itemName = String(rows[i][0] || '').trim();
+    if (!itemName) continue;
+
+    unitsToCheck.forEach(function(u) {
+      var col = BUNKER_UNIT_COLS[u];
+      if (!col) return;
+      var qty = Number(rows[i][col - 1]) || 0;
+      if (qty > 0) {
+        result.push({
+          unit:      u,
+          itemKey:   itemName,
+          itemLabel: itemName,
+          qty:       qty
+        });
+      }
     });
   }
   return { success: true, data: result };

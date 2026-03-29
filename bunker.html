@@ -300,9 +300,10 @@
                     <span class="badge" id="inventoryBadge">טוען...</span>
                     <button class="btn btn-secondary" onclick="loadInventory()">↻ רענן</button>
                 </div>
-                <div class="items-grid" id="inventoryGrid">
-                    <div style="color:#666; grid-column:1/-1; text-align:center; padding:30px;">טוען מלאי...</div>
+                <div id="inventoryLoader" style="display:none; justify-content:center; padding:30px;">
+                    <div class="spinner"></div>
                 </div>
+                <div class="items-grid" id="inventoryGrid"></div>
                 <div style="margin-top:20px; text-align:center;">
                     <button class="btn btn-primary" id="saveInventoryBtn" onclick="saveInventory()" style="min-width:200px;">
                         💾 שמור ספירה
@@ -373,6 +374,9 @@
                         <option value="">כל המסגרות</option>
                     </select>
                 </div>
+                <div id="dispensesLoader" style="display:none; justify-content:center; padding:20px;">
+                    <div class="spinner"></div>
+                </div>
                 <div class="table-wrapper">
                     <table id="activeDispensesTable">
                         <thead>
@@ -384,9 +388,7 @@
                                 <th>מנפק</th>
                             </tr>
                         </thead>
-                        <tbody id="activeDispensesBody">
-                            <tr><td colspan="5" style="color:#666;">טוען...</td></tr>
-                        </tbody>
+                        <tbody id="activeDispensesBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -410,6 +412,10 @@
                         <label>מזכה (שם + תפקיד)</label>
                         <input type="text" id="creditBy" placeholder="שם המזכה..." />
                     </div>
+                </div>
+
+                <div id="creditLoader" style="display:none; justify-content:center; padding:20px;">
+                    <div class="spinner"></div>
                 </div>
 
                 <div id="creditItemsSection" style="display:none;">
@@ -492,13 +498,21 @@
 
         let inventoryItems = []; // { label, key, nafatli, bilo }
 
+        function showLoader(id, show) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = show ? 'flex' : 'none';
+        }
+
         async function loadInventory() {
-            const json = await apiPost('bunker_get_inventory');
-            if (json.statusCode === 200) {
-                inventoryItems = json.data || [];
-                renderInventoryGrid();
-                document.getElementById('inventoryBadge').textContent = inventoryItems.length + ' פריטים';
-            }
+            showLoader('inventoryLoader', true);
+            try {
+                const json = await apiPost('bunker_get_inventory');
+                if (json.statusCode === 200) {
+                    inventoryItems = json.data || [];
+                    renderInventoryGrid();
+                    document.getElementById('inventoryBadge').textContent = inventoryItems.length + ' פריטים';
+                }
+            } finally { showLoader('inventoryLoader', false); }
         }
 
         function renderInventoryGrid() {
@@ -607,11 +621,14 @@
         }
 
         async function loadActiveDispenses() {
-            const json = await apiPost('bunker_get_dispenses');
-            if (json.statusCode === 200) {
-                activeDispenses = json.data || [];
-                renderActiveDispenses();
-            }
+            showLoader('dispensesLoader', true);
+            try {
+                const json = await apiPost('bunker_get_dispenses');
+                if (json.statusCode === 200) {
+                    activeDispenses = json.data || [];
+                    renderActiveDispenses();
+                }
+            } finally { showLoader('dispensesLoader', false); }
         }
 
         function renderActiveDispenses() {
@@ -639,22 +656,26 @@
             document.getElementById('creditItemsSection').style.display = unit ? 'block' : 'none';
             if (!unit) return;
 
-            const json = await apiPost('bunker_get_dispenses', { unit });
-            if (json.statusCode !== 200 || !json.data.length) {
-                document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין ניפוקים פעילים למסגרת זו</p>';
-                return;
-            }
+            showLoader('creditLoader', true);
+            document.getElementById('creditItemsList').innerHTML = '';
+            try {
+                const json = await apiPost('bunker_get_dispenses', { unit });
+                if (json.statusCode !== 200 || !json.data.length) {
+                    document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין ניפוקים פעילים למסגרת זו</p>';
+                    return;
+                }
 
-            const items = json.data;
-            document.getElementById('creditItemsList').innerHTML = items.map(r => `
+                const items = json.data;
+                document.getElementById('creditItemsList').innerHTML = items.map(r => `
                 <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;cursor:pointer;">
                     <input type="checkbox" class="credit-cb" data-id="${r.id}" data-item="${r.itemLabel}" data-qty="${r.qty}"
                            style="width:18px;height:18px;accent-color:#dc2626;" />
                     <span style="flex:1;color:#fff;font-weight:600;">${r.itemLabel}</span>
                     <span style="color:#ff8c00;font-weight:700;font-size:1.1em;">${r.qty}</span>
-                    <span style="color:#888;font-size:0.8em;">${r.timestamp}</span>
+                    <span style="color:#888;font-size:0.8em;">${r.unit || ''}</span>
                 </label>
             `).join('');
+            } finally { showLoader('creditLoader', false); }
         }
 
         async function submitCredit() {
