@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>מעקב בדיקות צלם ואופטיקה</title>
+  <script src="config.js"></script>
   <script src="auth-client.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -290,7 +291,6 @@
 <div id="pageOverlay"><div class="overlay-spinner"></div></div>
 
 <script>
-const API_URL    = 'https://script.google.com/macros/s/AKfycbyBt7kUJ8_w9Tpo7I5UNYyujKv7rBkXJOfN5XByBqGJOlNHRiFkF8F9Y1N4MxGWKG9E/exec';
 const authClient = new SecureAuthClient(API_URL);
 const authGuard  = new AuthGuard(authClient);
 const OVERDUE_DAYS = 14;
