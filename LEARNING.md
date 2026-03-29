@@ -404,15 +404,31 @@ authClient.getToken()
 // 1. הוסף case ב-switch:
 case 'my_action': return handleMyAction(data, e);
 
-// 2. צור handler:
+// 2. צור handler — דפוס חובה:
 function handleMyAction(data, request) {
-    if (!auth_hasPermission(data.token, 'write')) {
-        return createResponse(403, 'אין הרשאה');
-    }
-    const result = my_module_function(data);
-    return createResponse(result.success ? 200 : 500, result.message, result.data);
+  // ── אימות token ──
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+
+  // ── בדיקת הרשאה (בחר לפי הצורך) ──
+  // אפשרויות: 'write' | 'view_reports' | 'manage_users'
+  if (!Authorization.canAccessResource(payload, null, 'write')) {
+    return createResponse(403, 'Insufficient permissions', null);
+  }
+
+  // ── לוגיקה ──
+  try {
+    var result = my_module_function(data);
+    return result.success
+      ? createResponse(200, 'ok', result.data)
+      : createResponse(500, result.error, null);
+  } catch (e) {
+    return createResponse(500, 'Server error: ' + e.toString(), null);
+  }
 }
 ```
+
+> ⚠️ **אין `AuthMiddleware` במערכת** — אל תשתמש בו. תמיד `JWTUtil.verify` + `Authorization.canAccessResource`.
 
 ---
 
