@@ -346,7 +346,7 @@ class AuthGuard {
     redirectToLogin() {
         // Get just the filename, not the full path
         const currentPage = window.location.pathname.split('/').pop() || 'index-secure.html';
-        window.location.href = `login.html?redirect=${encodeURIComponent(currentPage)}`;
+        window.location.href = `index.html?redirect=${encodeURIComponent(currentPage)}`;
     }
     
     showAccessDenied() {
