@@ -608,15 +608,52 @@
         // ============================================================
         // TABS
         // ============================================================
+        function resetDispenseTab() {
+            dispenseValues = {};
+            document.getElementById('dispenseWarehouse').value = '';
+            document.getElementById('dispenseUnit').value      = '';
+            document.getElementById('dispenseBy').value        = '';
+            if (document.getElementById('dispenseSearch')) document.getElementById('dispenseSearch').value = '';
+            document.getElementById('dispenseGrid').innerHTML                = '';
+            document.getElementById('dispenseItemsSection').style.display   = 'none';
+            document.getElementById('dispensePrompt').style.display         = 'block';
+            document.getElementById('dispenseSuccess').style.display        = 'none';
+            document.getElementById('dispenseError').style.display          = 'none';
+        }
+
+        function resetCreditTab() {
+            document.getElementById('creditUnit').value                     = '';
+            document.getElementById('creditBy').value                       = '';
+            document.getElementById('creditItemsList').innerHTML             = '';
+            document.getElementById('creditItemsSection').style.display     = 'none';
+            document.getElementById('creditPrompt').style.display           = 'block';
+            document.getElementById('creditSuccess').style.display          = 'none';
+            document.getElementById('creditError').style.display            = 'none';
+        }
+
+        function resetReceiveTab() {
+            receiveValues = {};
+            document.getElementById('receiveWarehouse').value               = '';
+            document.getElementById('receiveBy').value                      = '';
+            document.getElementById('receiveSource').value                  = '';
+            if (document.getElementById('receiveSearch')) document.getElementById('receiveSearch').value = '';
+            document.getElementById('receiveGrid').innerHTML                = '';
+            document.getElementById('receiveItemsSection').style.display   = 'none';
+            document.getElementById('receivePrompt').style.display         = 'block';
+            document.getElementById('receiveSuccess').style.display        = 'none';
+            document.getElementById('receiveError').style.display          = 'none';
+        }
+
         function switchTab(name) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + name).classList.add('active');
             event.target.classList.add('active');
             if (name === 'inventory') loadInventory();
-            if (name === 'dispense')  { dispenseValues = {}; loadInventory(); loadActiveDispenses(); }
+            if (name === 'dispense')  { resetDispenseTab(); loadInventory(); loadActiveDispenses(); }
             if (name === 'transfer')  loadInventory();
-            if (name === 'receive')   { receiveValues = {}; loadInventory(); }
+            if (name === 'receive')   { resetReceiveTab(); loadInventory(); }
+            if (name === 'credit')    resetCreditTab();
         }
 
         // ============================================================
@@ -772,7 +809,7 @@
             try {
                 const json = await apiPost('bunker_dispense', { warehouse, unit, by, items });
                 showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { dispenseValues = {}; renderDispenseGrid(); await loadActiveDispenses(); }
+                if (json.statusCode === 200) { resetDispenseTab(); await loadInventory(); await loadActiveDispenses(); }
             } finally { setPageDisabled(false); }
         }
 
@@ -847,7 +884,7 @@
             try {
                 const json = await apiPost('bunker_credit', { unit, by, ids });
                 showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${ids.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { await loadUnitDispenses(); await loadActiveDispenses(); }
+                if (json.statusCode === 200) { resetCreditTab(); await loadActiveDispenses(); }
             } finally { setPageDisabled(false); }
         }
 
