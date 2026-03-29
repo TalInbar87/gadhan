@@ -490,30 +490,35 @@
             populateUnitSelects(UNITS);
         }
 
+        let inventoryItems = []; // { label, key, nafatli, bilo }
+
         async function loadInventory() {
             const json = await apiPost('bunker_get_inventory');
             if (json.statusCode === 200) {
-                inventoryState = json.data.counts  || {};
-                const last     = json.data.lastCount;
+                inventoryItems = json.data || [];
                 renderInventoryGrid();
-                document.getElementById('lastCountInfo').innerHTML = last
-                    ? `<span style="color:#aaa;">ספירה אחרונה: </span><strong>${last.timestamp}</strong> — בוצע ע"י <strong>${last.by}</strong>`
-                    : '<span style="color:#666;">לא נמצאה ספירה קודמת</span>';
-                document.getElementById('inventoryBadge').textContent = bunkerItems.length + ' פריטים';
+                document.getElementById('inventoryBadge').textContent = inventoryItems.length + ' פריטים';
             }
         }
 
         function renderInventoryGrid() {
-            const query = (document.getElementById('inventorySearch').value || '').toLowerCase();
-            const grid  = document.getElementById('inventoryGrid');
-            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
+            const query   = (document.getElementById('inventorySearch').value || '').toLowerCase();
+            const grid    = document.getElementById('inventoryGrid');
+            const visible = inventoryItems.filter(item => !query || item.label.includes(query));
             if (!visible.length) { grid.innerHTML = '<div style="color:#666;grid-column:1/-1;text-align:center;padding:20px;">לא נמצאו פריטים</div>'; return; }
             grid.innerHTML = visible.map(item => `
-                <div class="item-card">
+                <div class="item-card" style="text-align:right;">
                     <div class="item-name">${item.label}</div>
-                    <input type="number" min="0" id="inv_${item.key}"
-                           value="${inventoryState[item.key] || 0}"
-                           style="text-align:center;font-size:1.2em;font-weight:700;color:#ff8c00;" />
+                    <div style="display:flex;justify-content:space-between;margin-top:8px;gap:8px;">
+                        <div style="flex:1;background:#1a2a1a;border-radius:6px;padding:6px;text-align:center;">
+                            <div style="color:#aaa;font-size:0.7em;">נפתלי</div>
+                            <div style="color:#4ade80;font-size:1.3em;font-weight:700;">${item.nafatli ?? 0}</div>
+                        </div>
+                        <div style="flex:1;background:#1a1a2a;border-radius:6px;padding:6px;text-align:center;">
+                            <div style="color:#aaa;font-size:0.7em;">בילו</div>
+                            <div style="color:#60a5fa;font-size:1.3em;font-weight:700;">${item.bilo ?? 0}</div>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
@@ -554,14 +559,27 @@
             if (val) renderDispenseGrid();
         });
 
+        document.getElementById('dispenseWarehouse').addEventListener('change', function() {
+            const unit = document.getElementById('dispenseUnit').value;
+            if (unit) renderDispenseGrid();
+        });
+
         function renderDispenseGrid() {
+            const warehouse = document.getElementById('dispenseWarehouse').value;
             const grid = document.getElementById('dispenseGrid');
-            grid.innerHTML = bunkerItems.map(item => `
-                <div class="item-card">
-                    <div class="item-name">${item.label}</div>
-                    <input type="number" min="0" value="0" id="disp_${item.key}" style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;" />
-                </div>
-            `).join('');
+            grid.innerHTML = bunkerItems.map(item => {
+                const inv   = inventoryItems.find(i => i.key === item.key);
+                const stock = inv ? (warehouse === 'נפתלי' ? (inv.nafatli ?? 0) : (inv.bilo ?? 0)) : 0;
+                const color = stock > 0 ? '#4ade80' : '#666';
+                return `
+                    <div class="item-card">
+                        <div class="item-name">${item.label}</div>
+                        <div style="color:#aaa;font-size:0.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
+                        <input type="number" min="0" max="${stock}" value="0" id="disp_${item.key}"
+                               style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;"
+                               ${stock === 0 ? 'disabled title="אין מלאי"' : ''} />
+                    </div>`;
+            }).join('');
         }
 
         async function submitDispense() {

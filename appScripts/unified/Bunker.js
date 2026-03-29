@@ -28,7 +28,8 @@ var BUNKER_UNIT_COLS = {
   'מחסר':    9,
   'חפק':    10
 };
-var BUNKER_TOTAL_COLS = { 'נפתלי': 11, 'בילו': 12 };
+var BUNKER_TOTAL_COLS    = { 'נפתלי': 11, 'בילו': 12 };
+var BUNKER_CREDITS_SHEET = 'זיכויים';
 
 // ── עזר: פתח גליון ──
 function bunker_ss() {
@@ -148,9 +149,15 @@ function bunker_dispense(data) {
 
     var qty = Number(item.qty) || 0;
 
-    // הפחת ממלאי המחסן
+    // ── ולידציית מלאי ──
     var currentStock = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
-    main.getRange(rowIdx, warehouseCol).setValue(Math.max(0, currentStock - qty));
+    if (qty > currentStock) {
+      errors.push('אין מספיק מלאי — ' + item.key + ' (נדרש: ' + qty + ', קיים: ' + currentStock + ')');
+      return;
+    }
+
+    // הפחת ממלאי המחסן
+    main.getRange(rowIdx, warehouseCol).setValue(currentStock - qty);
 
     // הוסף לעמודת המסגרת
     var currentUnit = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
@@ -213,6 +220,8 @@ function bunker_credit(data) {
   data.ids.forEach(function(id) { idsSet[id] = true; });
   var ts       = bunker_ts();
   var credited = 0;
+  var creditsSheet = bunker_ensureSheet(ss, BUNKER_CREDITS_SHEET,
+    ['תאריך זיכוי', 'מזכה', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מזהה ניפוק מקורי']);
 
   for (var i = 1; i < rows.length; i++) {
     var rowId = String(rows[i][0] || '').trim();
@@ -241,6 +250,9 @@ function bunker_credit(data) {
         main.getRange(rowIdx, totalCol).setValue(Math.max(0, total - qty));
       }
     }
+
+    // רשום לגליון זיכויים
+    creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, unit, itemKey, qty, rowId]);
 
     // עדכן סטטוס בגליון ניפוקים
     disp.getRange(i + 1, 8).setValue('זוכה');
