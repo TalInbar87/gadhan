@@ -283,7 +283,48 @@ function bunker_credit(data) {
 }
 
 // ================================================================
-// 6. העברה בין מחסנים
+// 6. קבלה — הוסף למלאי מחסן
+// ================================================================
+function bunker_receive(data) {
+  if (!data || !data.warehouse || !data.items || !data.items.length)
+    return { success: false, error: 'חסרים נתונים לקבלה' };
+
+  var warehouseCol = BUNKER_WAREHOUSE_COLS[data.warehouse];
+  if (!warehouseCol) return { success: false, error: 'מחסן לא מזוהה' };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  data.items.forEach(function(item) {
+    var rowIdx = bunker_findItemRow(main, item.key);
+    if (rowIdx === -1) return;
+    var current = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
+    main.getRange(rowIdx, warehouseCol).setValue(current + (Number(item.qty) || 0));
+  });
+
+  return { success: true };
+}
+
+// ================================================================
+// 7. הוספת פריט חדש לגליון מלאים
+// ================================================================
+function bunker_addItem(name) {
+  if (!name) return { success: false, error: 'חסר שם פריט' };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  if (bunker_findItemRow(main, name) !== -1)
+    return { success: false, error: 'פריט בשם זה כבר קיים' };
+
+  main.appendRow([name, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  return { success: true };
+}
+
+// ================================================================
+// 8. העברה בין מחסנים
 // ================================================================
 function bunker_transfer(data) {
   var from  = (data.from  || '').trim();

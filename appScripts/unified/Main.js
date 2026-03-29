@@ -103,6 +103,8 @@ function doPost(e) {
       case 'bunker_dispense':      return handleBunkerDispense(data, e);
       case 'bunker_credit':        return handleBunkerCredit(data, e);
       case 'bunker_transfer':      return handleBunkerTransfer(data, e);
+      case 'bunker_receive':       return handleBunkerReceive(data, e);
+      case 'bunker_add_item':      return handleBunkerAddItem(data, e);
       default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -680,6 +682,24 @@ function handleBunkerCredit(data, request) {
   try {
     var result = bunker_credit({ ids: data.ids, by: data.by });
     return result.success ? createResponse(200, 'זיכוי בוצע — ' + result.credited + ' פריטים', null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerReceive(data, request) {
+  try {
+    var auth = JWTUtil.verify(data.token, CONFIG.AUTH.JWT_SECRET);
+    if (!auth.valid) return createResponse(401, 'אינך מורשה', null);
+    var result = bunker_receive({ warehouse: data.warehouse, items: data.items, by: data.by });
+    return result.success ? createResponse(200, 'קבלה נרשמה בהצלחה', null) : createResponse(400, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerAddItem(data, request) {
+  try {
+    var auth = JWTUtil.verify(data.token, CONFIG.AUTH.JWT_SECRET);
+    if (!auth.valid) return createResponse(401, 'אינך מורשה', null);
+    var result = bunker_addItem(data.name);
+    return result.success ? createResponse(200, 'פריט נוסף', null) : createResponse(400, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 

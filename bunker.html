@@ -105,8 +105,10 @@
         }
         .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
         .form-group label { color: #aaa; font-size: 0.85em; font-weight: 600; }
-        input[type="text"],
-        input[type="number"],
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-row input[type="text"],
+        .form-row input[type="number"],
         select {
             background: #1a1a1a;
             border: 2px solid #444;
@@ -118,7 +120,7 @@
             transition: border-color 0.2s;
             width: 100%;
         }
-        input:focus, select:focus { border-color: #ff6600; }
+        .form-group input:focus, .form-row input:focus, select:focus { border-color: #ff6600; }
         select option { background: #2d2d2d; }
 
         /* ── Item Grid (מלאי) ── */
@@ -285,6 +287,7 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('inventory')">📦 מלאי</button>
+            <button class="tab-btn"        onclick="switchTab('receive')">📥 קבלות</button>
             <button class="tab-btn"        onclick="switchTab('dispense')">⬇️ ניפוק</button>
             <button class="tab-btn"        onclick="switchTab('credit')">⬆️ זיכוי</button>
             <button class="tab-btn"        onclick="switchTab('transfer')">🔄 העברה</button>
@@ -316,19 +319,75 @@
                         <tbody id="inventoryTableBody"></tbody>
                     </table>
                 </div>
-                <div style="margin-top:20px; text-align:center;">
-                    <button class="btn btn-primary" id="saveInventoryBtn" onclick="saveInventory()" style="min-width:200px;">
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="saveInventoryBtn" onclick="saveInventory()" style="min-width:180px;">
                         💾 שמור ספירה
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportInventoryCSV()" style="min-width:150px;">
+                        📤 ייצוא CSV
                     </button>
                 </div>
                 <div class="msg-success" id="inventorySuccess">✅ ספירת מלאי נשמרה בהצלחה.</div>
                 <div class="msg-error"   id="inventoryError"></div>
             </div>
 
-            <!-- היסטוריית ספירות -->
+            <!-- הוספת פריט חדש -->
             <div class="card">
-                <h2>📋 ספירה אחרונה</h2>
-                <div id="lastCountInfo" style="color:#888;">טוען...</div>
+                <h2>➕ הוספת פריט חדש</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>שם הפריט</label>
+                        <input type="text" id="newItemName" placeholder="שם הפריט..." />
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end;">
+                        <button class="btn btn-success" id="addItemBtn" onclick="addItem()" style="margin-top:22px;">
+                            ➕ הוסף פריט
+                        </button>
+                    </div>
+                </div>
+                <div class="msg-success" id="addItemSuccess">✅ פריט נוסף בהצלחה.</div>
+                <div class="msg-error"   id="addItemError"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             TAB קבלות
+        ═══════════════════════════════════════ -->
+        <div id="tab-receive" class="tab-panel">
+            <div class="card">
+                <h2>📥 קבלת מלאי למחסן</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מחסן</label>
+                        <select id="receiveWarehouse">
+                            <option value="">— בחר מחסן —</option>
+                            <option value="נפתלי">מחסן א — נפתלי</option>
+                            <option value="בילו">מחסן ב — בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>שם המקבל</label>
+                        <input type="text" id="receiveBy" placeholder="שם מלא..." />
+                    </div>
+                </div>
+
+                <div id="receiveItemsSection" style="display:none;">
+                    <div style="margin-bottom:12px;">
+                        <input type="text" class="search-box" id="receiveSearch" placeholder="🔍 סינון פריט..."
+                               oninput="renderReceiveGrid()" style="max-width:280px;" />
+                    </div>
+                    <div class="items-grid" id="receiveGrid"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-success" id="submitReceiveBtn" onclick="submitReceive()" style="min-width:200px;">
+                            📥 אשר קבלה
+                        </button>
+                    </div>
+                </div>
+                <div id="receivePrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מחסן כדי להמשיך
+                </div>
+                <div class="msg-success" id="receiveSuccess"></div>
+                <div class="msg-error"   id="receiveError"></div>
             </div>
         </div>
 
@@ -536,6 +595,10 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + name).classList.add('active');
             event.target.classList.add('active');
+            if (name === 'inventory') loadInventory();
+            if (name === 'dispense')  { loadInventory(); loadActiveDispenses(); }
+            if (name === 'transfer')  loadInventory();
+            if (name === 'receive')   loadInventory();
         }
 
         // ============================================================
@@ -658,7 +721,13 @@
             const warehouse = document.getElementById('dispenseWarehouse').value;
             const query     = (document.getElementById('dispenseSearch')?.value || '').toLowerCase();
             const grid      = document.getElementById('dispenseGrid');
-            const visible   = bunkerItems.filter(item => !query || item.label.includes(query));
+            // שמור ערכים קיימים לפני ריענון
+            const saved = {};
+            bunkerItems.forEach(item => {
+                const el = document.getElementById('disp_' + item.key);
+                if (el && parseInt(el.value) > 0) saved[item.key] = el.value;
+            });
+            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
             grid.innerHTML = visible.map(item => {
                 const inv   = inventoryItems.find(i => i.key === item.key);
                 const stock = inv ? (warehouse === 'נפתלי' ? (inv.nafatli ?? 0) : (inv.bilo ?? 0)) : 0;
@@ -667,7 +736,7 @@
                     <div class="item-card">
                         <div class="item-name">${item.label}</div>
                         <div style="color:#aaa;font-size:0.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
-                        <input type="number" min="0" max="${stock}" value="0" id="disp_${item.key}"
+                        <input type="number" min="0" max="${stock}" value="${saved[item.key] || 0}" id="disp_${item.key}"
                                style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;"
                                ${stock === 0 ? 'disabled title="אין מלאי"' : ''} />
                     </div>`;
@@ -777,6 +846,88 @@
         // ============================================================
         // Helpers
         // ============================================================
+        // ============================================================
+        // TAB קבלות
+        // ============================================================
+        document.getElementById('receiveWarehouse').addEventListener('change', function() {
+            const val = this.value;
+            document.getElementById('receivePrompt').style.display       = val ? 'none'  : 'block';
+            document.getElementById('receiveItemsSection').style.display = val ? 'block' : 'none';
+            if (val) renderReceiveGrid();
+        });
+
+        function renderReceiveGrid() {
+            const query = (document.getElementById('receiveSearch')?.value || '').toLowerCase();
+            const saved = {};
+            inventoryItems.forEach(item => {
+                const el = document.getElementById('rec_' + item.key);
+                if (el && parseInt(el.value) > 0) saved[item.key] = el.value;
+            });
+            const visible = inventoryItems.filter(item => !query || item.label.includes(query));
+            document.getElementById('receiveGrid').innerHTML = visible.map(item => `
+                <div class="item-card">
+                    <div class="item-name">${item.label}</div>
+                    <input type="number" min="0" value="${saved[item.key] || 0}" id="rec_${item.key}"
+                           style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;" />
+                </div>`).join('');
+        }
+
+        async function submitReceive() {
+            const warehouse = document.getElementById('receiveWarehouse').value;
+            const by        = document.getElementById('receiveBy').value.trim();
+            if (!warehouse) { showMsg('receive', false, 'יש לבחור מחסן'); return; }
+            if (!by)        { showMsg('receive', false, 'יש להזין שם מקבל'); return; }
+            const items = [];
+            inventoryItems.forEach(item => {
+                const qty = parseInt(document.getElementById('rec_' + item.key)?.value) || 0;
+                if (qty > 0) items.push({ key: item.key, label: item.label, qty });
+            });
+            if (!items.length) { showMsg('receive', false, 'יש להזין כמות לפחות לפריט אחד'); return; }
+            const btn = document.getElementById('submitReceiveBtn');
+            btn.disabled = true; btn.textContent = 'שומר...';
+            try {
+                const json = await apiPost('bunker_receive', { warehouse, by, items });
+                showMsg('receive', json.statusCode === 200,
+                    json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) { await loadInventory(); renderReceiveGrid(); }
+            } finally { btn.disabled = false; btn.textContent = '📥 אשר קבלה'; }
+        }
+
+        // ============================================================
+        // הוספת פריט + ייצוא
+        // ============================================================
+        async function addItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            if (!name) { showMsg('addItem', false, 'יש להזין שם פריט'); return; }
+            const btn = document.getElementById('addItemBtn');
+            btn.disabled = true;
+            try {
+                const json = await apiPost('bunker_add_item', { name });
+                showMsg('addItem', json.statusCode === 200,
+                    json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) {
+                    document.getElementById('newItemName').value = '';
+                    await Promise.all([loadItems(), loadInventory()]);
+                }
+            } finally { btn.disabled = false; }
+        }
+
+        function exportInventoryCSV() {
+            if (!inventoryItems.length) return;
+            const rows = [['פריט', 'נפתלי', 'בילו']];
+            inventoryItems.forEach(item => {
+                const elN = document.getElementById('inv_nafatli_' + item.key);
+                const elB = document.getElementById('inv_bilo_'    + item.key);
+                rows.push([item.label, elN ? elN.value : item.nafatli, elB ? elB.value : item.bilo]);
+            });
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = 'מלאי_בונקר.csv'; a.click();
+            URL.revokeObjectURL(url);
+        }
+
         // ============================================================
         // TAB 4 — העברה בין מחסנים
         // ============================================================
