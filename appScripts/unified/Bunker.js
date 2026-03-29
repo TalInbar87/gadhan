@@ -292,15 +292,21 @@ function bunker_receive(data) {
   var warehouseCol = BUNKER_WAREHOUSE_COLS[data.warehouse];
   if (!warehouseCol) return { success: false, error: 'מחסן לא מזוהה' };
 
-  var ss   = bunker_ss();
-  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  var ss      = bunker_ss();
+  var main    = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
   if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var recSheet = bunker_ensureSheet(ss, 'קבלות',
+    ['תאריך', 'מחסן', 'מקבל', 'מקור', 'פריט', 'כמות']);
+
+  var ts = bunker_ts();
 
   data.items.forEach(function(item) {
     var rowIdx = bunker_findItemRow(main, item.key);
     if (rowIdx === -1) return;
     var current = Number(main.getRange(rowIdx, warehouseCol).getValue()) || 0;
     main.getRange(rowIdx, warehouseCol).setValue(current + (Number(item.qty) || 0));
+    recSheet.appendRow([ts, data.warehouse, data.by || '', data.source || '', item.key, Number(item.qty) || 0]);
   });
 
   return { success: true };
