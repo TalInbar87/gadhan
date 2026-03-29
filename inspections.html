@@ -301,6 +301,7 @@
         <tr>
           <th>#</th>
           <th>שם מלא</th>
+          <th>מסגרת</th>
           <th>צוות</th>
           <th>בדיקת אופטיקה אחרונה</th>
           <th>בדיקת נשק אחרונה</th>
@@ -383,11 +384,12 @@ function renderTable(rows) {
   let html = '';
   let counter = 1;
   teamOrder.forEach(team => {
-    html += `<tr class="team-row"><td colspan="6">👥 ${team}</td></tr>`;
+    html += `<tr class="team-row"><td colspan="7">👥 ${team}</td></tr>`;
     byTeam[team].forEach(r => {
       html += `<tr>
         <td>${counter++}</td>
         <td>${r.name}</td>
+        <td>${r.unit}</td>
         <td>${r.team}</td>
         <td>${dateCellHtml(r.lastOptics)}</td>
         <td>${dateCellHtml(r.lastWeapon)}</td>
