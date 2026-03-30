@@ -871,7 +871,7 @@
                 document.getElementById('creditItemsList').innerHTML = items.map(r => `
                 <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
                     <input type="checkbox" class="credit-cb" data-id="${r.id}" data-orig="${r.qty}"
-                           onchange="document.querySelector('.credit-qty[data-id=\\'${r.id}\\']').disabled=!this.checked"
+                           onchange="toggleCreditQty('${r.id}', this.checked)"
                            style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
                     <span style="flex:1;color:#fff;font-weight:600;min-width:120px;">${r.itemLabel}</span>
                     <span style="color:#888;font-size:0.85em;white-space:nowrap;">
@@ -884,6 +884,11 @@
                 </div>
             `).join('');
             } finally { showLoader('creditLoader', false); }
+        }
+
+        function toggleCreditQty(id, checked) {
+            const input = document.querySelector('.credit-qty[data-id="' + id + '"]');
+            if (input) input.disabled = !checked;
         }
 
         async function submitCredit() {
