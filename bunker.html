@@ -499,6 +499,14 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>מחסן להחזרה</label>
+                        <select id="creditWarehouse">
+                            <option value="">— לפי מחסן מקורי —</option>
+                            <option value="נפתלי">נפתלי</option>
+                            <option value="בילו">בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>שם מלא</label>
                         <input type="text" id="creditBy" placeholder="שם המזכה..." />
                     </div>
@@ -623,6 +631,7 @@
 
         function resetCreditTab() {
             document.getElementById('creditUnit').value                     = '';
+            document.getElementById('creditWarehouse').value                = '';
             document.getElementById('creditBy').value                       = '';
             document.getElementById('creditItemsList').innerHTML             = '';
             document.getElementById('creditItemsSection').style.display     = 'none';
@@ -860,16 +869,18 @@
 
                 const items = json.data;
                 document.getElementById('creditItemsList').innerHTML = items.map(r => `
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
                     <input type="checkbox" class="credit-cb" data-id="${r.id}" data-orig="${r.qty}"
-                           checked
-                           onchange="this.nextElementSibling.disabled=!this.checked"
+                           onchange="document.querySelector('.credit-qty[data-id=\\'${r.id}\\']').disabled=!this.checked"
                            style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
-                    <input type="number" class="credit-qty" data-id="${r.id}"
-                           value="${r.qty}" min="1"
-                           style="width:70px;border:1px solid #444;border-radius:6px;padding:4px 8px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
-                    <span style="flex:1;color:#fff;font-weight:600;">${r.itemLabel}</span>
-                    <span style="color:#888;font-size:0.8em;">נופק: ${r.qty} · ${r.warehouse || ''}</span>
+                    <span style="flex:1;color:#fff;font-weight:600;min-width:120px;">${r.itemLabel}</span>
+                    <span style="color:#888;font-size:0.85em;white-space:nowrap;">
+                        נופק:
+                        <input type="number" class="credit-qty" data-id="${r.id}"
+                               value="${r.qty}" min="1" disabled
+                               style="width:65px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
+                        · ${r.warehouse || ''}
+                    </span>
                 </div>
             `).join('');
             } finally { showLoader('creditLoader', false); }
@@ -883,13 +894,14 @@
             if (!by)             { showMsg('credit', false, 'יש להזין שם מלא'); return; }
             if (!checked.length) { showMsg('credit', false, 'יש לסמן לפחות פריט אחד'); return; }
 
+            const warehouse = document.getElementById('creditWarehouse').value;
             const credits = checked.map(cb => {
                 const qtyInput = document.querySelector(`.credit-qty[data-id="${cb.dataset.id}"]`);
                 return { id: cb.dataset.id, qty: qtyInput ? Math.max(1, Number(qtyInput.value) || 1) : Number(cb.dataset.orig) };
             });
             setPageDisabled(true);
             try {
-                const json = await apiPost('bunker_credit', { unit, by, credits });
+                const json = await apiPost('bunker_credit', { unit, by, warehouse, credits });
                 showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${credits.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { resetCreditTab(); await loadActiveDispenses(); }
             } finally { setPageDisabled(false); }

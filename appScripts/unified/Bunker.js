@@ -254,7 +254,9 @@ function bunker_credit(data) {
     var rowId = String(rows[i][0] || '').trim();
     if (!(rowId in creditMap) || String(rows[i][7]).trim() !== 'פעיל') continue;
 
-    var warehouse    = String(rows[i][2]).trim();
+    var warehouse    = (data.warehouse && BUNKER_WAREHOUSE_COLS[data.warehouse])
+                         ? data.warehouse
+                         : String(rows[i][2]).trim();
     var unit         = String(rows[i][3]).trim();
     var itemKey      = String(rows[i][4]).trim();
     var originalQty  = Number(rows[i][5]) || 0;
