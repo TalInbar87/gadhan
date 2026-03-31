@@ -791,12 +791,15 @@ function handleInspectionsMark(data, request) {
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'אין הרשאה', null);
   try {
-    if (!data.pn || !data.name || !data.unit || !data.itemKey || !data.type)
+    if (!data.pn || !data.name || !data.unit || !data.type)
       return createResponse(400, 'חסרים נתונים', null);
-    var result = inspections_markCheck(data.pn, data.name, data.unit, data.itemKey, data.type);
+    var result = inspections_markCheck(
+      data.pn, data.name, data.phone || '', data.email || '',
+      data.unit, data.team || '', data.type
+    );
     if (result.success) {
       AuditLogger.log(payload.username, 'INSPECTION_MARK', 'weapons', data.pn,
-        { item: data.itemKey, type: data.type }, request);
+        { type: data.type }, request);
     }
     return result.success ? createResponse(200, 'בדיקה עודכנה', null) : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }

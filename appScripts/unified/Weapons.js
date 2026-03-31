@@ -1805,8 +1805,8 @@ function weapons_getUnits() {
 // ================================================================
 // Inspections (מעקב בדיקות)
 // ================================================================
-// גיליון מעקב בדיקות: A=מספר אישי | B=שם מלא | C=מסגרת | D=מפתח פריט | E=בדיקת אופטיקה | F=בדיקת נשק
-// (שינוי מבנה 2026-03-31 — שורה לכל חייל+פריט במקום שורה לכל חייל)
+// גיליון מעקב בדיקות: A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות | G=בדיקת אופטיקה | H=בדיקת נשק
+// שורה אחת לחייל — upsert לפי B (מספר אישי)
 
 /**
  * מחזיר מסגרות ייחודיות מגיליון הנשקים
@@ -1830,60 +1830,63 @@ function inspections_getUnits() {
 }
 
 /**
- * מחזיר חיילים במסגרת + סטטוס בדיקות מרוכז (ממוין לפי צוות)
+ * מחזיר חיילים במסגרת מגליון המסגרת הספציפי (fallback: כל הרשומות)
+ * מחזיר גם סטטוס בדיקות עדכני מגליון "מעקב בדיקות"
  */
 function inspections_getSoldiersByUnit(unit) {
   try {
-    var ss        = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
-    var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
-    if (!mainSheet) return { success: false, error: 'גיליון לא נמצא' };
+    var ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
 
-    // בניית מפת חיילים
-    var rows     = mainSheet.getDataRange().getValues();
+    // נסה גליון מסגרת ספציפי → fallback לגליון הראשי
+    var srcSheet = ss.getSheetByName(unit);
+    var filterByUnit = false;
+    if (!srcSheet) {
+      srcSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+      filterByUnit = true;
+    }
+    if (!srcSheet) return { success: false, error: 'גיליון לא נמצא' };
+
+    var rows     = srcSheet.getDataRange().getValues();
     var soldiers = {};
     for (var i = 1; i < rows.length; i++) {
-      if ((rows[i][5] || '').toString().trim() !== unit) continue;
+      if (filterByUnit && (rows[i][5] || '').toString().trim() !== unit) continue;
       var pn = (rows[i][2] || '').toString().trim();
       if (!pn) continue;
       if (!soldiers[pn]) {
         soldiers[pn] = {
-          pn:        pn,
-          name:      (rows[i][1] || '').toString().trim(),
-          unit:      unit,
-          team:      (rows[i][6] || '').toString().trim(),
-          itemCount: 0
+          pn:    pn,
+          name:  (rows[i][1] || '').toString().trim(),
+          phone: (rows[i][3] || '').toString().trim(),
+          email: (rows[i][4] || '').toString().trim(),
+          unit:  (rows[i][5] || '').toString().trim() || unit,
+          team:  (rows[i][6] || '').toString().trim()
         };
       }
-      WEAPONS_ITEM_LIST.forEach(function(item) {
-        var v = rows[i][item.col];
-        if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') soldiers[pn].itemCount++;
-      });
     }
 
-    // סטטוס בדיקות אחרון לכל חייל
+    // משוך תאריכי בדיקה מגליון מעקב בדיקות (B=מספר אישי, G=אופטיקה, H=נשק)
     var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     var inspByPn  = {};
     if (inspSheet) {
       var inspRows = inspSheet.getDataRange().getValues();
       for (var k = 1; k < inspRows.length; k++) {
-        var irPn = (inspRows[k][0] || '').toString().trim();
+        var irPn = (inspRows[k][1] || '').toString().trim(); // B=מספר אישי
         if (!soldiers[irPn]) continue;
-        if (!inspByPn[irPn]) inspByPn[irPn] = { optics: [], weapon: [] };
-        if (inspRows[k][4]) inspByPn[irPn].optics.push(new Date(inspRows[k][4]).getTime());
-        if (inspRows[k][5]) inspByPn[irPn].weapon.push(new Date(inspRows[k][5]).getTime());
+        inspByPn[irPn] = {
+          lastOptics: inspRows[k][6] ? new Date(inspRows[k][6]).getTime() : null,
+          lastWeapon: inspRows[k][7] ? new Date(inspRows[k][7]).getTime() : null
+        };
       }
     }
 
     var now    = Date.now();
     var result = Object.values(soldiers);
     result.forEach(function(s) {
-      var hist       = inspByPn[s.pn] || { optics: [], weapon: [] };
-      var lastOptics = hist.optics.length ? Math.max.apply(null, hist.optics) : null;
-      var lastWeapon = hist.weapon.length ? Math.max.apply(null, hist.weapon) : null;
-      s.lastOptics     = lastOptics ? new Date(lastOptics).toISOString() : null;
-      s.lastWeapon     = lastWeapon ? new Date(lastWeapon).toISOString() : null;
-      s.overdueOptics  = !lastOptics || (now - lastOptics) / 86400000 > 14;
-      s.overdueWeapon  = !lastWeapon || (now - lastWeapon) / 86400000 > 14;
+      var h = inspByPn[s.pn] || {};
+      s.lastOptics    = h.lastOptics ? new Date(h.lastOptics).toISOString() : null;
+      s.lastWeapon    = h.lastWeapon ? new Date(h.lastWeapon).toISOString() : null;
+      s.overdueOptics = !h.lastOptics || (now - h.lastOptics) / 86400000 > 14;
+      s.overdueWeapon = !h.lastWeapon || (now - h.lastWeapon) / 86400000 > 14;
     });
 
     result.sort(function(a, b) {
@@ -1898,7 +1901,7 @@ function inspections_getSoldiersByUnit(unit) {
 }
 
 /**
- * מחזיר פריטים לחייל + היסטוריית בדיקות לכל פריט
+ * מחזיר פריטים לחייל + תאריך בדיקה אחרון (per-soldier)
  */
 function inspections_getSoldierData(pn) {
   try {
@@ -1906,6 +1909,7 @@ function inspections_getSoldierData(pn) {
     var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
     if (!mainSheet) return { success: false, error: 'גיליון לא נמצא' };
 
+    // פריטים מגליון כל הרשומות
     var rows  = mainSheet.getDataRange().getValues();
     var items = [];
     for (var i = 1; i < rows.length; i++) {
@@ -1921,18 +1925,16 @@ function inspections_getSoldierData(pn) {
       break;
     }
 
-    var history   = {};
+    // תאריכי בדיקה מגליון מעקב בדיקות (B=מספר אישי, G=אופטיקה, H=נשק)
+    var history   = { lastOptics: null, lastWeapon: null };
     var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     if (inspSheet) {
       var inspRows = inspSheet.getDataRange().getValues();
       for (var k = 1; k < inspRows.length; k++) {
-        if ((inspRows[k][0] || '').toString().trim() !== pn.toString().trim()) continue;
-        var itemKey = (inspRows[k][3] || '').toString().trim();
-        if (!itemKey) continue;
-        history[itemKey] = {
-          lastOptics: inspRows[k][4] ? new Date(inspRows[k][4]).toISOString() : null,
-          lastWeapon: inspRows[k][5] ? new Date(inspRows[k][5]).toISOString() : null
-        };
+        if ((inspRows[k][1] || '').toString().trim() !== pn.toString().trim()) continue;
+        history.lastOptics = inspRows[k][6] ? new Date(inspRows[k][6]).toISOString() : null;
+        history.lastWeapon = inspRows[k][7] ? new Date(inspRows[k][7]).toISOString() : null;
+        break;
       }
     }
     return { success: true, data: { items: items, history: history } };
@@ -1943,28 +1945,30 @@ function inspections_getSoldierData(pn) {
 }
 
 /**
- * מסמן בדיקה (optics/weapon) לפריט ספציפי של חייל — upsert
+ * מסמן בדיקה לחייל — upsert לגליון "מעקב בדיקות"
+ * מבנה: A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות | G=אופטיקה | H=נשק
  */
-function inspections_markCheck(pn, name, unit, itemKey, type) {
+function inspections_markCheck(pn, name, phone, email, unit, team, type) {
   try {
     var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
     var sheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     if (!sheet) return { success: false, error: 'גיליון מעקב בדיקות לא נמצא' };
 
-    var col  = (type === 'optics') ? 5 : 6;   // E=5, F=6 (1-indexed)
     var rows = sheet.getDataRange().getValues();
     var now  = new Date();
 
     for (var i = 1; i < rows.length; i++) {
-      if ((rows[i][0] || '').toString().trim() === pn.toString().trim() &&
-          (rows[i][3] || '').toString().trim() === itemKey.toString().trim()) {
-        sheet.getRange(i + 1, col).setValue(now);
-        return { success: true };
-      }
+      if ((rows[i][1] || '').toString().trim() !== pn.toString().trim()) continue;
+      // עדכן פרטים יבשים + תאריך הבדיקה הרלוונטית
+      var optDate = (type === 'optics') ? now : (rows[i][6] || '');
+      var wpnDate = (type === 'weapon') ? now : (rows[i][7] || '');
+      sheet.getRange(i + 1, 1, 1, 8).setValues([[name, pn, phone, email, unit, team, optDate, wpnDate]]);
+      return { success: true };
     }
+
     // שורה חדשה
-    var newRow = [pn, name, unit, itemKey, null, null];
-    newRow[(type === 'optics') ? 4 : 5] = now;
+    var newRow = [name, pn, phone, email, unit, team, null, null];
+    newRow[(type === 'optics') ? 6 : 7] = now;
     sheet.appendRow(newRow);
     return { success: true };
   } catch (e) {

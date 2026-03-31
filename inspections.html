@@ -344,9 +344,13 @@ function renderSoldiers(list) {
   order.forEach(team => {
     html += `<div class="team-label">👥 ${team}</div>`;
     byTeam[team].forEach(s => {
+      const enc = encodeURIComponent(JSON.stringify({
+        pn: s.pn, name: s.name, phone: s.phone||'',
+        email: s.email||'', unit: s.unit, team: s.team||''
+      }));
       html += `
       <div class="soldier-card" id="sc-${s.pn}">
-        <div class="soldier-header" onclick="toggleSoldier('${s.pn}','${escAttr(s.name)}','${escAttr(s.unit)}')">
+        <div class="soldier-header" onclick="toggleSoldier('${s.pn}','${enc}')">
           <span class="soldier-name">${s.name}</span>
           <div class="status-icons">
             ${statusPill(s.lastOptics, '🔭')}
@@ -355,7 +359,7 @@ function renderSoldiers(list) {
           <span class="expand-arrow">▼</span>
         </div>
         <div class="items-panel" id="ip-${s.pn}">
-          <div class="items-loading" id="il-${s.pn}">
+          <div class="items-loading">
             <div class="spinner"></div>טוען פריטים...
           </div>
         </div>
@@ -385,7 +389,8 @@ function buildStats(list) {
 }
 
 // ── Toggle soldier ───────────────────────────────────
-async function toggleSoldier(pn, name, unit) {
+async function toggleSoldier(pn, enc) {
+  const s     = JSON.parse(decodeURIComponent(enc));
   const card  = document.getElementById('sc-' + pn);
   const panel = document.getElementById('ip-' + pn);
   const isOpen = card.classList.contains('open');
@@ -412,43 +417,46 @@ async function toggleSoldier(pn, name, unit) {
   try {
     const json = await apiPost('inspections_get_soldier_data', { pn });
     if (json.statusCode !== 200) throw new Error(json.message);
-    renderItemsPanel(panel, pn, name, unit, json.data);
+    renderItemsPanel(panel, s, json.data);
   } catch (e) {
     panel.innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
   }
 }
 
 // ── Render items panel ───────────────────────────────
-function renderItemsPanel(panel, pn, name, unit, data) {
+// history is now per-soldier: { lastOptics, lastWeapon }
+// All item rows show the same dates (soldier-level tracking)
+function renderItemsPanel(panel, s, data) {
   const { items, history } = data;
   if (!items || !items.length) {
     panel.innerHTML = `<div class="empty-msg">לא נמצאו פריטים לחייל זה</div>`;
     return;
   }
 
+  const enc = encodeURIComponent(JSON.stringify(s));
+  const lo  = history.lastOptics || null;
+  const lw  = history.lastWeapon || null;
+
   let rows = '';
   items.forEach(item => {
-    const h   = history[item.key] || {};
-    const lo  = h.lastOptics || null;
-    const lw  = h.lastWeapon || null;
     rows += `
-      <tr id="ir-${pn}-${item.key}">
+      <tr id="ir-${s.pn}-${item.key}">
         <td>${item.label}</td>
         <td style="color:#888;font-size:12px">${item.value}</td>
-        <td>${dateCellHtml(lo)}</td>
-        <td>${dateCellHtml(lw)}</td>
+        <td class="opt-date-${s.pn}">${dateCellHtml(lo)}</td>
+        <td class="wpn-date-${s.pn}">${dateCellHtml(lw)}</td>
         <td>
           <div class="item-btns">
             <button class="ib ib-optics"
-              onclick="markCheck('${pn}','${escAttr(name)}','${escAttr(unit)}','${item.key}','optics',this)">
+              onclick="markCheck('${s.pn}','${enc}','optics',this)">
               🔭 אופטיקה
             </button>
             <button class="ib ib-weapon"
-              onclick="markCheck('${pn}','${escAttr(name)}','${escAttr(unit)}','${item.key}','weapon',this)">
+              onclick="markCheck('${s.pn}','${enc}','weapon',this)">
               🔫 נשק
             </button>
             <button class="ib ib-skip"
-              onclick="skipItem('${pn}','${item.key}',this)">
+              onclick="skipItem('${s.pn}','${item.key}')">
               — לא נדרש
             </button>
           </div>
@@ -463,8 +471,8 @@ function renderItemsPanel(panel, pn, name, unit, data) {
           <tr>
             <th>פריט</th>
             <th>ערך/סידורי</th>
-            <th>בדיקת אופטיקה</th>
-            <th>בדיקת נשק</th>
+            <th>בדיקת אופטיקה אחרונה</th>
+            <th>בדיקת נשק אחרונה</th>
             <th>פעולות</th>
           </tr>
         </thead>
@@ -474,28 +482,33 @@ function renderItemsPanel(panel, pn, name, unit, data) {
 }
 
 // ── Mark check ───────────────────────────────────────
-async function markCheck(pn, name, unit, itemKey, type, btn) {
+async function markCheck(pn, enc, type, btn) {
+  const s = JSON.parse(decodeURIComponent(enc));
   setOverlay(true);
   try {
-    const json = await apiPost('inspections_mark', { pn, name, unit, itemKey, type });
+    const json = await apiPost('inspections_mark', {
+      pn: s.pn, name: s.name, phone: s.phone || '',
+      email: s.email || '', unit: s.unit, team: s.team || '', type
+    });
     if (json.statusCode === 200) {
-      const now    = new Date().toISOString();
-      const row    = document.getElementById(`ir-${pn}-${itemKey}`);
-      const label  = type === 'optics' ? 'אופטיקה' : 'נשק';
-      const colIdx = type === 'optics' ? 2 : 3;   // td index (0=פריט,1=ערך,2=אופטיקה,3=נשק)
-      if (row) {
-        row.cells[colIdx].innerHTML = dateCellHtml(now);
-      }
-      // Update local soldier status
-      const s = soldiers.find(s => s.pn.toString() === pn.toString());
-      if (s) {
-        if (type === 'optics') s.lastOptics = now;
-        else                   s.lastWeapon = now;
-        s.overdueOptics = isOverdue(s.lastOptics);
-        s.overdueWeapon = isOverdue(s.lastWeapon);
-        // Refresh status pills
+      const now   = new Date().toISOString();
+      const label = type === 'optics' ? 'אופטיקה' : 'נשק';
+      const cls   = type === 'optics' ? `opt-date-${pn}` : `wpn-date-${pn}`;
+
+      // Update all date cells in this soldier's panel (per-soldier tracking)
+      document.querySelectorAll('.' + cls).forEach(td => {
+        td.innerHTML = dateCellHtml(now);
+      });
+
+      // Update local soldier + pills
+      const sol = soldiers.find(s => s.pn.toString() === pn.toString());
+      if (sol) {
+        if (type === 'optics') sol.lastOptics = now;
+        else                   sol.lastWeapon = now;
+        sol.overdueOptics = isOverdue(sol.lastOptics);
+        sol.overdueWeapon = isOverdue(sol.lastWeapon);
         const header = document.querySelector(`#sc-${pn} .status-icons`);
-        if (header) header.innerHTML = statusPill(s.lastOptics,'🔭') + statusPill(s.lastWeapon,'🔫');
+        if (header) header.innerHTML = statusPill(sol.lastOptics,'🔭') + statusPill(sol.lastWeapon,'🔫');
         buildStats(soldiers);
       }
       showToast(`✅ בדיקת ${label} עודכנה`, 'success');
