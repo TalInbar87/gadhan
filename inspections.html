@@ -15,6 +15,8 @@
       min-height: 100vh;
       direction: rtl;
     }
+
+    /* ── Header ── */
     header {
       background: #2d2d2d;
       border-bottom: 2px solid #ff6600;
@@ -22,246 +24,182 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      position: sticky; top: 0; z-index: 100;
     }
     .back-btn {
-      background: none;
-      border: 1px solid #555;
-      color: #ccc;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
+      background: none; border: 1px solid #555; color: #ccc;
+      padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px;
     }
     .back-btn:hover { border-color: #ff6600; color: #ff6600; }
     header h1 { font-size: 20px; color: #ff6600; flex: 1; }
-    header .subtitle { font-size: 13px; color: #888; }
 
-    /* Loading */
-    #loadingScreen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 60vh;
-      gap: 16px;
-      color: #888;
-    }
+    /* ── Spinner ── */
     .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid #333;
-      border-top-color: #ff6600;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 36px; height: 36px;
+      border: 3px solid #333; border-top-color: #ff6600;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #loadingScreen {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 60vh; gap: 14px; color: #888;
+    }
 
-    /* Main content */
-    #mainContent { display: none; padding: 16px 20px; }
+    /* ── Main ── */
+    #mainContent { display: none; padding: 16px 20px; max-width: 900px; margin: 0 auto; }
 
-    /* Filters bar */
-    .filters {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 16px;
+    /* ── Unit selector ── */
+    .unit-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-    .filters label { font-size: 14px; color: #aaa; }
-    .filters select, .filters input {
-      background: #2d2d2d;
-      border: 1px solid #444;
-      color: #e0e0e0;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      min-width: 160px;
+    .unit-bar label { color: #aaa; font-size: 14px; white-space: nowrap; }
+    .unit-bar select {
+      background: #2d2d2d; border: 1px solid #444; color: #e0e0e0;
+      padding: 9px 14px; border-radius: 6px; font-size: 15px;
+      min-width: 180px; flex: 1; max-width: 280px;
     }
-    .filters select:focus, .filters input:focus {
-      outline: none;
-      border-color: #ff6600;
-    }
-    .legend {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      font-size: 12px;
-      color: #888;
-      margin-right: auto;
-    }
-    .legend-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .legend-dot.red   { background: #ef4444; }
-    .legend-dot.green { background: #22c55e; }
-    .legend-dot.gray  { background: #555; }
+    .unit-bar select:focus { outline: none; border-color: #ff6600; }
 
-    /* Summary stats */
+    /* ── Stats ── */
     .stats-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;
     }
     .stat-card {
-      background: #2d2d2d;
-      border-radius: 8px;
-      padding: 10px 18px;
-      text-align: center;
-      min-width: 110px;
+      background: #2d2d2d; border-radius: 8px;
+      padding: 10px 16px; text-align: center; flex: 1; min-width: 90px;
     }
-    .stat-card .num { font-size: 22px; font-weight: bold; }
+    .stat-card .num { font-size: 22px; font-weight: bold; color: #e0e0e0; }
     .stat-card .lbl { font-size: 11px; color: #888; margin-top: 2px; }
     .stat-card.red-card .num  { color: #ef4444; }
     .stat-card.green-card .num{ color: #22c55e; }
 
-    /* Table */
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 8px;
+    /* ── Soldier list ── */
+    #soldierList { display: flex; flex-direction: column; gap: 6px; }
+
+    .team-label {
+      background: #252525; color: #ff6600;
+      font-weight: 700; font-size: 13px;
+      padding: 6px 14px; border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    .soldier-card {
+      background: #2a2a2a;
       border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    thead { background: #2d2d2d; position: sticky; top: 0; z-index: 1; }
-    th {
-      padding: 10px 12px;
-      text-align: right;
-      color: #ff6600;
-      font-weight: 600;
-      border-bottom: 2px solid #ff6600;
-      white-space: nowrap;
+    .soldier-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; cursor: pointer;
+      transition: background 0.15s;
     }
-    td {
-      padding: 9px 12px;
-      border-bottom: 1px solid #2d2d2d;
+    .soldier-header:hover { background: #333; }
+    .soldier-name { flex: 1; font-size: 15px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; }
+    .status-pill {
+      font-size: 11px; padding: 3px 8px; border-radius: 12px;
+      white-space: nowrap; font-weight: 600;
+    }
+    .pill-ok     { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
+    .pill-bad    { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
+    .pill-none   { background: #1c1c1c; color: #666;    border: 1px solid #444; }
+    .expand-arrow { color: #666; font-size: 12px; transition: transform 0.2s; }
+    .soldier-card.open .expand-arrow { transform: rotate(180deg); }
+
+    /* ── Items panel ── */
+    .items-panel { display: none; border-top: 1px solid #333; }
+    .soldier-card.open .items-panel { display: block; }
+
+    .items-loading {
+      padding: 18px; text-align: center; color: #666;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .items-loading .spinner { width: 22px; height: 22px; border-width: 2px; }
+
+    /* ── Items table ── */
+    .items-table-wrap { overflow-x: auto; }
+    table.items-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.items-tbl th {
+      background: #1e1e1e; color: #ff6600; font-weight: 600;
+      padding: 9px 12px; text-align: right; white-space: nowrap;
+      border-bottom: 2px solid #333;
+    }
+    table.items-tbl td {
+      padding: 9px 12px; border-bottom: 1px solid #252525;
       vertical-align: middle;
     }
-    tr:hover td { background: #252525; }
+    table.items-tbl tr:last-child td { border-bottom: none; }
+    table.items-tbl tr.item-done td { opacity: 0.35; text-decoration: line-through; }
 
-    /* Team separator row */
-    .team-row td {
-      background: #252525;
-      color: #ff6600;
-      font-weight: 700;
-      font-size: 13px;
-      padding: 6px 12px;
-      border-bottom: 1px solid #3a3a3a;
+    /* date cells */
+    .dc-ok     { color: #4ade80; }
+    .dc-bad    { color: #ef4444; }
+    .dc-never  { color: #555; font-style: italic; }
+    .dc-dot    { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+    .dc-dot.green { background: #22c55e; }
+    .dc-dot.red   { background: #ef4444; }
+    .dc-dot.gray  { background: #444; }
+
+    /* action buttons */
+    .item-btns { display: flex; gap: 5px; flex-wrap: wrap; }
+    .ib {
+      background: #1e1e1e; border: 1px solid #444; color: #ccc;
+      padding: 5px 9px; border-radius: 5px; cursor: pointer;
+      font-size: 12px; white-space: nowrap; transition: all 0.15s;
+    }
+    .ib:disabled { opacity: 0.35; cursor: not-allowed; }
+    .ib-optics { border-color: #3b82f6; color: #93c5fd; }
+    .ib-optics:hover:not(:disabled) { background: #1e3a5f; color: #60a5fa; }
+    .ib-weapon { border-color: #22c55e; color: #86efac; }
+    .ib-weapon:hover:not(:disabled) { background: #14532d; color: #4ade80; }
+    .ib-skip   { border-color: #555; color: #666; }
+    .ib-skip:hover:not(:disabled)   { background: #333; color: #999; }
+
+    /* ── Empty / error ── */
+    .empty-msg {
+      padding: 30px; text-align: center; color: #555; font-size: 14px;
     }
 
-    /* Date cell */
-    .date-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-    .date-cell.overdue  { color: #ef4444; }
-    .date-cell.ok       { color: #22c55e; }
-    .date-cell.never    { color: #666; font-style: italic; }
-    .date-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .date-dot.red   { background: #ef4444; }
-    .date-dot.green { background: #22c55e; }
-    .date-dot.gray  { background: #555; }
-
-    /* Action buttons */
-    .action-btn {
-      background: #333;
-      border: 1px solid #555;
-      color: #ccc;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 12px;
-      white-space: nowrap;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .action-btn:hover { background: #444; border-color: #ff6600; color: #ff6600; }
-    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-optics { border-color: #3b82f6; }
-    .btn-optics:hover { border-color: #3b82f6; color: #3b82f6; background: #1e3a5f; }
-    .btn-weapon { border-color: #22c55e; }
-    .btn-weapon:hover { border-color: #22c55e; color: #22c55e; background: #14532d; }
-    .btns-cell { display: flex; gap: 6px; flex-wrap: nowrap; }
-
-    /* Toast */
+    /* ── Toast ── */
     #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: #e0e0e0;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      display: none;
-      z-index: 999;
-      border: 1px solid #555;
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #2d2d2d; color: #e0e0e0; padding: 10px 22px;
+      border-radius: 8px; font-size: 14px; display: none; z-index: 999;
+      border: 1px solid #555; pointer-events: none;
     }
-    #toast.success { border-color: #22c55e; color: #22c55e; }
-    #toast.error   { border-color: #ef4444; color: #ef4444; }
+    #toast.success { border-color: #22c55e; color: #4ade80; }
+    #toast.error   { border-color: #ef4444; color: #fca5a5; }
 
-    /* Page disable overlay */
+    /* ── Page overlay ── */
     #pageOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 500;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 500;
+      align-items: center; justify-content: center;
     }
     #pageOverlay.active { display: flex; }
-    #pageOverlay .overlay-spinner { width: 48px; height: 48px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin 0.8s linear infinite; }
-
-    /* Tablet */
-    @media (max-width: 768px) {
-      header h1 { font-size: 16px; }
-      #mainContent { padding: 10px 12px; }
-      .filters { gap: 8px; }
-      .filters select, .filters input { min-width: 0; flex: 1; font-size: 13px; padding: 7px 10px; }
-      th, td { padding: 8px 8px; font-size: 13px; }
-      .action-btn { padding: 5px 8px; font-size: 11px; }
-      .stat-card { min-width: 0; flex: 1; padding: 8px 10px; }
-      .stat-card .num { font-size: 18px; }
-      .legend { display: none; }
+    #pageOverlay .ov-sp {
+      width: 50px; height: 50px;
+      border: 4px solid #333; border-top-color: #ff6600;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
 
-    /* Mobile — hide non-essential columns, stack buttons */
+    /* ── Responsive ── */
     @media (max-width: 600px) {
-      header h1 { font-size: 14px; }
-      header .subtitle { display: none; }
-      #mainContent { padding: 8px 8px; }
-
-      /* Filters: stack vertically */
-      .filters { flex-direction: column; align-items: stretch; gap: 6px; }
-      .filters label { font-size: 12px; margin-bottom: -2px; }
-      .filters select, .filters input { width: 100%; }
-
-      /* Stats: 3-column grid */
-      .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-      .stat-card { padding: 6px 8px; }
-      .stat-card .num { font-size: 16px; }
+      header h1 { font-size: 15px; }
+      #mainContent { padding: 10px 10px; }
+      .unit-bar select { max-width: 100%; }
+      .stats-row { gap: 6px; }
+      .stat-card { padding: 8px 8px; min-width: 70px; }
+      .stat-card .num { font-size: 18px; }
       .stat-card .lbl { font-size: 10px; }
-
-      /* Hide: # | צוות */
-      th:nth-child(1), td:nth-child(1),
-      th:nth-child(3), td:nth-child(3) { display: none; }
-
-      /* Keep: שם מלא | אופטיקה | נשק | פעולות */
-      th, td { padding: 7px 6px; font-size: 12px; }
-
-      /* Stack action buttons */
-      .btns-cell { flex-direction: column; gap: 4px; min-width: 90px; }
-      .action-btn { width: 100%; text-align: center; font-size: 11px; padding: 5px 6px; }
-
-      /* Shorten date display */
-      .date-cell { gap: 4px; font-size: 12px; }
+      .soldier-name { font-size: 14px; }
+      table.items-tbl th, table.items-tbl td { padding: 7px 8px; font-size: 12px; }
+      .item-btns { flex-direction: column; }
+      .ib { width: 100%; text-align: center; }
     }
   </style>
 </head>
@@ -269,60 +207,41 @@
 
 <header>
   <button class="back-btn" onclick="window.location.href='index-secure.html'">← חזרה</button>
-  <h1>מעקב בדיקות צלם ואופטיקה</h1>
-  <span class="subtitle" id="headerSubtitle"></span>
+  <h1>🔭 מעקב בדיקות צלם ואופטיקה</h1>
 </header>
 
 <div id="loadingScreen">
   <div class="spinner"></div>
-  <span>טוען נתונים...</span>
+  <span>טוען מסגרות...</span>
 </div>
 
 <div id="mainContent">
-  <div class="filters">
-    <label>מסגרת:</label>
-    <select id="unitFilter" onchange="applyFilter()">
-      <option value="">כל המסגרות</option>
+  <div class="unit-bar">
+    <label>בחר מסגרת:</label>
+    <select id="unitSelect" onchange="onUnitChange()">
+      <option value="">-- בחר מסגרת --</option>
     </select>
-    <label>חיפוש:</label>
-    <input type="text" id="searchInput" placeholder="שם / מספר אישי" oninput="applyFilter()">
-    <div class="legend">
-      <span><span class="legend-dot red"></span> פג תוקף (&gt;14 יום)</span>
-      <span><span class="legend-dot green"></span> תקין</span>
-      <span><span class="legend-dot gray"></span> לא בוצע</span>
-    </div>
   </div>
 
-  <div class="stats-row" id="statsRow"></div>
+  <div id="statsRow" class="stats-row" style="display:none"></div>
 
-  <div class="table-wrap">
-    <table id="inspTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>שם מלא</th>
-          <th>מסגרת</th>
-          <th>צוות</th>
-          <th>בדיקת אופטיקה אחרונה</th>
-          <th>בדיקת נשק אחרונה</th>
-          <th>פעולות</th>
-        </tr>
-      </thead>
-      <tbody id="inspTbody"></tbody>
-    </table>
-  </div>
+  <div id="soldierList"></div>
 </div>
 
 <div id="toast"></div>
-<div id="pageOverlay"><div class="overlay-spinner"></div></div>
+<div id="pageOverlay"><div class="ov-sp"></div></div>
 
 <script>
 const authClient = new SecureAuthClient(API_URL);
 const authGuard  = new AuthGuard(authClient);
-const OVERDUE_DAYS = 14;
+const OVERDUE_MS = 14 * 86400000;
 
-let allRows = [];
+// soldiers loaded for current unit
+let soldiers = [];
+// open soldier pn
+let openPn   = null;
 
+// ── API ────────────────────────────────────────────
 async function apiPost(action, payload) {
   const p = new URLSearchParams();
   p.append('data', JSON.stringify({ action, token: authClient.token, ...payload }));
@@ -330,156 +249,287 @@ async function apiPost(action, payload) {
   return res.json();
 }
 
-function isOverdue(isoDate) {
-  if (!isoDate) return false;
-  const diff = (Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24);
-  return diff > OVERDUE_DAYS;
+// ── Helpers ────────────────────────────────────────
+function isOverdue(iso) {
+  if (!iso) return true;
+  return Date.now() - new Date(iso).getTime() > OVERDUE_MS;
 }
-
-function formatDate(isoDate) {
-  if (!isoDate) return '—';
-  const d = new Date(isoDate);
+function fmt(iso) {
+  if (!iso) return '—';
+  const d  = new Date(iso);
   const dd = String(d.getDate()).padStart(2,'0');
   const mm = String(d.getMonth()+1).padStart(2,'0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+function dateCellHtml(iso) {
+  if (!iso) return `<span class="dc-never"><span class="dc-dot gray"></span>לא בוצע</span>`;
+  const over = isOverdue(iso);
+  return `<span class="${over?'dc-bad':'dc-ok'}"><span class="dc-dot ${over?'red':'green'}"></span>${fmt(iso)}</span>`;
+}
+function statusPill(iso, label) {
+  if (!iso)         return `<span class="status-pill pill-none">${label}: —</span>`;
+  if (isOverdue(iso)) return `<span class="status-pill pill-bad">${label}: פג</span>`;
+  return `<span class="status-pill pill-ok">${label}: ✓</span>`;
 }
 
-function dateCellHtml(isoDate) {
-  if (!isoDate) return `<div class="date-cell never"><span class="date-dot gray"></span>לא בוצע</div>`;
-  const over = isOverdue(isoDate);
-  const cls  = over ? 'overdue' : 'ok';
-  const dot  = over ? 'red' : 'green';
-  return `<div class="date-cell ${cls}"><span class="date-dot ${dot}"></span>${formatDate(isoDate)}</div>`;
+// ── Toast ───────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = type || '';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
 
-function buildStats(rows) {
-  const total         = rows.length;
-  const overdueOptics = rows.filter(r => !r.lastOptics || isOverdue(r.lastOptics)).length;
-  const overdueWeapon = rows.filter(r => !r.lastWeapon || isOverdue(r.lastWeapon)).length;
-  const okOptics      = total - overdueOptics;
-  const okWeapon      = total - overdueWeapon;
-
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">סה"כ חיילים</div></div>
-    <div class="stat-card red-card"><div class="num">${overdueOptics}</div><div class="lbl">אופטיקה לא תקינה</div></div>
-    <div class="stat-card green-card"><div class="num">${okOptics}</div><div class="lbl">אופטיקה תקינה</div></div>
-    <div class="stat-card red-card"><div class="num">${overdueWeapon}</div><div class="lbl">נשק לא תקין</div></div>
-    <div class="stat-card green-card"><div class="num">${okWeapon}</div><div class="lbl">נשק תקין</div></div>
-  `;
+// ── Page disable ────────────────────────────────────
+function setOverlay(on) {
+  document.getElementById('pageOverlay').classList.toggle('active', on);
 }
 
-function renderTable(rows) {
-  buildStats(rows);
+// ── Load units ──────────────────────────────────────
+async function loadUnits() {
+  const json = await apiPost('inspections_get_units', {});
+  if (json.statusCode !== 200) throw new Error(json.message || 'שגיאה בטעינת מסגרות');
+  const sel = document.getElementById('unitSelect');
+  (json.data || []).forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u; opt.textContent = u;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Unit changed ────────────────────────────────────
+async function onUnitChange() {
+  const unit = document.getElementById('unitSelect').value;
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('soldierList').innerHTML  = '';
+  soldiers = [];
+  openPn   = null;
+  if (!unit) return;
+
+  document.getElementById('soldierList').innerHTML =
+    `<div class="items-loading"><div class="spinner"></div>טוען חיילים...</div>`;
+
+  try {
+    const json = await apiPost('inspections_get_soldiers', { unit });
+    if (json.statusCode !== 200) throw new Error(json.message);
+    soldiers = json.data || [];
+    renderSoldiers(soldiers);
+  } catch (e) {
+    document.getElementById('soldierList').innerHTML =
+      `<div class="empty-msg">❌ שגיאה: ${e.message}</div>`;
+  }
+}
+
+// ── Render soldiers ─────────────────────────────────
+function renderSoldiers(list) {
+  buildStats(list);
+
+  const container = document.getElementById('soldierList');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-msg">לא נמצאו חיילים במסגרת זו</div>`;
+    return;
+  }
 
   // Group by team
   const byTeam = {};
-  const teamOrder = [];
-  rows.forEach(r => {
-    const t = r.team || 'ללא צוות';
-    if (!byTeam[t]) { byTeam[t] = []; teamOrder.push(t); }
-    byTeam[t].push(r);
+  const order  = [];
+  list.forEach(s => {
+    const t = s.team || 'ללא צוות';
+    if (!byTeam[t]) { byTeam[t] = []; order.push(t); }
+    byTeam[t].push(s);
   });
 
   let html = '';
-  let counter = 1;
-  teamOrder.forEach(team => {
-    html += `<tr class="team-row"><td colspan="7">👥 ${team}</td></tr>`;
-    byTeam[team].forEach(r => {
-      html += `<tr>
-        <td>${counter++}</td>
-        <td>${r.name}</td>
-        <td>${r.unit}</td>
-        <td>${r.team}</td>
-        <td>${dateCellHtml(r.lastOptics)}</td>
-        <td>${dateCellHtml(r.lastWeapon)}</td>
-        <td>
-          <div class="btns-cell">
-            <button class="action-btn btn-optics" onclick="doUpdate('optics','${r.pn}',this)">🔭 בדיקת אופטיקה</button>
-            <button class="action-btn btn-weapon" onclick="doUpdate('weapon','${r.pn}',this)">🔫 בדיקת נשק</button>
+  order.forEach(team => {
+    html += `<div class="team-label">👥 ${team}</div>`;
+    byTeam[team].forEach(s => {
+      html += `
+      <div class="soldier-card" id="sc-${s.pn}">
+        <div class="soldier-header" onclick="toggleSoldier('${s.pn}','${escAttr(s.name)}','${escAttr(s.unit)}')">
+          <span class="soldier-name">${s.name}</span>
+          <div class="status-icons">
+            ${statusPill(s.lastOptics, '🔭')}
+            ${statusPill(s.lastWeapon, '🔫')}
           </div>
-        </td>
-      </tr>`;
+          <span class="expand-arrow">▼</span>
+        </div>
+        <div class="items-panel" id="ip-${s.pn}">
+          <div class="items-loading" id="il-${s.pn}">
+            <div class="spinner"></div>טוען פריטים...
+          </div>
+        </div>
+      </div>`;
     });
   });
 
-  document.getElementById('inspTbody').innerHTML = html;
+  container.innerHTML = html;
 }
 
-function applyFilter() {
-  const unit   = document.getElementById('unitFilter').value;
-  const search = document.getElementById('searchInput').value.trim().toLowerCase();
-  let rows = allRows;
-  if (unit)   rows = rows.filter(r => r.unit === unit);
-  if (search) rows = rows.filter(r =>
-    r.name.toLowerCase().includes(search) ||
-    r.pn.toString().includes(search)
-  );
-  renderTable(rows);
+function escAttr(s) { return (s||'').replace(/'/g,"\\'"); }
+
+// ── Stats ───────────────────────────────────────────
+function buildStats(list) {
+  const total = list.length;
+  const badO  = list.filter(s => isOverdue(s.lastOptics)).length;
+  const badW  = list.filter(s => isOverdue(s.lastWeapon)).length;
+  const row   = document.getElementById('statsRow');
+  row.style.display = 'flex';
+  row.innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">חיילים</div></div>
+    <div class="stat-card red-card"><div class="num">${badO}</div><div class="lbl">אופטיקה לא תקינה</div></div>
+    <div class="stat-card green-card"><div class="num">${total-badO}</div><div class="lbl">אופטיקה תקינה</div></div>
+    <div class="stat-card red-card"><div class="num">${badW}</div><div class="lbl">נשק לא תקין</div></div>
+    <div class="stat-card green-card"><div class="num">${total-badW}</div><div class="lbl">נשק תקין</div></div>
+  `;
 }
 
-async function doUpdate(type, pn, btn) {
-  setPageDisabled(true);
+// ── Toggle soldier ───────────────────────────────────
+async function toggleSoldier(pn, name, unit) {
+  const card  = document.getElementById('sc-' + pn);
+  const panel = document.getElementById('ip-' + pn);
+  const isOpen = card.classList.contains('open');
+
+  // Close any open card
+  if (openPn && openPn !== pn) {
+    const prevCard = document.getElementById('sc-' + openPn);
+    if (prevCard) prevCard.classList.remove('open');
+  }
+
+  if (isOpen) {
+    card.classList.remove('open');
+    openPn = null;
+    return;
+  }
+
+  card.classList.add('open');
+  openPn = pn;
+
+  // Load if not already loaded
+  if (panel.dataset.loaded) return;
+  panel.dataset.loaded = '1';
+
   try {
-    const json = await apiPost('inspection_update', { type, pn });
+    const json = await apiPost('inspections_get_soldier_data', { pn });
+    if (json.statusCode !== 200) throw new Error(json.message);
+    renderItemsPanel(panel, pn, name, unit, json.data);
+  } catch (e) {
+    panel.innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
+  }
+}
+
+// ── Render items panel ───────────────────────────────
+function renderItemsPanel(panel, pn, name, unit, data) {
+  const { items, history } = data;
+  if (!items || !items.length) {
+    panel.innerHTML = `<div class="empty-msg">לא נמצאו פריטים לחייל זה</div>`;
+    return;
+  }
+
+  let rows = '';
+  items.forEach(item => {
+    const h   = history[item.key] || {};
+    const lo  = h.lastOptics || null;
+    const lw  = h.lastWeapon || null;
+    rows += `
+      <tr id="ir-${pn}-${item.key}">
+        <td>${item.label}</td>
+        <td style="color:#888;font-size:12px">${item.value}</td>
+        <td>${dateCellHtml(lo)}</td>
+        <td>${dateCellHtml(lw)}</td>
+        <td>
+          <div class="item-btns">
+            <button class="ib ib-optics"
+              onclick="markCheck('${pn}','${escAttr(name)}','${escAttr(unit)}','${item.key}','optics',this)">
+              🔭 אופטיקה
+            </button>
+            <button class="ib ib-weapon"
+              onclick="markCheck('${pn}','${escAttr(name)}','${escAttr(unit)}','${item.key}','weapon',this)">
+              🔫 נשק
+            </button>
+            <button class="ib ib-skip"
+              onclick="skipItem('${pn}','${item.key}',this)">
+              — לא נדרש
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  panel.innerHTML = `
+    <div class="items-table-wrap">
+      <table class="items-tbl">
+        <thead>
+          <tr>
+            <th>פריט</th>
+            <th>ערך/סידורי</th>
+            <th>בדיקת אופטיקה</th>
+            <th>בדיקת נשק</th>
+            <th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Mark check ───────────────────────────────────────
+async function markCheck(pn, name, unit, itemKey, type, btn) {
+  setOverlay(true);
+  try {
+    const json = await apiPost('inspections_mark', { pn, name, unit, itemKey, type });
     if (json.statusCode === 200) {
-      // update local data
-      const label = type === 'optics' ? 'אופטיקה' : 'נשק';
-      const field = type === 'optics' ? 'lastOptics' : 'lastWeapon';
-      const rec = allRows.find(r => r.pn.toString() === pn.toString());
-      if (rec) rec[field] = new Date().toISOString();
-      showToast('✅ בדיקת ' + label + ' עודכנה', 'success');
-      applyFilter();
+      const now    = new Date().toISOString();
+      const row    = document.getElementById(`ir-${pn}-${itemKey}`);
+      const label  = type === 'optics' ? 'אופטיקה' : 'נשק';
+      const colIdx = type === 'optics' ? 2 : 3;   // td index (0=פריט,1=ערך,2=אופטיקה,3=נשק)
+      if (row) {
+        row.cells[colIdx].innerHTML = dateCellHtml(now);
+      }
+      // Update local soldier status
+      const s = soldiers.find(s => s.pn.toString() === pn.toString());
+      if (s) {
+        if (type === 'optics') s.lastOptics = now;
+        else                   s.lastWeapon = now;
+        s.overdueOptics = isOverdue(s.lastOptics);
+        s.overdueWeapon = isOverdue(s.lastWeapon);
+        // Refresh status pills
+        const header = document.querySelector(`#sc-${pn} .status-icons`);
+        if (header) header.innerHTML = statusPill(s.lastOptics,'🔭') + statusPill(s.lastWeapon,'🔫');
+        buildStats(soldiers);
+      }
+      showToast(`✅ בדיקת ${label} עודכנה`, 'success');
     } else {
       showToast('❌ ' + (json.message || 'שגיאה'), 'error');
     }
   } catch (e) {
     showToast('❌ שגיאת רשת', 'error');
   } finally {
-    setPageDisabled(false);
+    setOverlay(false);
   }
 }
 
-function setPageDisabled(on) {
-  document.getElementById('pageOverlay').classList.toggle('active', on);
+// ── Skip item (client-only) ──────────────────────────
+function skipItem(pn, itemKey, btn) {
+  const row = document.getElementById(`ir-${pn}-${itemKey}`);
+  if (row) {
+    row.classList.add('item-done');
+    row.querySelectorAll('.ib').forEach(b => b.disabled = true);
+  }
 }
 
-function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = type || '';
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3000);
-}
-
-async function loadData() {
+// ── Init ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const ok = await authGuard.checkAuth();
+  if (!ok) return;
   try {
-    const json = await apiPost('inspections_get', {});
-    if (json.statusCode !== 200) throw new Error(json.message);
-    allRows = json.data || [];
-
-    // Build unit dropdown
-    const units = [...new Set(allRows.map(r => r.unit).filter(Boolean))].sort();
-    const sel = document.getElementById('unitFilter');
-    units.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u; opt.textContent = u;
-      sel.appendChild(opt);
-    });
-
-    document.getElementById('headerSubtitle').textContent = allRows.length + ' חיילים';
-    renderTable(allRows);
+    await loadUnits();
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('mainContent').style.display   = 'block';
   } catch (e) {
     document.getElementById('loadingScreen').innerHTML =
-      `<div style="color:#ef4444">❌ שגיאה בטעינת נתונים: ${e.message}</div>`;
+      `<div style="color:#ef4444">❌ ${e.message}</div>`;
   }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const ok = await authGuard.checkAuth();
-  if (ok) await loadData();
 });
 </script>
 </body>

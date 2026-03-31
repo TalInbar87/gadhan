@@ -1805,68 +1805,170 @@ function weapons_getUnits() {
 // ================================================================
 // Inspections (מעקב בדיקות)
 // ================================================================
-// גיליון מעקב בדיקות: A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות | G=בדיקת אופטיקה אחרונה | H=בדיקת נשק אחרונה
+// גיליון מעקב בדיקות: A=מספר אישי | B=שם מלא | C=מסגרת | D=מפתח פריט | E=בדיקת אופטיקה | F=בדיקת נשק
+// (שינוי מבנה 2026-03-31 — שורה לכל חייל+פריט במקום שורה לכל חייל)
 
 /**
- * מחזיר את כל רשומות מעקב הבדיקות
- * @returns {{ success: boolean, data?: Array, error?: string }}
+ * מחזיר מסגרות ייחודיות מגיליון הנשקים
  */
-function weapons_getInspections() {
+function inspections_getUnits() {
   try {
     var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
-    var sheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
-    if (!sheet) return { success: false, error: 'גיליון מעקב בדיקות לא נמצא' };
-
+    var sheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!sheet) return { success: false, error: 'גיליון לא נמצא' };
     var rows = sheet.getDataRange().getValues();
-    var result = [];
+    var unitsSet = {};
     for (var i = 1; i < rows.length; i++) {
-      var r = rows[i];
-      if (!r[0] && !r[1]) continue;  // שורה ריקה
-      result.push({
-        name:        (r[0] || '').toString(),
-        pn:          (r[1] || '').toString(),
-        phone:       (r[2] || '').toString(),
-        email:       (r[3] || '').toString(),
-        unit:        (r[4] || '').toString(),
-        team:        (r[5] || '').toString(),
-        lastOptics:  r[6] ? new Date(r[6]).toISOString() : null,
-        lastWeapon:  r[7] ? new Date(r[7]).toISOString() : null,
-        row:         i + 1
-      });
+      var u = (rows[i][5] || '').toString().trim();
+      if (u) unitsSet[u] = true;
     }
-    return { success: true, data: result };
+    return { success: true, data: Object.keys(unitsSet).sort() };
   } catch (e) {
-    Logger.log('❌ [Weapons] getInspections: ' + e);
+    Logger.log('❌ [Inspections] getUnits: ' + e);
     return { success: false, error: e.toString() };
   }
 }
 
 /**
- * מעדכן תאריך בדיקה לחייל ספציפי
- * @param {string} type  - 'optics' | 'weapon'
- * @param {string} pn    - מספר אישי
- * @param {string} by    - שם המבצע
- * @returns {{ success: boolean, message?: string, error?: string }}
+ * מחזיר חיילים במסגרת + סטטוס בדיקות מרוכז (ממוין לפי צוות)
  */
-function weapons_updateInspection(type, pn, by) {
+function inspections_getSoldiersByUnit(unit) {
+  try {
+    var ss        = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+    var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!mainSheet) return { success: false, error: 'גיליון לא נמצא' };
+
+    // בניית מפת חיילים
+    var rows     = mainSheet.getDataRange().getValues();
+    var soldiers = {};
+    for (var i = 1; i < rows.length; i++) {
+      if ((rows[i][5] || '').toString().trim() !== unit) continue;
+      var pn = (rows[i][2] || '').toString().trim();
+      if (!pn) continue;
+      if (!soldiers[pn]) {
+        soldiers[pn] = {
+          pn:        pn,
+          name:      (rows[i][1] || '').toString().trim(),
+          unit:      unit,
+          team:      (rows[i][6] || '').toString().trim(),
+          itemCount: 0
+        };
+      }
+      WEAPONS_ITEM_LIST.forEach(function(item) {
+        var v = rows[i][item.col];
+        if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') soldiers[pn].itemCount++;
+      });
+    }
+
+    // סטטוס בדיקות אחרון לכל חייל
+    var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
+    var inspByPn  = {};
+    if (inspSheet) {
+      var inspRows = inspSheet.getDataRange().getValues();
+      for (var k = 1; k < inspRows.length; k++) {
+        var irPn = (inspRows[k][0] || '').toString().trim();
+        if (!soldiers[irPn]) continue;
+        if (!inspByPn[irPn]) inspByPn[irPn] = { optics: [], weapon: [] };
+        if (inspRows[k][4]) inspByPn[irPn].optics.push(new Date(inspRows[k][4]).getTime());
+        if (inspRows[k][5]) inspByPn[irPn].weapon.push(new Date(inspRows[k][5]).getTime());
+      }
+    }
+
+    var now    = Date.now();
+    var result = Object.values(soldiers);
+    result.forEach(function(s) {
+      var hist       = inspByPn[s.pn] || { optics: [], weapon: [] };
+      var lastOptics = hist.optics.length ? Math.max.apply(null, hist.optics) : null;
+      var lastWeapon = hist.weapon.length ? Math.max.apply(null, hist.weapon) : null;
+      s.lastOptics     = lastOptics ? new Date(lastOptics).toISOString() : null;
+      s.lastWeapon     = lastWeapon ? new Date(lastWeapon).toISOString() : null;
+      s.overdueOptics  = !lastOptics || (now - lastOptics) / 86400000 > 14;
+      s.overdueWeapon  = !lastWeapon || (now - lastWeapon) / 86400000 > 14;
+    });
+
+    result.sort(function(a, b) {
+      var tc = a.team.localeCompare(b.team, 'he');
+      return tc !== 0 ? tc : a.name.localeCompare(b.name, 'he');
+    });
+    return { success: true, data: result };
+  } catch (e) {
+    Logger.log('❌ [Inspections] getSoldiersByUnit: ' + e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * מחזיר פריטים לחייל + היסטוריית בדיקות לכל פריט
+ */
+function inspections_getSoldierData(pn) {
+  try {
+    var ss        = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+    var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!mainSheet) return { success: false, error: 'גיליון לא נמצא' };
+
+    var rows  = mainSheet.getDataRange().getValues();
+    var items = [];
+    for (var i = 1; i < rows.length; i++) {
+      if ((rows[i][2] || '').toString().trim() !== pn.toString().trim()) continue;
+      WEAPONS_ITEM_LIST.forEach(function(item) {
+        var v = rows[i][item.col];
+        if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') {
+          if (!items.some(function(it) { return it.key === item.key; })) {
+            items.push({ key: item.key, label: item.label, value: v.toString() });
+          }
+        }
+      });
+      break;
+    }
+
+    var history   = {};
+    var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
+    if (inspSheet) {
+      var inspRows = inspSheet.getDataRange().getValues();
+      for (var k = 1; k < inspRows.length; k++) {
+        if ((inspRows[k][0] || '').toString().trim() !== pn.toString().trim()) continue;
+        var itemKey = (inspRows[k][3] || '').toString().trim();
+        if (!itemKey) continue;
+        history[itemKey] = {
+          lastOptics: inspRows[k][4] ? new Date(inspRows[k][4]).toISOString() : null,
+          lastWeapon: inspRows[k][5] ? new Date(inspRows[k][5]).toISOString() : null
+        };
+      }
+    }
+    return { success: true, data: { items: items, history: history } };
+  } catch (e) {
+    Logger.log('❌ [Inspections] getSoldierData: ' + e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * מסמן בדיקה (optics/weapon) לפריט ספציפי של חייל — upsert
+ */
+function inspections_markCheck(pn, name, unit, itemKey, type) {
   try {
     var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
     var sheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     if (!sheet) return { success: false, error: 'גיליון מעקב בדיקות לא נמצא' };
 
-    var col = (type === 'optics') ? 7 : 8;  // G=7, H=8 (1-indexed)
+    var col  = (type === 'optics') ? 5 : 6;   // E=5, F=6 (1-indexed)
     var rows = sheet.getDataRange().getValues();
+    var now  = new Date();
+
     for (var i = 1; i < rows.length; i++) {
-      if ((rows[i][1] || '').toString().trim() === pn.toString().trim()) {
-        var now = new Date();
+      if ((rows[i][0] || '').toString().trim() === pn.toString().trim() &&
+          (rows[i][3] || '').toString().trim() === itemKey.toString().trim()) {
         sheet.getRange(i + 1, col).setValue(now);
-        Logger.log('✅ [Weapons] Inspection updated (' + type + ') for PN ' + pn + ' by ' + by);
-        return { success: true, message: 'בדיקה עודכנה ל-' + Utilities.formatDate(now, CONFIG.TIMEZONE, 'dd/MM/yyyy') };
+        return { success: true };
       }
     }
-    return { success: false, error: 'חייל לא נמצא: ' + pn };
+    // שורה חדשה
+    var newRow = [pn, name, unit, itemKey, null, null];
+    newRow[(type === 'optics') ? 4 : 5] = now;
+    sheet.appendRow(newRow);
+    return { success: true };
   } catch (e) {
-    Logger.log('❌ [Weapons] updateInspection: ' + e);
+    Logger.log('❌ [Inspections] markCheck: ' + e);
     return { success: false, error: e.toString() };
   }
 }

@@ -96,8 +96,10 @@ function doPost(e) {
       case 'apson_remove':         return handleApsonRemove(data, e);
       case 'get_units':            return handleGetUnits(data, e);
       // ── Inspections ──
-      case 'inspections_get':      return handleInspectionsGet(data, e);
-      case 'inspection_update':    return handleInspectionUpdate(data, e);
+      case 'inspections_get_units':        return handleInspectionsGetUnits(data, e);
+      case 'inspections_get_soldiers':     return handleInspectionsGetSoldiers(data, e);
+      case 'inspections_get_soldier_data': return handleInspectionsGetSoldierData(data, e);
+      case 'inspections_mark':             return handleInspectionsMark(data, e);
       // ── Bunker ──
       case 'bunker_get_items':     return handleBunkerGetItems(data, e);
       case 'bunker_get_inventory': return handleBunkerGetInventory(data, e);
@@ -755,25 +757,47 @@ function testConnection() {
 // Inspections Handlers
 // ================================================================
 
-function handleInspectionsGet(data, request) {
+function handleInspectionsGetUnits(data, request) {
   var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   try {
-    var result = weapons_getInspections();
+    var result = inspections_getUnits();
     return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
-function handleInspectionUpdate(data, request) {
+function handleInspectionsGetSoldiers(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    if (!data.unit) return createResponse(400, 'חסרת מסגרת', null);
+    var result = inspections_getSoldiersByUnit(data.unit);
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleInspectionsGetSoldierData(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    if (!data.pn) return createResponse(400, 'חסר מספר אישי', null);
+    var result = inspections_getSoldierData(data.pn);
+    return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleInspectionsMark(data, request) {
   var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'אין הרשאה', null);
   try {
-    if (!data.type || !data.pn) return createResponse(400, 'חסרים נתונים', null);
-    var result = weapons_updateInspection(data.type, data.pn, payload.fullName || payload.username);
+    if (!data.pn || !data.name || !data.unit || !data.itemKey || !data.type)
+      return createResponse(400, 'חסרים נתונים', null);
+    var result = inspections_markCheck(data.pn, data.name, data.unit, data.itemKey, data.type);
     if (result.success) {
-      AuditLogger.log(payload.username, 'INSPECTION_UPDATE', 'weapons', data.pn, { type: data.type }, request);
+      AuditLogger.log(payload.username, 'INSPECTION_MARK', 'weapons', data.pn,
+        { item: data.itemKey, type: data.type }, request);
     }
-    return result.success ? createResponse(200, result.message, null) : createResponse(500, result.error, null);
+    return result.success ? createResponse(200, 'בדיקה עודכנה', null) : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
