@@ -10,26 +10,21 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; min-height: 100vh; direction: rtl; }
 
-    header {
-      background: #2d2d2d; border-bottom: 2px solid #ff6600;
-      padding: 12px 20px; display: flex; align-items: center; gap: 12px;
-      position: sticky; top: 0; z-index: 100;
-    }
+    header { background: #2d2d2d; border-bottom: 2px solid #ff6600; padding: 12px 20px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
     .back-btn { background: none; border: 1px solid #555; color: #ccc; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
     .back-btn:hover { border-color: #ff6600; color: #ff6600; }
     header h1 { font-size: 20px; color: #ff6600; flex: 1; }
 
-    .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; }
     .spinner.sm { width: 20px; height: 20px; border-width: 2px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     #loadingScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 14px; color: #888; }
-    #mainContent { display: none; padding: 16px 20px; max-width: 940px; margin: 0 auto; }
+    #mainContent { display: none; padding: 16px 20px; max-width: 960px; margin: 0 auto; }
 
-    /* unit bar */
-    .unit-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .unit-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
     .unit-bar label { color: #aaa; font-size: 14px; }
-    .unit-bar select { background: #2d2d2d; border: 1px solid #444; color: #e0e0e0; padding: 9px 14px; border-radius: 6px; font-size: 15px; min-width: 180px; flex: 1; max-width: 280px; }
+    .unit-bar select { background: #2d2d2d; border: 1px solid #444; color: #e0e0e0; padding: 9px 14px; border-radius: 6px; font-size: 15px; min-width: 180px; }
     .unit-bar select:focus { outline: none; border-color: #ff6600; }
 
     /* stats */
@@ -37,76 +32,67 @@
     .stat-card { background: #2d2d2d; border-radius: 8px; padding: 10px 16px; text-align: center; flex: 1; min-width: 90px; }
     .stat-card .num { font-size: 22px; font-weight: bold; }
     .stat-card .lbl { font-size: 11px; color: #888; margin-top: 2px; }
-    .num-ok  { color: #4ade80; }
-    .num-bad { color: #ef4444; }
+    .ok  { color: #4ade80; }
+    .bad { color: #ef4444; }
+    .warn { color: #fb923c; }
 
-    /* soldier list */
+    /* list */
     #soldierList { display: flex; flex-direction: column; gap: 6px; }
     .team-label { background: #252525; color: #ff6600; font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 6px; margin-top: 8px; }
 
     .soldier-card { background: #2a2a2a; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
-    .soldier-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; transition: background .15s; }
+    .soldier-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; transition: background .15s; user-select: none; }
     .soldier-header:hover { background: #333; }
     .soldier-name { flex: 1; font-size: 15px; font-weight: 600; }
 
-    /* status badge */
-    .status-badge { font-size: 12px; padding: 3px 9px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
-    .badge-ok    { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
-    .badge-warn  { background: #451a03; color: #fdba74; border: 1px solid #f97316; }
-    .badge-bad   { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
+    .badge { font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
+    .badge-ok   { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
+    .badge-warn { background: #431407; color: #fdba74; border: 1px solid #f97316; }
+    .badge-bad  { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
 
     .expand-arrow { color: #666; font-size: 12px; transition: transform .2s; }
     .soldier-card.open .expand-arrow { transform: rotate(180deg); }
 
-    /* items panel */
-    .items-panel { display: none; border-top: 1px solid #333; }
+    /* panel */
+    .items-panel { display: none; border-top: 1px solid #2d2d2d; }
     .soldier-card.open .items-panel { display: block; }
-    .panel-loading { padding: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #666; }
-    .empty-msg { padding: 24px; text-align: center; color: #555; font-size: 14px; }
 
-    /* items table */
+    /* table */
     .tbl-wrap { overflow-x: auto; }
     table.itbl { width: 100%; border-collapse: collapse; font-size: 13px; }
     table.itbl th { background: #1e1e1e; color: #ff6600; font-weight: 600; padding: 9px 12px; text-align: right; white-space: nowrap; border-bottom: 2px solid #333; }
     table.itbl td { padding: 9px 12px; border-bottom: 1px solid #252525; vertical-align: middle; }
     table.itbl tr:last-child td { border-bottom: none; }
-    table.itbl tr.row-skip td { opacity: .4; }
-    table.itbl tr.row-skip td:first-child { text-decoration: line-through; }
+    table.itbl tr.row-skip td:first-child { text-decoration: line-through; opacity: .5; }
 
-    /* date display */
-    .dc-ok    { color: #4ade80; }
-    .dc-bad   { color: #ef4444; }
-    .dc-none  { color: #555; font-style: italic; }
-    .dc-skip  { color: #666; }
+    .dc-ok   { color: #4ade80; }
+    .dc-bad  { color: #ef4444; }
+    .dc-none { color: #555; font-style: italic; }
+    .dc-skip { color: #666; font-style: italic; }
     .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 4px; vertical-align: middle; }
-    .dot-g { background: #22c55e; }
-    .dot-r { background: #ef4444; }
-    .dot-x { background: #444; }
+    .dg { background: #22c55e; } .dr { background: #ef4444; } .dx { background: #444; }
 
-    /* action buttons */
     .item-btns { display: flex; gap: 5px; flex-wrap: wrap; }
     .ib { background: #1e1e1e; border: 1px solid #444; color: #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; white-space: nowrap; transition: all .15s; }
     .ib:disabled { opacity: .3; cursor: not-allowed; }
     .ib-check { border-color: #22c55e; color: #86efac; }
-    .ib-check:hover:not(:disabled) { background: #14532d; color: #4ade80; }
+    .ib-check:hover:not(:disabled) { background: #14532d; }
     .ib-skip  { border-color: #555; color: #666; }
     .ib-skip:hover:not(:disabled)  { background: #2d2d2d; color: #999; }
 
-    /* toast */
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #e0e0e0; padding: 10px 22px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; border: 1px solid #555; pointer-events: none; }
+    .empty-msg { padding: 24px; text-align: center; color: #555; font-size: 14px; }
+
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2d2d2d; border: 1px solid #555; color: #e0e0e0; padding: 10px 22px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; pointer-events: none; }
     #toast.ok  { border-color: #22c55e; color: #4ade80; }
     #toast.err { border-color: #ef4444; color: #fca5a5; }
 
-    /* overlay */
     #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 500; align-items: center; justify-content: center; }
     #overlay.on { display: flex; }
-    #overlay .ov-sp { width: 50px; height: 50px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; }
+    #overlay .ov-sp { width: 48px; height: 48px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; }
 
-    /* mobile */
     @media (max-width: 600px) {
       header h1 { font-size: 15px; }
       #mainContent { padding: 10px; }
-      .unit-bar select { max-width: 100%; }
       .stat-card { padding: 8px; min-width: 70px; }
       .stat-card .num { font-size: 17px; }
       .stat-card .lbl { font-size: 10px; }
@@ -145,7 +131,7 @@ const authClient = new SecureAuthClient(API_URL);
 const authGuard  = new AuthGuard(authClient);
 const OVERDUE_MS = 14 * 86400000;
 
-let soldiers = [];
+let soldiers = [];   // full data including items
 let openPn   = null;
 
 // ── API ──────────────────────────────────────────────────────────
@@ -156,39 +142,37 @@ async function api(action, payload) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
-function isOverdue(iso) { return !iso || Date.now() - new Date(iso).getTime() > OVERDUE_MS; }
+const isOverdue = iso => !iso || Date.now() - new Date(iso).getTime() > OVERDUE_MS;
+
 function fmt(iso) {
-  if (!iso) return '—';
   const d = new Date(iso);
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
+
 function dateHtml(item) {
   if (item.notRequired) return `<span class="dc-skip">— לא נדרש</span>`;
-  if (!item.lastCheck)  return `<span class="dc-none"><span class="dot dot-x"></span>לא בוצע</span>`;
-  const over = isOverdue(item.lastCheck);
-  return `<span class="${over?'dc-bad':'dc-ok'}"><span class="dot ${over?'dot-r':'dot-g'}"></span>${fmt(item.lastCheck)}</span>`;
+  if (!item.lastCheck)  return `<span class="dc-none"><span class="dot dx"></span>לא בוצע</span>`;
+  const ov = isOverdue(item.lastCheck);
+  return `<span class="${ov?'dc-bad':'dc-ok'}"><span class="dot ${ov?'dr':'dg'}"></span>${fmt(item.lastCheck)}</span>`;
 }
 
-// ── Toast / overlay ──────────────────────────────────────────────
+// ── Toast / Overlay ──────────────────────────────────────────────
 function toast(msg, type) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.className = type;
-  t.style.display = 'block';
+  t.textContent = msg; t.className = type; t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
-function setOverlay(on) { document.getElementById('overlay').classList.toggle('on', on); }
+const setOverlay = on => document.getElementById('overlay').classList.toggle('on', on);
 
 // ── Load units ───────────────────────────────────────────────────
 async function loadUnits() {
   const j = await api('inspections_get_units', {});
   if (j.statusCode !== 200) throw new Error(j.message);
   const sel = document.getElementById('unitSel');
-  (j.data || []).forEach(u => {
-    const o = document.createElement('option'); o.value = u; o.textContent = u; sel.appendChild(o);
-  });
+  (j.data || []).forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; sel.appendChild(o); });
 }
 
-// ── Unit selected ────────────────────────────────────────────────
+// ── Unit selected — ONE API call ─────────────────────────────────
 async function onUnit() {
   const unit = document.getElementById('unitSel').value;
   document.getElementById('statsRow').style.display = 'none';
@@ -197,39 +181,45 @@ async function onUnit() {
   if (!unit) return;
 
   document.getElementById('soldierList').innerHTML =
-    `<div class="panel-loading"><div class="spinner sm"></div>טוען חיילים...</div>`;
+    `<div class="empty-msg"><div class="spinner sm" style="margin:0 auto 10px"></div>טוען נתונים...</div>`;
   try {
-    const j = await api('inspections_get_soldiers', { unit });
+    const j = await api('inspections_get_unit_data', { unit });
     if (j.statusCode !== 200) throw new Error(j.message);
     soldiers = j.data || [];
-    renderSoldiers(soldiers);
+    render(soldiers);
   } catch (e) {
     document.getElementById('soldierList').innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
   }
 }
 
-// ── Stats ────────────────────────────────────────────────────────
+// ── Stats (by items) ─────────────────────────────────────────────
 function buildStats(list) {
-  const total   = list.length;
-  // "all done" = checkedRecent + notRequired >= totalItems
-  const allDone = list.filter(s => s.checkedRecent + s.notRequired >= s.totalItems && s.totalItems > 0).length;
-  const needs   = total - allDone;
+  let totalItems = 0, checked = 0, notReq = 0;
+  list.forEach(s => {
+    totalItems += s.totalItems;
+    checked    += s.checkedRecent;
+    notReq     += s.notRequired;
+  });
+  const pending = totalItems - checked - notReq;
+
   const row = document.getElementById('statsRow');
   row.style.display = 'flex';
   row.innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">חיילים</div></div>
-    <div class="stat-card"><div class="num num-ok">${allDone}</div><div class="lbl">הכל נבדק</div></div>
-    <div class="stat-card"><div class="num num-bad">${needs}</div><div class="lbl">ממתינים לבדיקה</div></div>
+    <div class="stat-card"><div class="num">${list.length}</div><div class="lbl">חיילים</div></div>
+    <div class="stat-card"><div class="num">${totalItems}</div><div class="lbl">סה"כ פריטים</div></div>
+    <div class="stat-card"><div class="num ok">${checked}</div><div class="lbl">נבדקו לאחרונה</div></div>
+    <div class="stat-card"><div class="num bad">${pending}</div><div class="lbl">ממתינים לבדיקה</div></div>
+    <div class="stat-card"><div class="num warn">${notReq}</div><div class="lbl">לא נדרשת בדיקה</div></div>
   `;
 }
 
-// ── Render soldiers ──────────────────────────────────────────────
-function renderSoldiers(list) {
+// ── Render list ──────────────────────────────────────────────────
+function render(list) {
   buildStats(list);
   const container = document.getElementById('soldierList');
   if (!list.length) { container.innerHTML = `<div class="empty-msg">לא נמצאו חיילים</div>`; return; }
 
-  const byTeam = {}; const order = [];
+  const byTeam = {}, order = [];
   list.forEach(s => {
     const t = s.team || 'ללא צוות';
     if (!byTeam[t]) { byTeam[t] = []; order.push(t); }
@@ -240,36 +230,30 @@ function renderSoldiers(list) {
   order.forEach(team => {
     html += `<div class="team-label">👥 ${team}</div>`;
     byTeam[team].forEach(s => {
-      const enc   = encodeURIComponent(JSON.stringify(s));
-      const badge = soldierBadge(s);
+      const b = badge(s);
       html += `
         <div class="soldier-card" id="sc-${s.pn}">
-          <div class="soldier-header" onclick="toggle('${s.pn}','${enc}')">
+          <div class="soldier-header" onclick="toggle('${s.pn}')">
             <span class="soldier-name">${s.name}</span>
-            <span class="status-badge ${badge.cls}" id="badge-${s.pn}">${badge.txt}</span>
+            <span class="badge ${b.cls}" id="bdg-${s.pn}">${b.txt}</span>
             <span class="expand-arrow">▼</span>
           </div>
-          <div class="items-panel" id="ip-${s.pn}">
-            <div class="panel-loading"><div class="spinner sm"></div>טוען...</div>
-          </div>
+          <div class="items-panel" id="ip-${s.pn}"></div>
         </div>`;
     });
   });
   container.innerHTML = html;
 }
 
-function soldierBadge(s) {
-  const done  = s.checkedRecent + s.notRequired;
-  const total = s.totalItems;
-  if (total === 0) return { cls: 'badge-warn', txt: 'אין פריטים' };
-  if (done >= total) return { cls: 'badge-ok',  txt: `✓ ${done}/${total}` };
-  const remaining = total - done;
-  return { cls: remaining === total ? 'badge-bad' : 'badge-warn', txt: `${done}/${total} נבדקו` };
+function badge(s) {
+  const done = s.checkedRecent + s.notRequired, tot = s.totalItems;
+  if (!tot) return { cls: 'badge-warn', txt: 'אין פריטים' };
+  if (done >= tot) return { cls: 'badge-ok', txt: `✓ ${done}/${tot}` };
+  return { cls: done === 0 ? 'badge-bad' : 'badge-warn', txt: `${done}/${tot} נבדקו` };
 }
 
-// ── Toggle soldier ───────────────────────────────────────────────
-async function toggle(pn, enc) {
-  const s     = JSON.parse(decodeURIComponent(enc));
+// ── Toggle — instant (no API call) ──────────────────────────────
+function toggle(pn) {
   const card  = document.getElementById('sc-' + pn);
   const panel = document.getElementById('ip-' + pn);
   const isOpen = card.classList.contains('open');
@@ -282,88 +266,74 @@ async function toggle(pn, enc) {
 
   card.classList.add('open');
   openPn = pn;
-  if (panel.dataset.loaded) return;
-  panel.dataset.loaded = '1';
-
-  try {
-    const j = await api('inspections_get_soldier_data', { pn });
-    if (j.statusCode !== 200) throw new Error(j.message);
-    renderPanel(panel, s, j.data);
-  } catch (e) {
-    panel.innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
+  if (!panel.dataset.rendered) {
+    panel.dataset.rendered = '1';
+    const s = soldiers.find(s => s.pn.toString() === pn.toString());
+    panel.innerHTML = s ? renderPanel(s) : `<div class="empty-msg">לא נמצא</div>`;
   }
 }
 
-// ── Render items panel ───────────────────────────────────────────
-function renderPanel(panel, s, data) {
-  const { items } = data;
-  if (!items || !items.length) { panel.innerHTML = `<div class="empty-msg">לא נמצאו פריטים</div>`; return; }
-
-  const enc = encodeURIComponent(JSON.stringify(s));
+// ── Render items panel (pure string, no API) ──────────────────────
+function renderPanel(s) {
+  if (!s.items || !s.items.length) return `<div class="empty-msg">לא נמצאו פריטים</div>`;
   let rows = '';
-  items.forEach(item => {
-    const rowCls = item.notRequired ? 'row-skip' : '';
+  s.items.forEach(item => {
+    const skip = item.notRequired;
     rows += `
-      <tr id="ir-${s.pn}-${item.key}" class="${rowCls}">
+      <tr id="ir-${s.pn}-${item.key}" class="${skip?'row-skip':''}">
         <td>${item.label}</td>
         <td style="color:#888;font-size:12px">${item.value}</td>
         <td id="dc-${s.pn}-${item.key}">${dateHtml(item)}</td>
         <td>
           <div class="item-btns">
-            <button class="ib ib-check" ${item.notRequired?'disabled':''} onclick="mark('${s.pn}','${enc}','${item.key}','check',this)">✅ בדקתי</button>
-            <button class="ib ib-skip"  onclick="mark('${s.pn}','${enc}','${item.key}','skip',this)">— לא נדרשת</button>
+            <button class="ib ib-check" ${skip?'disabled':''} onclick="mark('${s.pn}','${item.key}','check')">✅ בדקתי</button>
+            <button class="ib ib-skip"  onclick="mark('${s.pn}','${item.key}','skip')">— לא נדרשת</button>
           </div>
         </td>
       </tr>`;
   });
-
-  panel.innerHTML = `
-    <div class="tbl-wrap">
-      <table class="itbl">
-        <thead><tr>
-          <th>פריט</th><th>ערך / סידורי</th><th>תאריך בדיקה אחרון</th><th>פעולות</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+  return `<div class="tbl-wrap"><table class="itbl">
+    <thead><tr><th>פריט</th><th>ערך / סידורי</th><th>תאריך בדיקה</th><th>פעולות</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
 }
 
-// ── Mark item ────────────────────────────────────────────────────
-async function mark(pn, enc, itemKey, type, btn) {
-  const s = JSON.parse(decodeURIComponent(enc));
+// ── Mark ─────────────────────────────────────────────────────────
+async function mark(pn, itemKey, type) {
+  const s    = soldiers.find(s => s.pn.toString() === pn.toString());
+  const item = s && s.items.find(i => i.key === itemKey);
+  if (!s || !item) return;
+
   setOverlay(true);
   try {
     const j = await api('inspections_mark', {
       pn: s.pn, name: s.name, phone: s.phone||'', email: s.email||'',
-      unit: s.unit, team: s.team||'', itemKey, type
+      unit: s.unit, team: s.team||'',
+      itemKey, itemLabel: item.label, serial: item.value, type
     });
     if (j.statusCode === 200) {
-      const now      = new Date().toISOString();
-      const item     = { lastCheck: type==='check' ? now : null, notRequired: type==='skip' };
-      const dcCell   = document.getElementById(`dc-${pn}-${itemKey}`);
-      const row      = document.getElementById(`ir-${pn}-${itemKey}`);
-      if (dcCell) dcCell.innerHTML = dateHtml(item);
-      if (row)    row.className   = type === 'skip' ? 'row-skip' : '';
+      const now = new Date().toISOString();
+      if (type === 'check') { item.lastCheck = now; item.notRequired = false; }
+      else                  { item.notRequired = true; item.lastCheck = null; }
 
-      // כפתור "בדקתי" — נטרל אם לא נדרש
-      const checkBtn = row ? row.querySelector('.ib-check') : null;
-      if (checkBtn) checkBtn.disabled = (type === 'skip');
+      // update cell + row class
+      const dc  = document.getElementById(`dc-${pn}-${itemKey}`);
+      const row = document.getElementById(`ir-${pn}-${itemKey}`);
+      if (dc)  dc.innerHTML  = dateHtml(item);
+      if (row) row.className = item.notRequired ? 'row-skip' : '';
+      const cb = row && row.querySelector('.ib-check');
+      if (cb) cb.disabled = item.notRequired;
 
-      // עדכן סיכום חייל מקומי
-      const sol = soldiers.find(s => s.pn.toString() === pn.toString());
-      if (sol) {
-        // reload soldier data to recount accurately
-        try {
-          const j2 = await api('inspections_get_soldier_data', { pn });
-          if (j2.statusCode === 200) {
-            const items = j2.data.items || [];
-            sol.checkedRecent = items.filter(i => i.lastCheck && !isOverdue(i.lastCheck) && !i.notRequired).length;
-            sol.notRequired   = items.filter(i => i.notRequired).length;
-            updateBadge(sol);
-            buildStats(soldiers);
-          }
-        } catch (_) {}
-      }
+      // recount soldier summary
+      const now2 = Date.now();
+      s.checkedRecent = s.items.filter(i => i.lastCheck && !i.notRequired && now2 - new Date(i.lastCheck).getTime() <= OVERDUE_MS).length;
+      s.notRequired   = s.items.filter(i => i.notRequired).length;
+
+      // update badge
+      const bdg = document.getElementById('bdg-' + pn);
+      if (bdg) { const b = badge(s); bdg.className = 'badge ' + b.cls; bdg.textContent = b.txt; }
+
+      buildStats(soldiers);
       toast(type === 'check' ? '✅ בדיקה עודכנה' : '✓ סומן כלא נדרש', 'ok');
     } else {
       toast('❌ ' + (j.message || 'שגיאה'), 'err');
@@ -373,14 +343,6 @@ async function mark(pn, enc, itemKey, type, btn) {
   } finally {
     setOverlay(false);
   }
-}
-
-function updateBadge(s) {
-  const el = document.getElementById('badge-' + s.pn);
-  if (!el) return;
-  const b = soldierBadge(s);
-  el.className   = 'status-badge ' + b.cls;
-  el.textContent = b.txt;
 }
 
 // ── Init ─────────────────────────────────────────────────────────

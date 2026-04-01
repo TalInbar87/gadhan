@@ -1810,11 +1810,14 @@ function weapons_getUnits() {
 //   G..N+6 = עמודה לכל פריט שנבדק (header = label הפריט, ערך = תאריך או "לא נדרש")
 // שורה אחת לחייל — upsert לפי B (מספר אישי)
 
+var INSP_OVERDUE_MS  = 14 * 86400000;
+var INSP_DATE_SUFFIX = ' תאריך בדיקה';
+
 // ── helpers ───────────────────────────────────────────────────────
 
-/** מחזיר מפה label → אינדקס עמודה (1-based) מהשורה הראשונה */
+/** מחזיר מפה label → אינדקס עמודה (1-based) */
 function _insp_headerMap(sheet) {
-  var lastCol  = sheet.getLastColumn();
+  var lastCol = sheet.getLastColumn();
   if (lastCol < 1) return {};
   var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   var map = {};
@@ -1825,7 +1828,7 @@ function _insp_headerMap(sheet) {
   return map;
 }
 
-/** מוודא שעמודת כותרת קיימת — מחזיר אינדקס עמודה (1-based) */
+/** מוודא קיום עמודת כותרת — מחזיר אינדקס (1-based) */
 function _insp_ensureCol(sheet, headerMap, label) {
   if (headerMap[label]) return headerMap[label];
   var newCol = sheet.getLastColumn() + 1;
@@ -1834,10 +1837,9 @@ function _insp_ensureCol(sheet, headerMap, label) {
   return newCol;
 }
 
-/** מוודא שורת כותרת בסיסית (A-F) */
+/** מוודא שורת כותרת בסיסית */
 function _insp_ensureBase(sheet) {
-  var firstCell = sheet.getRange(1, 1).getValue();
-  if (!firstCell || firstCell.toString().trim() === '') {
+  if (!(sheet.getRange(1, 1).getValue() || '').toString().trim()) {
     sheet.getRange(1, 1, 1, 6).setValues([['שם מלא','מספר אישי','טלפון','מייל','מסגרת','צוות']]);
   }
 }
@@ -2008,43 +2010,149 @@ function inspections_getSoldierData(pn) {
  * מסמן בדיקה/לא-נדרש לפריט ספציפי — upsert שורת חייל
  * type: 'check' → תאריך היום | 'skip' → 'לא נדרש'
  */
-function inspections_markItem(pn, name, phone, email, unit, team, itemKey, type) {
+/**
+ * מחזיר את כל חיילי המסגרת + פריטיהם + סטטוס בדיקות — קריאה אחת
+ * גיליון מעקב בדיקות: [label] = מספר סידורי, [label תאריך בדיקה] = תאריך/"לא נדרש"
+ */
+function inspections_getUnitData(unit) {
+  try {
+    var ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+
+    // ── קריאת גיליון נשקים ──
+    var srcSheet     = ss.getSheetByName(unit);
+    var filterByUnit = !srcSheet;
+    if (!srcSheet) srcSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!srcSheet)  return { success: false, error: 'גיליון לא נמצא' };
+
+    var weapRows = srcSheet.getDataRange().getValues();
+    var soldiers = {};
+    for (var i = 1; i < weapRows.length; i++) {
+      if (filterByUnit && (weapRows[i][5] || '').toString().trim() !== unit) continue;
+      var pn = (weapRows[i][2] || '').toString().trim();
+      if (!pn) continue;
+      if (!soldiers[pn]) {
+        soldiers[pn] = {
+          pn:    pn,
+          name:  (weapRows[i][1] || '').toString().trim(),
+          phone: (weapRows[i][3] || '').toString().trim(),
+          email: (weapRows[i][4] || '').toString().trim(),
+          unit:  (weapRows[i][5] || '').toString().trim() || unit,
+          team:  (weapRows[i][6] || '').toString().trim(),
+          items: []
+        };
+        WEAPONS_ITEM_LIST.forEach(function(item) {
+          var v = weapRows[i][item.col];
+          if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') {
+            soldiers[pn].items.push({
+              key: item.key, label: item.label, value: v.toString(),
+              lastCheck: null, notRequired: false
+            });
+          }
+        });
+      }
+    }
+
+    // ── קריאת גיליון מעקב בדיקות ──
+    var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
+    if (inspSheet && inspSheet.getLastRow() > 1) {
+      var inspData    = inspSheet.getDataRange().getValues();
+      var inspHeaders = inspData[0];
+
+      // בנה מפה: label → אינדקס עמודת תאריך (0-based)
+      var dateIdxByLabel = {};
+      for (var c = 0; c < inspHeaders.length; c++) {
+        var h = (inspHeaders[c] || '').toString().trim();
+        if (h.length > INSP_DATE_SUFFIX.length &&
+            h.slice(-INSP_DATE_SUFFIX.length) === INSP_DATE_SUFFIX) {
+          dateIdxByLabel[h.slice(0, h.length - INSP_DATE_SUFFIX.length)] = c;
+        }
+      }
+
+      for (var k = 1; k < inspData.length; k++) {
+        var irPn = (inspData[k][1] || '').toString().trim();
+        if (!soldiers[irPn]) continue;
+        soldiers[irPn].items.forEach(function(item) {
+          var idx = dateIdxByLabel[item.label];
+          if (idx === undefined) return;
+          var val = inspData[k][idx];
+          if (!val) return;
+          if (val.toString().trim() === 'לא נדרש') {
+            item.notRequired = true;
+          } else {
+            try { item.lastCheck = new Date(val).toISOString(); } catch (e) { /* ignore */ }
+          }
+        });
+      }
+    }
+
+    // ── סיכום לכל חייל + מיון ──
+    var now    = Date.now();
+    var result = Object.values(soldiers);
+    result.forEach(function(s) {
+      s.totalItems    = s.items.length;
+      s.checkedRecent = s.items.filter(function(i) {
+        return i.lastCheck && !i.notRequired &&
+               (now - new Date(i.lastCheck).getTime()) <= INSP_OVERDUE_MS;
+      }).length;
+      s.notRequired = s.items.filter(function(i) { return i.notRequired; }).length;
+    });
+    result.sort(function(a, b) {
+      var tc = a.team.localeCompare(b.team, 'he');
+      return tc !== 0 ? tc : a.name.localeCompare(b.name, 'he');
+    });
+    return { success: true, data: result };
+  } catch (e) {
+    Logger.log('❌ [Inspections] getUnitData: ' + e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * מסמן בדיקה/לא-נדרש לפריט ספציפי
+ * גיליון: [label] = מספר סידורי | [label תאריך בדיקה] = תאריך/"לא נדרש"
+ * serial ו-itemLabel מגיעים מה-frontend (ללא קריאת גיליון נוסף)
+ */
+function inspections_markItem(pn, name, phone, email, unit, team, itemKey, itemLabel, serial, type) {
   try {
     var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
     var sheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     if (!sheet) return { success: false, error: 'גיליון מעקב בדיקות לא נמצא' };
 
-    _insp_ensureBase(sheet);
-    var headerMap = _insp_headerMap(sheet);
-
-    // מצא label לפי key
-    var itemLabel = '';
-    for (var j = 0; j < WEAPONS_ITEM_LIST.length; j++) {
-      if (WEAPONS_ITEM_LIST[j].key === itemKey) { itemLabel = WEAPONS_ITEM_LIST[j].label; break; }
+    // fallback: חפש label ב-WEAPONS_ITEM_LIST אם לא הועבר
+    if (!itemLabel) {
+      for (var j = 0; j < WEAPONS_ITEM_LIST.length; j++) {
+        if (WEAPONS_ITEM_LIST[j].key === itemKey) { itemLabel = WEAPONS_ITEM_LIST[j].label; break; }
+      }
     }
     if (!itemLabel) return { success: false, error: 'פריט לא נמצא: ' + itemKey };
 
-    var itemCol = _insp_ensureCol(sheet, headerMap, itemLabel);
-    var value   = (type === 'skip') ? 'לא נדרש' : new Date();
+    _insp_ensureBase(sheet);
+    var headerMap = _insp_headerMap(sheet);
 
-    // חפש שורת חייל קיימת
+    // שתי עמודות: [label] = מספר סידורי | [label תאריך בדיקה] = תאריך
+    var serialCol = _insp_ensureCol(sheet, headerMap, itemLabel);
+    var dateCol   = _insp_ensureCol(sheet, headerMap, itemLabel + INSP_DATE_SUFFIX);
+    var value     = (type === 'skip') ? 'לא נדרש' : new Date();
+
     var lastRow = sheet.getLastRow();
     if (lastRow > 1) {
-      var pnVals = sheet.getRange(2, 2, lastRow - 1, 1).getValues(); // עמודה B
+      var pnVals = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
       for (var i = 0; i < pnVals.length; i++) {
         if ((pnVals[i][0] || '').toString().trim() !== pn.toString().trim()) continue;
-        var rowIdx = i + 2; // 1-based, +1 for header
-        // עדכן פרטים יבשים + ערך הפריט
+        var rowIdx = i + 2;
         sheet.getRange(rowIdx, 1, 1, 6).setValues([[name, pn, phone, email, unit, team]]);
-        sheet.getRange(rowIdx, itemCol).setValue(value);
+        if (serial) sheet.getRange(rowIdx, serialCol).setValue(serial);
+        sheet.getRange(rowIdx, dateCol).setValue(value);
         return { success: true };
       }
     }
 
     // שורה חדשה
-    var newRow = [name, pn, phone, email, unit, team];
-    while (newRow.length < itemCol - 1) newRow.push('');
-    newRow.push(value);
+    var maxCol = Math.max(serialCol, dateCol);
+    var newRow  = [name, pn, phone, email, unit, team];
+    while (newRow.length < maxCol) newRow.push('');
+    if (serial) newRow[serialCol - 1] = serial;
+    newRow[dateCol - 1] = value;
     sheet.appendRow(newRow);
     return { success: true };
   } catch (e) {
