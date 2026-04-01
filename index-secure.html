@@ -422,9 +422,22 @@
         // ============================================================
         
         function setupPermissions(user) {
-            const isAdmin     = authClient.hasPermission('manage_users');
-            const hasReports  = authClient.hasPermission('view_reports');
-            const hasTransfer = authClient.hasPermission('transfer');
+            const isAdmin          = authClient.hasPermission('manage_users');
+            const hasReports       = authClient.hasPermission('view_reports');
+            const hasTransfer      = authClient.hasPermission('transfer');
+            const hasInspections   = authClient.hasPermission('inspections');
+
+            // חימוש — בדיקות בלבד, מסתיר כל השאר
+            if (hasInspections && !isAdmin && !hasReports) {
+                // הסתר את מערכת חתימה כולה
+                document.querySelector('.section-title').style.display = 'none';
+                document.querySelector('.nav-grid').style.display = 'none';
+                // הצג רק כרטיס בדיקות
+                document.getElementById('reportsSection').style.display = 'block';
+                document.getElementById('reportsCards').style.display = 'grid';
+                ['armoryLink', 'inventoryLink', 'weaponsReportLink', 'radioReportLink', 'bunkerLink'].forEach(hideCard);
+                return;
+            }
 
             // מערכת חתימה — מנהל בלבד
             if (!isAdmin) hideCard('weaponsLink');
@@ -495,6 +508,7 @@
             const roleNames = {
                 'admin':    '👑 מנהל מערכת',
                 'sergeant': '🎖️ סמל',
+                'himush':   '🔧 חימוש',
             };
             return roleNames[role] || role;
         }

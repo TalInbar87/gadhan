@@ -778,7 +778,8 @@ function handleInspectionsGetUnitData(data, request) {
 function handleInspectionsMark(data, request) {
   var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
-  if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'אין הרשאה', null);
+  if (!Authorization.canAccessResource(payload, null, 'write') &&
+      !Authorization.canAccessResource(payload, null, 'inspections')) return createResponse(403, 'אין הרשאה', null);
   try {
     if (!data.pn || !data.name || !data.unit || !data.itemKey || !data.type)
       return createResponse(400, 'חסרים נתונים', null);

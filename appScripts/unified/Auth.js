@@ -200,7 +200,8 @@ class Authorization {
       manage_users: 'manage_users',
       credit:       'credit',
       audit_log:    'audit_log',
-      transfer:     'transfer'
+      transfer:     'transfer',
+      inspections:  'inspections'
     };
     return this.getPermissions(payload.role).includes(map[action]);
   }
