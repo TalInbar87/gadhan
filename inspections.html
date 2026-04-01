@@ -3,201 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מעקב בדיקות צלם ואופטיקה</title>
+  <title>מעקב בדיקות</title>
   <script src="config.js"></script>
   <script src="auth-client.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #1a1a1a;
-      color: #e0e0e0;
-      min-height: 100vh;
-      direction: rtl;
-    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; min-height: 100vh; direction: rtl; }
 
-    /* ── Header ── */
     header {
-      background: #2d2d2d;
-      border-bottom: 2px solid #ff6600;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      background: #2d2d2d; border-bottom: 2px solid #ff6600;
+      padding: 12px 20px; display: flex; align-items: center; gap: 12px;
       position: sticky; top: 0; z-index: 100;
     }
-    .back-btn {
-      background: none; border: 1px solid #555; color: #ccc;
-      padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px;
-    }
+    .back-btn { background: none; border: 1px solid #555; color: #ccc; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
     .back-btn:hover { border-color: #ff6600; color: #ff6600; }
     header h1 { font-size: 20px; color: #ff6600; flex: 1; }
 
-    /* ── Spinner ── */
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid #333; border-top-color: #ff6600;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
+    .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
+    .spinner.sm { width: 20px; height: 20px; border-width: 2px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loadingScreen {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 60vh; gap: 14px; color: #888;
-    }
 
-    /* ── Main ── */
-    #mainContent { display: none; padding: 16px 20px; max-width: 900px; margin: 0 auto; }
+    #loadingScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 14px; color: #888; }
+    #mainContent { display: none; padding: 16px 20px; max-width: 940px; margin: 0 auto; }
 
-    /* ── Unit selector ── */
-    .unit-bar {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-    .unit-bar label { color: #aaa; font-size: 14px; white-space: nowrap; }
-    .unit-bar select {
-      background: #2d2d2d; border: 1px solid #444; color: #e0e0e0;
-      padding: 9px 14px; border-radius: 6px; font-size: 15px;
-      min-width: 180px; flex: 1; max-width: 280px;
-    }
+    /* unit bar */
+    .unit-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .unit-bar label { color: #aaa; font-size: 14px; }
+    .unit-bar select { background: #2d2d2d; border: 1px solid #444; color: #e0e0e0; padding: 9px 14px; border-radius: 6px; font-size: 15px; min-width: 180px; flex: 1; max-width: 280px; }
     .unit-bar select:focus { outline: none; border-color: #ff6600; }
 
-    /* ── Stats ── */
-    .stats-row {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;
-    }
-    .stat-card {
-      background: #2d2d2d; border-radius: 8px;
-      padding: 10px 16px; text-align: center; flex: 1; min-width: 90px;
-    }
-    .stat-card .num { font-size: 22px; font-weight: bold; color: #e0e0e0; }
+    /* stats */
+    .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .stat-card { background: #2d2d2d; border-radius: 8px; padding: 10px 16px; text-align: center; flex: 1; min-width: 90px; }
+    .stat-card .num { font-size: 22px; font-weight: bold; }
     .stat-card .lbl { font-size: 11px; color: #888; margin-top: 2px; }
-    .stat-card.red-card .num  { color: #ef4444; }
-    .stat-card.green-card .num{ color: #22c55e; }
+    .num-ok  { color: #4ade80; }
+    .num-bad { color: #ef4444; }
 
-    /* ── Soldier list ── */
+    /* soldier list */
     #soldierList { display: flex; flex-direction: column; gap: 6px; }
+    .team-label { background: #252525; color: #ff6600; font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 6px; margin-top: 8px; }
 
-    .team-label {
-      background: #252525; color: #ff6600;
-      font-weight: 700; font-size: 13px;
-      padding: 6px 14px; border-radius: 6px;
-      margin-top: 8px;
-    }
-
-    .soldier-card {
-      background: #2a2a2a;
-      border: 1px solid #333;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .soldier-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 14px; cursor: pointer;
-      transition: background 0.15s;
-    }
+    .soldier-card { background: #2a2a2a; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
+    .soldier-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; transition: background .15s; }
     .soldier-header:hover { background: #333; }
     .soldier-name { flex: 1; font-size: 15px; font-weight: 600; }
-    .status-icons { display: flex; gap: 6px; }
-    .status-pill {
-      font-size: 11px; padding: 3px 8px; border-radius: 12px;
-      white-space: nowrap; font-weight: 600;
-    }
-    .pill-ok     { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
-    .pill-bad    { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
-    .pill-none   { background: #1c1c1c; color: #666;    border: 1px solid #444; }
-    .expand-arrow { color: #666; font-size: 12px; transition: transform 0.2s; }
+
+    /* status badge */
+    .status-badge { font-size: 12px; padding: 3px 9px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
+    .badge-ok    { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
+    .badge-warn  { background: #451a03; color: #fdba74; border: 1px solid #f97316; }
+    .badge-bad   { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
+
+    .expand-arrow { color: #666; font-size: 12px; transition: transform .2s; }
     .soldier-card.open .expand-arrow { transform: rotate(180deg); }
 
-    /* ── Items panel ── */
+    /* items panel */
     .items-panel { display: none; border-top: 1px solid #333; }
     .soldier-card.open .items-panel { display: block; }
+    .panel-loading { padding: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #666; }
+    .empty-msg { padding: 24px; text-align: center; color: #555; font-size: 14px; }
 
-    .items-loading {
-      padding: 18px; text-align: center; color: #666;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-    .items-loading .spinner { width: 22px; height: 22px; border-width: 2px; }
+    /* items table */
+    .tbl-wrap { overflow-x: auto; }
+    table.itbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.itbl th { background: #1e1e1e; color: #ff6600; font-weight: 600; padding: 9px 12px; text-align: right; white-space: nowrap; border-bottom: 2px solid #333; }
+    table.itbl td { padding: 9px 12px; border-bottom: 1px solid #252525; vertical-align: middle; }
+    table.itbl tr:last-child td { border-bottom: none; }
+    table.itbl tr.row-skip td { opacity: .4; }
+    table.itbl tr.row-skip td:first-child { text-decoration: line-through; }
 
-    /* ── Items table ── */
-    .items-table-wrap { overflow-x: auto; }
-    table.items-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-    table.items-tbl th {
-      background: #1e1e1e; color: #ff6600; font-weight: 600;
-      padding: 9px 12px; text-align: right; white-space: nowrap;
-      border-bottom: 2px solid #333;
-    }
-    table.items-tbl td {
-      padding: 9px 12px; border-bottom: 1px solid #252525;
-      vertical-align: middle;
-    }
-    table.items-tbl tr:last-child td { border-bottom: none; }
-    table.items-tbl tr.item-done td { opacity: 0.35; text-decoration: line-through; }
-
-    /* date cells */
-    .dc-ok     { color: #4ade80; }
-    .dc-bad    { color: #ef4444; }
-    .dc-never  { color: #555; font-style: italic; }
-    .dc-dot    { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: middle; }
-    .dc-dot.green { background: #22c55e; }
-    .dc-dot.red   { background: #ef4444; }
-    .dc-dot.gray  { background: #444; }
+    /* date display */
+    .dc-ok    { color: #4ade80; }
+    .dc-bad   { color: #ef4444; }
+    .dc-none  { color: #555; font-style: italic; }
+    .dc-skip  { color: #666; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 4px; vertical-align: middle; }
+    .dot-g { background: #22c55e; }
+    .dot-r { background: #ef4444; }
+    .dot-x { background: #444; }
 
     /* action buttons */
     .item-btns { display: flex; gap: 5px; flex-wrap: wrap; }
-    .ib {
-      background: #1e1e1e; border: 1px solid #444; color: #ccc;
-      padding: 5px 9px; border-radius: 5px; cursor: pointer;
-      font-size: 12px; white-space: nowrap; transition: all 0.15s;
-    }
-    .ib:disabled { opacity: 0.35; cursor: not-allowed; }
-    .ib-optics { border-color: #3b82f6; color: #93c5fd; }
-    .ib-optics:hover:not(:disabled) { background: #1e3a5f; color: #60a5fa; }
-    .ib-weapon { border-color: #22c55e; color: #86efac; }
-    .ib-weapon:hover:not(:disabled) { background: #14532d; color: #4ade80; }
-    .ib-skip   { border-color: #555; color: #666; }
-    .ib-skip:hover:not(:disabled)   { background: #333; color: #999; }
+    .ib { background: #1e1e1e; border: 1px solid #444; color: #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; white-space: nowrap; transition: all .15s; }
+    .ib:disabled { opacity: .3; cursor: not-allowed; }
+    .ib-check { border-color: #22c55e; color: #86efac; }
+    .ib-check:hover:not(:disabled) { background: #14532d; color: #4ade80; }
+    .ib-skip  { border-color: #555; color: #666; }
+    .ib-skip:hover:not(:disabled)  { background: #2d2d2d; color: #999; }
 
-    /* ── Empty / error ── */
-    .empty-msg {
-      padding: 30px; text-align: center; color: #555; font-size: 14px;
-    }
+    /* toast */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #e0e0e0; padding: 10px 22px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; border: 1px solid #555; pointer-events: none; }
+    #toast.ok  { border-color: #22c55e; color: #4ade80; }
+    #toast.err { border-color: #ef4444; color: #fca5a5; }
 
-    /* ── Toast ── */
-    #toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: #2d2d2d; color: #e0e0e0; padding: 10px 22px;
-      border-radius: 8px; font-size: 14px; display: none; z-index: 999;
-      border: 1px solid #555; pointer-events: none;
-    }
-    #toast.success { border-color: #22c55e; color: #4ade80; }
-    #toast.error   { border-color: #ef4444; color: #fca5a5; }
+    /* overlay */
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 500; align-items: center; justify-content: center; }
+    #overlay.on { display: flex; }
+    #overlay .ov-sp { width: 50px; height: 50px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; }
 
-    /* ── Page overlay ── */
-    #pageOverlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.55); z-index: 500;
-      align-items: center; justify-content: center;
-    }
-    #pageOverlay.active { display: flex; }
-    #pageOverlay .ov-sp {
-      width: 50px; height: 50px;
-      border: 4px solid #333; border-top-color: #ff6600;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-
-    /* ── Responsive ── */
+    /* mobile */
     @media (max-width: 600px) {
       header h1 { font-size: 15px; }
-      #mainContent { padding: 10px 10px; }
+      #mainContent { padding: 10px; }
       .unit-bar select { max-width: 100%; }
-      .stats-row { gap: 6px; }
-      .stat-card { padding: 8px 8px; min-width: 70px; }
-      .stat-card .num { font-size: 18px; }
+      .stat-card { padding: 8px; min-width: 70px; }
+      .stat-card .num { font-size: 17px; }
       .stat-card .lbl { font-size: 10px; }
       .soldier-name { font-size: 14px; }
-      table.items-tbl th, table.items-tbl td { padding: 7px 8px; font-size: 12px; }
+      table.itbl th, table.itbl td { padding: 7px 8px; font-size: 12px; }
       .item-btns { flex-direction: column; }
       .ib { width: 100%; text-align: center; }
     }
@@ -206,134 +120,116 @@
 <body>
 
 <header>
-  <button class="back-btn" onclick="window.location.href='index-secure.html'">← חזרה</button>
-  <h1>🔭 מעקב בדיקות צלם ואופטיקה</h1>
+  <button class="back-btn" onclick="location.href='index-secure.html'">← חזרה</button>
+  <h1>🔍 מעקב בדיקות</h1>
 </header>
 
-<div id="loadingScreen">
-  <div class="spinner"></div>
-  <span>טוען מסגרות...</span>
-</div>
+<div id="loadingScreen"><div class="spinner"></div><span>טוען...</span></div>
 
 <div id="mainContent">
   <div class="unit-bar">
-    <label>בחר מסגרת:</label>
-    <select id="unitSelect" onchange="onUnitChange()">
-      <option value="">-- בחר מסגרת --</option>
+    <label>מסגרת:</label>
+    <select id="unitSel" onchange="onUnit()">
+      <option value="">-- בחר --</option>
     </select>
   </div>
-
   <div id="statsRow" class="stats-row" style="display:none"></div>
-
   <div id="soldierList"></div>
 </div>
 
 <div id="toast"></div>
-<div id="pageOverlay"><div class="ov-sp"></div></div>
+<div id="overlay"><div class="ov-sp"></div></div>
 
 <script>
 const authClient = new SecureAuthClient(API_URL);
 const authGuard  = new AuthGuard(authClient);
 const OVERDUE_MS = 14 * 86400000;
 
-// soldiers loaded for current unit
 let soldiers = [];
-// open soldier pn
 let openPn   = null;
 
-// ── API ────────────────────────────────────────────
-async function apiPost(action, payload) {
+// ── API ──────────────────────────────────────────────────────────
+async function api(action, payload) {
   const p = new URLSearchParams();
   p.append('data', JSON.stringify({ action, token: authClient.token, ...payload }));
-  const res = await fetch(API_URL, { method: 'POST', body: p });
-  return res.json();
+  return (await fetch(API_URL, { method: 'POST', body: p })).json();
 }
 
-// ── Helpers ────────────────────────────────────────
-function isOverdue(iso) {
-  if (!iso) return true;
-  return Date.now() - new Date(iso).getTime() > OVERDUE_MS;
-}
+// ── Helpers ──────────────────────────────────────────────────────
+function isOverdue(iso) { return !iso || Date.now() - new Date(iso).getTime() > OVERDUE_MS; }
 function fmt(iso) {
   if (!iso) return '—';
-  const d  = new Date(iso);
-  const dd = String(d.getDate()).padStart(2,'0');
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  return `${dd}/${mm}/${d.getFullYear()}`;
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
-function dateCellHtml(iso) {
-  if (!iso) return `<span class="dc-never"><span class="dc-dot gray"></span>לא בוצע</span>`;
-  const over = isOverdue(iso);
-  return `<span class="${over?'dc-bad':'dc-ok'}"><span class="dc-dot ${over?'red':'green'}"></span>${fmt(iso)}</span>`;
-}
-function statusPill(iso, label) {
-  if (!iso)         return `<span class="status-pill pill-none">${label}: —</span>`;
-  if (isOverdue(iso)) return `<span class="status-pill pill-bad">${label}: פג</span>`;
-  return `<span class="status-pill pill-ok">${label}: ✓</span>`;
+function dateHtml(item) {
+  if (item.notRequired) return `<span class="dc-skip">— לא נדרש</span>`;
+  if (!item.lastCheck)  return `<span class="dc-none"><span class="dot dot-x"></span>לא בוצע</span>`;
+  const over = isOverdue(item.lastCheck);
+  return `<span class="${over?'dc-bad':'dc-ok'}"><span class="dot ${over?'dot-r':'dot-g'}"></span>${fmt(item.lastCheck)}</span>`;
 }
 
-// ── Toast ───────────────────────────────────────────
-function showToast(msg, type) {
+// ── Toast / overlay ──────────────────────────────────────────────
+function toast(msg, type) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className   = type || '';
+  t.textContent = msg; t.className = type;
   t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
+function setOverlay(on) { document.getElementById('overlay').classList.toggle('on', on); }
 
-// ── Page disable ────────────────────────────────────
-function setOverlay(on) {
-  document.getElementById('pageOverlay').classList.toggle('active', on);
-}
-
-// ── Load units ──────────────────────────────────────
+// ── Load units ───────────────────────────────────────────────────
 async function loadUnits() {
-  const json = await apiPost('inspections_get_units', {});
-  if (json.statusCode !== 200) throw new Error(json.message || 'שגיאה בטעינת מסגרות');
-  const sel = document.getElementById('unitSelect');
-  (json.data || []).forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = u; opt.textContent = u;
-    sel.appendChild(opt);
+  const j = await api('inspections_get_units', {});
+  if (j.statusCode !== 200) throw new Error(j.message);
+  const sel = document.getElementById('unitSel');
+  (j.data || []).forEach(u => {
+    const o = document.createElement('option'); o.value = u; o.textContent = u; sel.appendChild(o);
   });
 }
 
-// ── Unit changed ────────────────────────────────────
-async function onUnitChange() {
-  const unit = document.getElementById('unitSelect').value;
+// ── Unit selected ────────────────────────────────────────────────
+async function onUnit() {
+  const unit = document.getElementById('unitSel').value;
   document.getElementById('statsRow').style.display = 'none';
-  document.getElementById('soldierList').innerHTML  = '';
-  soldiers = [];
-  openPn   = null;
+  document.getElementById('soldierList').innerHTML = '';
+  soldiers = []; openPn = null;
   if (!unit) return;
 
   document.getElementById('soldierList').innerHTML =
-    `<div class="items-loading"><div class="spinner"></div>טוען חיילים...</div>`;
-
+    `<div class="panel-loading"><div class="spinner sm"></div>טוען חיילים...</div>`;
   try {
-    const json = await apiPost('inspections_get_soldiers', { unit });
-    if (json.statusCode !== 200) throw new Error(json.message);
-    soldiers = json.data || [];
+    const j = await api('inspections_get_soldiers', { unit });
+    if (j.statusCode !== 200) throw new Error(j.message);
+    soldiers = j.data || [];
     renderSoldiers(soldiers);
   } catch (e) {
-    document.getElementById('soldierList').innerHTML =
-      `<div class="empty-msg">❌ שגיאה: ${e.message}</div>`;
+    document.getElementById('soldierList').innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
   }
 }
 
-// ── Render soldiers ─────────────────────────────────
+// ── Stats ────────────────────────────────────────────────────────
+function buildStats(list) {
+  const total   = list.length;
+  // "all done" = checkedRecent + notRequired >= totalItems
+  const allDone = list.filter(s => s.checkedRecent + s.notRequired >= s.totalItems && s.totalItems > 0).length;
+  const needs   = total - allDone;
+  const row = document.getElementById('statsRow');
+  row.style.display = 'flex';
+  row.innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">חיילים</div></div>
+    <div class="stat-card"><div class="num num-ok">${allDone}</div><div class="lbl">הכל נבדק</div></div>
+    <div class="stat-card"><div class="num num-bad">${needs}</div><div class="lbl">ממתינים לבדיקה</div></div>
+  `;
+}
+
+// ── Render soldiers ──────────────────────────────────────────────
 function renderSoldiers(list) {
   buildStats(list);
-
   const container = document.getElementById('soldierList');
-  if (!list.length) {
-    container.innerHTML = `<div class="empty-msg">לא נמצאו חיילים במסגרת זו</div>`;
-    return;
-  }
+  if (!list.length) { container.innerHTML = `<div class="empty-msg">לא נמצאו חיילים</div>`; return; }
 
-  // Group by team
-  const byTeam = {};
-  const order  = [];
+  const byTeam = {}; const order = [];
   list.forEach(s => {
     const t = s.team || 'ללא צוות';
     if (!byTeam[t]) { byTeam[t] = []; order.push(t); }
@@ -344,194 +240,150 @@ function renderSoldiers(list) {
   order.forEach(team => {
     html += `<div class="team-label">👥 ${team}</div>`;
     byTeam[team].forEach(s => {
-      const enc = encodeURIComponent(JSON.stringify({
-        pn: s.pn, name: s.name, phone: s.phone||'',
-        email: s.email||'', unit: s.unit, team: s.team||''
-      }));
+      const enc   = encodeURIComponent(JSON.stringify(s));
+      const badge = soldierBadge(s);
       html += `
-      <div class="soldier-card" id="sc-${s.pn}">
-        <div class="soldier-header" onclick="toggleSoldier('${s.pn}','${enc}')">
-          <span class="soldier-name">${s.name}</span>
-          <div class="status-icons">
-            ${statusPill(s.lastOptics, '🔭')}
-            ${statusPill(s.lastWeapon, '🔫')}
+        <div class="soldier-card" id="sc-${s.pn}">
+          <div class="soldier-header" onclick="toggle('${s.pn}','${enc}')">
+            <span class="soldier-name">${s.name}</span>
+            <span class="status-badge ${badge.cls}" id="badge-${s.pn}">${badge.txt}</span>
+            <span class="expand-arrow">▼</span>
           </div>
-          <span class="expand-arrow">▼</span>
-        </div>
-        <div class="items-panel" id="ip-${s.pn}">
-          <div class="items-loading">
-            <div class="spinner"></div>טוען פריטים...
+          <div class="items-panel" id="ip-${s.pn}">
+            <div class="panel-loading"><div class="spinner sm"></div>טוען...</div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
     });
   });
-
   container.innerHTML = html;
 }
 
-function escAttr(s) { return (s||'').replace(/'/g,"\\'"); }
-
-// ── Stats ───────────────────────────────────────────
-function buildStats(list) {
-  const total = list.length;
-  const badO  = list.filter(s => isOverdue(s.lastOptics)).length;
-  const badW  = list.filter(s => isOverdue(s.lastWeapon)).length;
-  const row   = document.getElementById('statsRow');
-  row.style.display = 'flex';
-  row.innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">חיילים</div></div>
-    <div class="stat-card red-card"><div class="num">${badO}</div><div class="lbl">אופטיקה לא תקינה</div></div>
-    <div class="stat-card green-card"><div class="num">${total-badO}</div><div class="lbl">אופטיקה תקינה</div></div>
-    <div class="stat-card red-card"><div class="num">${badW}</div><div class="lbl">נשק לא תקין</div></div>
-    <div class="stat-card green-card"><div class="num">${total-badW}</div><div class="lbl">נשק תקין</div></div>
-  `;
+function soldierBadge(s) {
+  const done  = s.checkedRecent + s.notRequired;
+  const total = s.totalItems;
+  if (total === 0) return { cls: 'badge-warn', txt: 'אין פריטים' };
+  if (done >= total) return { cls: 'badge-ok',  txt: `✓ ${done}/${total}` };
+  const remaining = total - done;
+  return { cls: remaining === total ? 'badge-bad' : 'badge-warn', txt: `${done}/${total} נבדקו` };
 }
 
-// ── Toggle soldier ───────────────────────────────────
-async function toggleSoldier(pn, enc) {
+// ── Toggle soldier ───────────────────────────────────────────────
+async function toggle(pn, enc) {
   const s     = JSON.parse(decodeURIComponent(enc));
   const card  = document.getElementById('sc-' + pn);
   const panel = document.getElementById('ip-' + pn);
   const isOpen = card.classList.contains('open');
 
-  // Close any open card
   if (openPn && openPn !== pn) {
-    const prevCard = document.getElementById('sc-' + openPn);
-    if (prevCard) prevCard.classList.remove('open');
+    const prev = document.getElementById('sc-' + openPn);
+    if (prev) prev.classList.remove('open');
   }
-
-  if (isOpen) {
-    card.classList.remove('open');
-    openPn = null;
-    return;
-  }
+  if (isOpen) { card.classList.remove('open'); openPn = null; return; }
 
   card.classList.add('open');
   openPn = pn;
-
-  // Load if not already loaded
   if (panel.dataset.loaded) return;
   panel.dataset.loaded = '1';
 
   try {
-    const json = await apiPost('inspections_get_soldier_data', { pn });
-    if (json.statusCode !== 200) throw new Error(json.message);
-    renderItemsPanel(panel, s, json.data);
+    const j = await api('inspections_get_soldier_data', { pn });
+    if (j.statusCode !== 200) throw new Error(j.message);
+    renderPanel(panel, s, j.data);
   } catch (e) {
     panel.innerHTML = `<div class="empty-msg">❌ ${e.message}</div>`;
   }
 }
 
-// ── Render items panel ───────────────────────────────
-// history is now per-soldier: { lastOptics, lastWeapon }
-// All item rows show the same dates (soldier-level tracking)
-function renderItemsPanel(panel, s, data) {
-  const { items, history } = data;
-  if (!items || !items.length) {
-    panel.innerHTML = `<div class="empty-msg">לא נמצאו פריטים לחייל זה</div>`;
-    return;
-  }
+// ── Render items panel ───────────────────────────────────────────
+function renderPanel(panel, s, data) {
+  const { items } = data;
+  if (!items || !items.length) { panel.innerHTML = `<div class="empty-msg">לא נמצאו פריטים</div>`; return; }
 
   const enc = encodeURIComponent(JSON.stringify(s));
-  const lo  = history.lastOptics || null;
-  const lw  = history.lastWeapon || null;
-
   let rows = '';
   items.forEach(item => {
+    const rowCls = item.notRequired ? 'row-skip' : '';
     rows += `
-      <tr id="ir-${s.pn}-${item.key}">
+      <tr id="ir-${s.pn}-${item.key}" class="${rowCls}">
         <td>${item.label}</td>
         <td style="color:#888;font-size:12px">${item.value}</td>
-        <td class="opt-date-${s.pn}">${dateCellHtml(lo)}</td>
-        <td class="wpn-date-${s.pn}">${dateCellHtml(lw)}</td>
+        <td id="dc-${s.pn}-${item.key}">${dateHtml(item)}</td>
         <td>
           <div class="item-btns">
-            <button class="ib ib-optics"
-              onclick="markCheck('${s.pn}','${enc}','optics',this)">
-              🔭 אופטיקה
-            </button>
-            <button class="ib ib-weapon"
-              onclick="markCheck('${s.pn}','${enc}','weapon',this)">
-              🔫 נשק
-            </button>
-            <button class="ib ib-skip"
-              onclick="skipItem('${s.pn}','${item.key}')">
-              — לא נדרש
-            </button>
+            <button class="ib ib-check" ${item.notRequired?'disabled':''} onclick="mark('${s.pn}','${enc}','${item.key}','check',this)">✅ בדקתי</button>
+            <button class="ib ib-skip"  onclick="mark('${s.pn}','${enc}','${item.key}','skip',this)">— לא נדרשת</button>
           </div>
         </td>
       </tr>`;
   });
 
   panel.innerHTML = `
-    <div class="items-table-wrap">
-      <table class="items-tbl">
-        <thead>
-          <tr>
-            <th>פריט</th>
-            <th>ערך/סידורי</th>
-            <th>בדיקת אופטיקה אחרונה</th>
-            <th>בדיקת נשק אחרונה</th>
-            <th>פעולות</th>
-          </tr>
-        </thead>
+    <div class="tbl-wrap">
+      <table class="itbl">
+        <thead><tr>
+          <th>פריט</th><th>ערך / סידורי</th><th>תאריך בדיקה אחרון</th><th>פעולות</th>
+        </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
 }
 
-// ── Mark check ───────────────────────────────────────
-async function markCheck(pn, enc, type, btn) {
+// ── Mark item ────────────────────────────────────────────────────
+async function mark(pn, enc, itemKey, type, btn) {
   const s = JSON.parse(decodeURIComponent(enc));
   setOverlay(true);
   try {
-    const json = await apiPost('inspections_mark', {
-      pn: s.pn, name: s.name, phone: s.phone || '',
-      email: s.email || '', unit: s.unit, team: s.team || '', type
+    const j = await api('inspections_mark', {
+      pn: s.pn, name: s.name, phone: s.phone||'', email: s.email||'',
+      unit: s.unit, team: s.team||'', itemKey, type
     });
-    if (json.statusCode === 200) {
-      const now   = new Date().toISOString();
-      const label = type === 'optics' ? 'אופטיקה' : 'נשק';
-      const cls   = type === 'optics' ? `opt-date-${pn}` : `wpn-date-${pn}`;
+    if (j.statusCode === 200) {
+      const now      = new Date().toISOString();
+      const item     = { lastCheck: type==='check' ? now : null, notRequired: type==='skip' };
+      const dcCell   = document.getElementById(`dc-${pn}-${itemKey}`);
+      const row      = document.getElementById(`ir-${pn}-${itemKey}`);
+      if (dcCell) dcCell.innerHTML = dateHtml(item);
+      if (row)    row.className   = type === 'skip' ? 'row-skip' : '';
 
-      // Update all date cells in this soldier's panel (per-soldier tracking)
-      document.querySelectorAll('.' + cls).forEach(td => {
-        td.innerHTML = dateCellHtml(now);
-      });
+      // כפתור "בדקתי" — נטרל אם לא נדרש
+      const checkBtn = row ? row.querySelector('.ib-check') : null;
+      if (checkBtn) checkBtn.disabled = (type === 'skip');
 
-      // Update local soldier + pills
+      // עדכן סיכום חייל מקומי
       const sol = soldiers.find(s => s.pn.toString() === pn.toString());
       if (sol) {
-        if (type === 'optics') sol.lastOptics = now;
-        else                   sol.lastWeapon = now;
-        sol.overdueOptics = isOverdue(sol.lastOptics);
-        sol.overdueWeapon = isOverdue(sol.lastWeapon);
-        const header = document.querySelector(`#sc-${pn} .status-icons`);
-        if (header) header.innerHTML = statusPill(sol.lastOptics,'🔭') + statusPill(sol.lastWeapon,'🔫');
-        buildStats(soldiers);
+        // reload soldier data to recount accurately
+        try {
+          const j2 = await api('inspections_get_soldier_data', { pn });
+          if (j2.statusCode === 200) {
+            const items = j2.data.items || [];
+            sol.checkedRecent = items.filter(i => i.lastCheck && !isOverdue(i.lastCheck) && !i.notRequired).length;
+            sol.notRequired   = items.filter(i => i.notRequired).length;
+            updateBadge(sol);
+            buildStats(soldiers);
+          }
+        } catch (_) {}
       }
-      showToast(`✅ בדיקת ${label} עודכנה`, 'success');
+      toast(type === 'check' ? '✅ בדיקה עודכנה' : '✓ סומן כלא נדרש', 'ok');
     } else {
-      showToast('❌ ' + (json.message || 'שגיאה'), 'error');
+      toast('❌ ' + (j.message || 'שגיאה'), 'err');
     }
   } catch (e) {
-    showToast('❌ שגיאת רשת', 'error');
+    toast('❌ שגיאת רשת', 'err');
   } finally {
     setOverlay(false);
   }
 }
 
-// ── Skip item (client-only) ──────────────────────────
-function skipItem(pn, itemKey, btn) {
-  const row = document.getElementById(`ir-${pn}-${itemKey}`);
-  if (row) {
-    row.classList.add('item-done');
-    row.querySelectorAll('.ib').forEach(b => b.disabled = true);
-  }
+function updateBadge(s) {
+  const el = document.getElementById('badge-' + s.pn);
+  if (!el) return;
+  const b = soldierBadge(s);
+  el.className   = 'status-badge ' + b.cls;
+  el.textContent = b.txt;
 }
 
-// ── Init ─────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   const ok = await authGuard.checkAuth();
   if (!ok) return;
@@ -540,8 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('mainContent').style.display   = 'block';
   } catch (e) {
-    document.getElementById('loadingScreen').innerHTML =
-      `<div style="color:#ef4444">❌ ${e.message}</div>`;
+    document.getElementById('loadingScreen').innerHTML = `<div style="color:#ef4444">❌ ${e.message}</div>`;
   }
 });
 </script>

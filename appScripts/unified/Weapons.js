@@ -1805,8 +1805,44 @@ function weapons_getUnits() {
 // ================================================================
 // Inspections (מעקב בדיקות)
 // ================================================================
-// גיליון מעקב בדיקות: A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות | G=בדיקת אופטיקה | H=בדיקת נשק
+// גיליון מעקב בדיקות:
+//   A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות
+//   G..N+6 = עמודה לכל פריט שנבדק (header = label הפריט, ערך = תאריך או "לא נדרש")
 // שורה אחת לחייל — upsert לפי B (מספר אישי)
+
+// ── helpers ───────────────────────────────────────────────────────
+
+/** מחזיר מפה label → אינדקס עמודה (1-based) מהשורה הראשונה */
+function _insp_headerMap(sheet) {
+  var lastCol  = sheet.getLastColumn();
+  if (lastCol < 1) return {};
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var map = {};
+  for (var i = 0; i < headers.length; i++) {
+    var h = (headers[i] || '').toString().trim();
+    if (h) map[h] = i + 1;
+  }
+  return map;
+}
+
+/** מוודא שעמודת כותרת קיימת — מחזיר אינדקס עמודה (1-based) */
+function _insp_ensureCol(sheet, headerMap, label) {
+  if (headerMap[label]) return headerMap[label];
+  var newCol = sheet.getLastColumn() + 1;
+  sheet.getRange(1, newCol).setValue(label);
+  headerMap[label] = newCol;
+  return newCol;
+}
+
+/** מוודא שורת כותרת בסיסית (A-F) */
+function _insp_ensureBase(sheet) {
+  var firstCell = sheet.getRange(1, 1).getValue();
+  if (!firstCell || firstCell.toString().trim() === '') {
+    sheet.getRange(1, 1, 1, 6).setValues([['שם מלא','מספר אישי','טלפון','מייל','מסגרת','צוות']]);
+  }
+}
+
+// ── public functions ──────────────────────────────────────────────
 
 /**
  * מחזיר מסגרות ייחודיות מגיליון הנשקים
@@ -1831,20 +1867,17 @@ function inspections_getUnits() {
 
 /**
  * מחזיר חיילים במסגרת מגליון המסגרת הספציפי (fallback: כל הרשומות)
- * מחזיר גם סטטוס בדיקות עדכני מגליון "מעקב בדיקות"
+ * לכל חייל מחושב: totalItems, checkedRecent (< 14 יום), notRequired
  */
 function inspections_getSoldiersByUnit(unit) {
   try {
     var ss = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
 
     // נסה גליון מסגרת ספציפי → fallback לגליון הראשי
-    var srcSheet = ss.getSheetByName(unit);
-    var filterByUnit = false;
-    if (!srcSheet) {
-      srcSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
-      filterByUnit = true;
-    }
-    if (!srcSheet) return { success: false, error: 'גיליון לא נמצא' };
+    var srcSheet     = ss.getSheetByName(unit);
+    var filterByUnit = !srcSheet;
+    if (!srcSheet) srcSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!srcSheet)  return { success: false, error: 'גליון לא נמצא' };
 
     var rows     = srcSheet.getDataRange().getValues();
     var soldiers = {};
@@ -1853,42 +1886,54 @@ function inspections_getSoldiersByUnit(unit) {
       var pn = (rows[i][2] || '').toString().trim();
       if (!pn) continue;
       if (!soldiers[pn]) {
+        var itemCount = 0;
+        WEAPONS_ITEM_LIST.forEach(function(item) {
+          var v = rows[i][item.col];
+          if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') itemCount++;
+        });
         soldiers[pn] = {
-          pn:    pn,
-          name:  (rows[i][1] || '').toString().trim(),
-          phone: (rows[i][3] || '').toString().trim(),
-          email: (rows[i][4] || '').toString().trim(),
-          unit:  (rows[i][5] || '').toString().trim() || unit,
-          team:  (rows[i][6] || '').toString().trim()
+          pn:         pn,
+          name:       (rows[i][1] || '').toString().trim(),
+          phone:      (rows[i][3] || '').toString().trim(),
+          email:      (rows[i][4] || '').toString().trim(),
+          unit:       (rows[i][5] || '').toString().trim() || unit,
+          team:       (rows[i][6] || '').toString().trim(),
+          totalItems: itemCount,
+          checkedRecent: 0,
+          notRequired:   0
         };
       }
     }
 
-    // משוך תאריכי בדיקה מגליון מעקב בדיקות (B=מספר אישי, G=אופטיקה, H=נשק)
+    // טען סטטוס בדיקות מגליון מעקב בדיקות
     var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
-    var inspByPn  = {};
-    if (inspSheet) {
-      var inspRows = inspSheet.getDataRange().getValues();
-      for (var k = 1; k < inspRows.length; k++) {
-        var irPn = (inspRows[k][1] || '').toString().trim(); // B=מספר אישי
+    if (inspSheet && inspSheet.getLastRow() > 1) {
+      var inspData    = inspSheet.getDataRange().getValues();
+      var inspHeaders = inspData[0];
+      var now         = Date.now();
+
+      for (var k = 1; k < inspData.length; k++) {
+        var irPn = (inspData[k][1] || '').toString().trim(); // B=מספר אישי
         if (!soldiers[irPn]) continue;
-        inspByPn[irPn] = {
-          lastOptics: inspRows[k][6] ? new Date(inspRows[k][6]).getTime() : null,
-          lastWeapon: inspRows[k][7] ? new Date(inspRows[k][7]).getTime() : null
-        };
+        var chk = 0, nreq = 0;
+        for (var c = 6; c < inspHeaders.length; c++) {   // G ואילך = עמודות פריטים
+          var val = inspData[k][c];
+          if (!val) continue;
+          if (val.toString().trim() === 'לא נדרש') {
+            nreq++;
+          } else {
+            try {
+              var d = new Date(val);
+              if (!isNaN(d.getTime()) && (now - d.getTime()) / 86400000 <= 14) chk++;
+            } catch (e) { /* ignore */ }
+          }
+        }
+        soldiers[irPn].checkedRecent = chk;
+        soldiers[irPn].notRequired   = nreq;
       }
     }
 
-    var now    = Date.now();
     var result = Object.values(soldiers);
-    result.forEach(function(s) {
-      var h = inspByPn[s.pn] || {};
-      s.lastOptics    = h.lastOptics ? new Date(h.lastOptics).toISOString() : null;
-      s.lastWeapon    = h.lastWeapon ? new Date(h.lastWeapon).toISOString() : null;
-      s.overdueOptics = !h.lastOptics || (now - h.lastOptics) / 86400000 > 14;
-      s.overdueWeapon = !h.lastWeapon || (now - h.lastWeapon) / 86400000 > 14;
-    });
-
     result.sort(function(a, b) {
       var tc = a.team.localeCompare(b.team, 'he');
       return tc !== 0 ? tc : a.name.localeCompare(b.name, 'he');
@@ -1901,7 +1946,7 @@ function inspections_getSoldiersByUnit(unit) {
 }
 
 /**
- * מחזיר פריטים לחייל + תאריך בדיקה אחרון (per-soldier)
+ * מחזיר פריטי חייל + סטטוס בדיקה לכל פריט בנפרד
  */
 function inspections_getSoldierData(pn) {
   try {
@@ -1909,7 +1954,6 @@ function inspections_getSoldierData(pn) {
     var mainSheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
     if (!mainSheet) return { success: false, error: 'גיליון לא נמצא' };
 
-    // פריטים מגליון כל הרשומות
     var rows  = mainSheet.getDataRange().getValues();
     var items = [];
     for (var i = 1; i < rows.length; i++) {
@@ -1918,26 +1962,42 @@ function inspections_getSoldierData(pn) {
         var v = rows[i][item.col];
         if (v && v.toString().trim() !== '' && v.toString().trim() !== '0') {
           if (!items.some(function(it) { return it.key === item.key; })) {
-            items.push({ key: item.key, label: item.label, value: v.toString() });
+            items.push({ key: item.key, label: item.label, value: v.toString(),
+                         lastCheck: null, notRequired: false });
           }
         }
       });
       break;
     }
 
-    // תאריכי בדיקה מגליון מעקב בדיקות (B=מספר אישי, G=אופטיקה, H=נשק)
-    var history   = { lastOptics: null, lastWeapon: null };
+    // תאריכי בדיקה לפי עמודת פריט
     var inspSheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
-    if (inspSheet) {
-      var inspRows = inspSheet.getDataRange().getValues();
-      for (var k = 1; k < inspRows.length; k++) {
-        if ((inspRows[k][1] || '').toString().trim() !== pn.toString().trim()) continue;
-        history.lastOptics = inspRows[k][6] ? new Date(inspRows[k][6]).toISOString() : null;
-        history.lastWeapon = inspRows[k][7] ? new Date(inspRows[k][7]).toISOString() : null;
+    if (inspSheet && inspSheet.getLastRow() > 1) {
+      var inspData    = inspSheet.getDataRange().getValues();
+      var inspHeaders = inspData[0];
+      // בנה מפה label → ערך לחייל זה
+      for (var k = 1; k < inspData.length; k++) {
+        if ((inspData[k][1] || '').toString().trim() !== pn.toString().trim()) continue;
+        var labelToVal = {};
+        for (var c = 6; c < inspHeaders.length; c++) {
+          var lbl = (inspHeaders[c] || '').toString().trim();
+          if (lbl && inspData[k][c] !== undefined && inspData[k][c] !== '') {
+            labelToVal[lbl] = inspData[k][c];
+          }
+        }
+        items.forEach(function(item) {
+          var val = labelToVal[item.label];
+          if (!val) return;
+          if (val.toString().trim() === 'לא נדרש') {
+            item.notRequired = true;
+          } else {
+            try { item.lastCheck = new Date(val).toISOString(); } catch (e) { /* ignore */ }
+          }
+        });
         break;
       }
     }
-    return { success: true, data: { items: items, history: history } };
+    return { success: true, data: { items: items } };
   } catch (e) {
     Logger.log('❌ [Inspections] getSoldierData: ' + e);
     return { success: false, error: e.toString() };
@@ -1945,34 +2005,50 @@ function inspections_getSoldierData(pn) {
 }
 
 /**
- * מסמן בדיקה לחייל — upsert לגליון "מעקב בדיקות"
- * מבנה: A=שם מלא | B=מספר אישי | C=טלפון | D=מייל | E=מסגרת | F=צוות | G=אופטיקה | H=נשק
+ * מסמן בדיקה/לא-נדרש לפריט ספציפי — upsert שורת חייל
+ * type: 'check' → תאריך היום | 'skip' → 'לא נדרש'
  */
-function inspections_markCheck(pn, name, phone, email, unit, team, type) {
+function inspections_markItem(pn, name, phone, email, unit, team, itemKey, type) {
   try {
     var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
     var sheet = ss.getSheetByName(CONFIG.WEAPONS.INSPECTIONS_SHEET);
     if (!sheet) return { success: false, error: 'גיליון מעקב בדיקות לא נמצא' };
 
-    var rows = sheet.getDataRange().getValues();
-    var now  = new Date();
+    _insp_ensureBase(sheet);
+    var headerMap = _insp_headerMap(sheet);
 
-    for (var i = 1; i < rows.length; i++) {
-      if ((rows[i][1] || '').toString().trim() !== pn.toString().trim()) continue;
-      // עדכן פרטים יבשים + תאריך הבדיקה הרלוונטית
-      var optDate = (type === 'optics') ? now : (rows[i][6] || '');
-      var wpnDate = (type === 'weapon') ? now : (rows[i][7] || '');
-      sheet.getRange(i + 1, 1, 1, 8).setValues([[name, pn, phone, email, unit, team, optDate, wpnDate]]);
-      return { success: true };
+    // מצא label לפי key
+    var itemLabel = '';
+    for (var j = 0; j < WEAPONS_ITEM_LIST.length; j++) {
+      if (WEAPONS_ITEM_LIST[j].key === itemKey) { itemLabel = WEAPONS_ITEM_LIST[j].label; break; }
+    }
+    if (!itemLabel) return { success: false, error: 'פריט לא נמצא: ' + itemKey };
+
+    var itemCol = _insp_ensureCol(sheet, headerMap, itemLabel);
+    var value   = (type === 'skip') ? 'לא נדרש' : new Date();
+
+    // חפש שורת חייל קיימת
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      var pnVals = sheet.getRange(2, 2, lastRow - 1, 1).getValues(); // עמודה B
+      for (var i = 0; i < pnVals.length; i++) {
+        if ((pnVals[i][0] || '').toString().trim() !== pn.toString().trim()) continue;
+        var rowIdx = i + 2; // 1-based, +1 for header
+        // עדכן פרטים יבשים + ערך הפריט
+        sheet.getRange(rowIdx, 1, 1, 6).setValues([[name, pn, phone, email, unit, team]]);
+        sheet.getRange(rowIdx, itemCol).setValue(value);
+        return { success: true };
+      }
     }
 
     // שורה חדשה
-    var newRow = [name, pn, phone, email, unit, team, null, null];
-    newRow[(type === 'optics') ? 6 : 7] = now;
+    var newRow = [name, pn, phone, email, unit, team];
+    while (newRow.length < itemCol - 1) newRow.push('');
+    newRow.push(value);
     sheet.appendRow(newRow);
     return { success: true };
   } catch (e) {
-    Logger.log('❌ [Inspections] markCheck: ' + e);
+    Logger.log('❌ [Inspections] markItem: ' + e);
     return { success: false, error: e.toString() };
   }
 }
