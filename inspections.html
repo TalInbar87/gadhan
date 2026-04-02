@@ -86,9 +86,7 @@
     #toast.ok  { border-color: #22c55e; color: #4ade80; }
     #toast.err { border-color: #ef4444; color: #fca5a5; }
 
-    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 500; align-items: center; justify-content: center; }
-    #overlay.on { display: flex; }
-    #overlay .ov-sp { width: 48px; height: 48px; border: 4px solid #333; border-top-color: #ff6600; border-radius: 50%; animation: spin .8s linear infinite; }
+    #toast.err { white-space: pre-line; max-width: 320px; text-align: center; }
 
     @media (max-width: 600px) {
       header h1 { font-size: 15px; }
@@ -124,7 +122,6 @@
 </div>
 
 <div id="toast"></div>
-<div id="overlay"><div class="ov-sp"></div></div>
 
 <script>
 const authClient = new SecureAuthClient(API_URL);
@@ -156,13 +153,13 @@ function dateHtml(item) {
   return `<span class="${ov?'dc-bad':'dc-ok'}"><span class="dot ${ov?'dr':'dg'}"></span>${fmt(item.lastCheck)}</span>`;
 }
 
-// ── Toast / Overlay ──────────────────────────────────────────────
-function toast(msg, type) {
+// ── Toast ─────────────────────────────────────────────────────────
+function toast(msg, type, ms = 3000) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = type; t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3000);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, ms);
 }
-const setOverlay = on => document.getElementById('overlay').classList.toggle('on', on);
 
 // ── Load units ───────────────────────────────────────────────────
 async function loadUnits() {
@@ -298,51 +295,53 @@ function renderPanel(s) {
   </table></div>`;
 }
 
-// ── Mark ─────────────────────────────────────────────────────────
-async function mark(pn, itemKey, type) {
+// ── Apply item state to DOM + recount soldier totals ─────────────
+function applyItemUI(pn, itemKey, s, item) {
+  const dc  = document.getElementById(`dc-${pn}-${itemKey}`);
+  const row = document.getElementById(`ir-${pn}-${itemKey}`);
+  if (dc)  dc.innerHTML  = dateHtml(item);
+  if (row) row.className = item.notRequired ? 'row-skip' : '';
+  const cb = row && row.querySelector('.ib-check');
+  if (cb) cb.disabled = item.notRequired;
+
+  const now = Date.now();
+  s.checkedRecent = s.items.filter(i => i.lastCheck && !i.notRequired && now - new Date(i.lastCheck).getTime() <= OVERDUE_MS).length;
+  s.notRequired   = s.items.filter(i => i.notRequired).length;
+
+  const bdg = document.getElementById('bdg-' + pn);
+  if (bdg) { const b = badge(s); bdg.className = 'badge ' + b.cls; bdg.textContent = b.txt; }
+}
+
+// ── Mark — fire-and-forget with optimistic update ─────────────────
+function mark(pn, itemKey, type) {
   const s    = soldiers.find(s => s.pn.toString() === pn.toString());
   const item = s && s.items.find(i => i.key === itemKey);
   if (!s || !item) return;
 
-  setOverlay(true);
-  try {
-    const j = await api('inspections_mark', {
-      pn: s.pn, name: s.name, phone: s.phone||'', email: s.email||'',
-      unit: s.unit, team: s.team||'',
-      itemKey, itemLabel: item.label, serial: item.value, type
-    });
-    if (j.statusCode === 200) {
-      const now = new Date().toISOString();
-      if (type === 'check') { item.lastCheck = now; item.notRequired = false; }
-      else                  { item.notRequired = true; item.lastCheck = null; }
+  // snapshot for rollback
+  const prev = { lastCheck: item.lastCheck, notRequired: item.notRequired };
 
-      // update cell + row class
-      const dc  = document.getElementById(`dc-${pn}-${itemKey}`);
-      const row = document.getElementById(`ir-${pn}-${itemKey}`);
-      if (dc)  dc.innerHTML  = dateHtml(item);
-      if (row) row.className = item.notRequired ? 'row-skip' : '';
-      const cb = row && row.querySelector('.ib-check');
-      if (cb) cb.disabled = item.notRequired;
+  // optimistic update — UI responds immediately
+  if (type === 'check') { item.lastCheck = new Date().toISOString(); item.notRequired = false; }
+  else                  { item.notRequired = true; item.lastCheck = null; }
+  applyItemUI(pn, itemKey, s, item);
+  buildStats(soldiers);
 
-      // recount soldier summary
-      const now2 = Date.now();
-      s.checkedRecent = s.items.filter(i => i.lastCheck && !i.notRequired && now2 - new Date(i.lastCheck).getTime() <= OVERDUE_MS).length;
-      s.notRequired   = s.items.filter(i => i.notRequired).length;
-
-      // update badge
-      const bdg = document.getElementById('bdg-' + pn);
-      if (bdg) { const b = badge(s); bdg.className = 'badge ' + b.cls; bdg.textContent = b.txt; }
-
-      buildStats(soldiers);
-      toast(type === 'check' ? '✅ בדיקה עודכנה' : '✓ סומן כלא נדרש', 'ok');
-    } else {
-      toast('❌ ' + (j.message || 'שגיאה'), 'err');
-    }
-  } catch (e) {
-    toast('❌ שגיאת רשת', 'err');
-  } finally {
-    setOverlay(false);
-  }
+  // fire API without blocking UI
+  api('inspections_mark', {
+    pn: s.pn, name: s.name, phone: s.phone||'', email: s.email||'',
+    unit: s.unit, team: s.team||'',
+    itemKey, itemLabel: item.label, serial: item.value, type
+  }).then(j => {
+    if (j.statusCode !== 200) throw new Error(j.message || 'שגיאה בשמירה');
+  }).catch(e => {
+    // rollback
+    item.lastCheck   = prev.lastCheck;
+    item.notRequired = prev.notRequired;
+    applyItemUI(pn, itemKey, s, item);
+    buildStats(soldiers);
+    toast(`❌ שגיאה בשמירה\n${s.name} / ${item.label}\n${e.message}`, 'err', 6000);
+  });
 }
 
 // ── Init ─────────────────────────────────────────────────────────

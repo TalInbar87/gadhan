@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" dir="rtl">
+<head>
+
+    <!--   Core JS Files   -->
+    <link rel="stylesheet" href="css/bootstrap.css" /><link rel="stylesheet" href="css/adm.css" />
+    <script src="js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/jquery-3.6.0.min.js" type="text/javascript"></script>
+    <script src="js/FuelFrAdm.js" type="text/javascript"></script>
+    <script src='js/exportBtnJS.js'></script>
+    <script type="text/javascript">
+
+        $(function () {
+            $("#btnTest").click(function () {
+                GetTestData();
+            });
+        });
+
+        function GetTestData() {
+            $.ajax({
+                type: "POST",
+                url: "FuelFrAdm.aspx/ReportsGetData",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                success: function (response) {
+                    var result = JSON.parse(response.d);
+                    $.each(result, function (index, obj) {
+                        alert(obj.ID);
+                        alert(obj.Name);
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            });
+        }
+
+    </script>
+
+
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=5.0" /><title>
+	Fuel Admin
+</title></head>
+<body onload="startTime()" oncontextmenu="return false;">
+
+    <form method="post" action="./" id="form1">
+<input type="hidden" name="RadStyleSheetManager1_TSSM" id="RadStyleSheetManager1_TSSM" value="" />
+<input type="hidden" name="RadScriptManager1_TSM" id="RadScriptManager1_TSM" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="IZ/wFjdv8rPCadk4i8VGdqe/Je96COcLq/j0tKLse04MH3jzTjzV1fVtN+r0YpS4UO+ewxRTEdq2bTjs5+ne2TWFoScggN+6pYH6ExrvIAmxiKL/6xrJvRxUPCXivrap1nZFfk0xyac61dtVtl9UuzjDT3if16jQmjpuDSmhBWl1pyyaLuWC9sJkO+c2otFWGyee1B66eOUUcQNgSjbDzLyQ7tHcl3vJH6iTz2892W4H/XZOKzK651th5Aq27phRx/HbSkL42rMtZ32VyDfOw7gBHwlukK2ivz4pv6ulpMIaW1sZzDdzA5cIK4iQPFwdEHffkFnWjPb1PmBlX6I5Wq8t3/f2Fd9rdPCecQAtBElfHR5IqWZkN10uNYhVlBfpWydBduH3LGc7iJdybWTBHzcs+rWe4G7Ux4l8yVbyUvw5ddK6VoD8LZxWmUC8q/0ggmNUOo9/s9i4PVV9t5akUTfSZFpaaCFt9krs15Ba7VQI7kX9S3LgSojGfXhQ/PL5iDepwXGMuCYa9iBIjiQ5XjuwlAXTBhnUlA/50uyjrYw37sfzgoMTjnJCaM++29o/2DZ2R5OVCYAyOh4+6bhaxHN7OIE5MZNCpguyjnw29t3D65gqSuwGGl0hyhQm108nqWd4893cQSQOId2KhwC8XBumj2hLzp/D4wnsXSTenqj6e+MvZv3/kPe/q63qmYyuchMb5W2jrQlDCiXb77vwe4x+nBP1aaoY8+tRI222WD5UHILD00UxAn1APZBZWMpzxdYJVDGzi4wF4kir0cHl/HT0oQB/0Noh2WTykmWtLEGdWofw2/kbqyRDaPJw2JGT+pF/PDwleOuzWdGNlgruWrkYNi1DsYnfnHLHh87dX7XiJfqcRnQuW5HXLqNdKyZ3qE9lvh4fsuohmRh1fsR6bXZ6bWHr657OmLyyOnyxc7H9cUXldeIfuzcf9byq0M/DGpPBEuB0q33SEK5Vhg+tkQ178J9M/vI78KrDEHn6NZZvFfiJPkZnAhWH40ur/5+4Rl6vGj3c/yORQTY+BLlwxriCLpicnFjJ/k5/e37qTOrzoEN2dJjk/BYb6tchMdXAhI+i9T8xKoOQjCiuyxvP0WyuhvHGtxIpH59nW69ThTTiHCp8Oz8+IYnqZUWrkP0Y4YvU5iedzpnVPT9ylUx7IhjCSHjNvBbRfddSgNYD+cYHELzGZwJIrqP2HBQpjpQWNeRq/j2qBw1qh8EUbe1M7xdujHsy0ksBQ2e0rBVkxhOzq5WqbJNxm4y6WiKRiP7Iszv4MTdHCGB4rw8odEkWfb3frmZGzSDn6NNq/SGCzrQEImAzWE1WT2A9nVH2gT89IJsHT/5vC59BYtHmLiXqCh5wwYSRhPv9UzftbF/Et5FOPiZ8PF/AwjRgAZ78ZbN6M8Se2wsu5Q/G7JQ0XdE7ezlpqDK/GczJ2huIJsZ/i2dknASOQvZOqmx4fTI52RlGJQyJVOsTSvlEeax8QF9s7Ui+Gv9NURXhFARFodDXqaFS6QN/SUEL8SEHhzjjBtWBZq8QkG4lMX7Fl67/3EzbNrqecBRDJWeXN93JlVhCdZycE1p4MImt391CPN3ghuOiHMMgrHtHtF2IwWkZFckUIg==" />
+
+
+<script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=RadScriptManager1_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d4.0.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aen-US%3a9ead301a-2c07-4fc5-be19-f8423a34e117%3aea597d4b%3bTelerik.Web.UI%3aen-US%3a6ddfaaf7-68e8-4aa2-a15d-336c3a8f9e4b%3a16e4e7cd%3af7645509%3a22a6274a%3aed16cbdc" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="F237178D" />
+<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="x32ROB9Vbb+LfRkmjx5puTTT0y+4xJHkuSxuWuaXasn2mc/2e/TLGvQIEeGa58JU6Qc49Vjy02+OqD8VRTiEmktdkQfBnP7fK52XjNsf50Zu337QIpR5xSakD8lh9G2g75U7V7706eu7YLBt1gkI6wNvGE/dn3NjebYGbj4l358l8AZLlsLUZ2iMAejnmXcne+ZnKQ4E9sS66EfCsngJrg==" />
+
+        <div id="mainwin">
+            
+            
+            <!-- 2021.1.330.45 --><div id="RadAjaxManager1SU">
+	<span id="RadAjaxManager1" style="display:none;"></span>
+</div>
+
+            <div id="mainwindow">
+                <header class="navbar navbar-dark sticky-top headercolor flex-md-nowrap p-0 shadow">
+                    <nav class="navbar-nav px-3">
+                        <ul style="list-style-type: none;">
+                            <li class="nav-item text-nowrap">
+                                <a class="nav-link" href="#">שלום</a>
+                            </li>
+                            <li>
+                                &nbsp;</li>
+                        </ul>
+                    </nav>
+
+                    <div id="clock" class="navbar-brand col-md-3 col-lg-2 me-0 px-3 navbar-brandleft"></div>
+
+                    <script>
+                        function startTime() {
+                            const today = new Date();
+                            let h = today.getHours();
+                            let m = today.getMinutes();
+                            let s = today.getSeconds();
+                            let d = today.getDate();
+                            let mo = today.getMonth() + 1;
+                            let y = today.getFullYear();
+
+                            m = checkTime(m);
+                            s = checkTime(s);
+                            h = checkTime(h);
+                            d = checkTime(d);
+                            mo = checkTime(mo);
+                            y = checkTime(y);
+
+                            document.getElementById('clock').innerHTML = y + "\\" + mo + "\\" + d + " " + h + ":" + m + ":" + s;
+                            setTimeout(startTime, 1000);
+                        }
+
+                        function checkTime(i) {
+                            if (i < 10) { i = "0" + i };  // add zero in front of numbers < 10
+                            return i;
+                        }
+                    </script>
+                    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 navbar-brandleft" href="#">
+                        <img src="https://www.goodi.co.il/Images/small_logo_brown.png" alt="Goodi logo" /></a>
+                </header>
+
+                <div class="container-fluid">
+                    <div class="row mx-auto justify-center">
+                        
+
+                        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                                <h1 class="h2">ברוכים הבאים </h1>
+                            </div>
+                            <div class="container-fluid ">
+                                <header class="row mx-auto justify-center">
+                                    <div class="btnSearchOptions col-md-4 removeInput">
+                                        <input type="submit" name="btnsearchload" value="חיפוש" id="btnsearchload" role="button" href="#/search" class="btn btn-primary p-3 border turnOnSpinnerOnTop" aria-current="page" style="width: 100%;" />
+                                    </div>
+
+
+                                </header>
+
+                                <div class="container  mt-4">
+                                    <div id="searchdiv" class="row row-cols-2 form-inline" style="width:fit-content;">
+                                        
+
+                                            <select name="ddSearchSelect" id="ddSearchSelect" class="btn btn-outline-secondary dropdown-toggle removeInput  w-33.333 p-1">
+	<option selected="selected" value="3">כרטיס קש</option>
+	<option value="1">פרטי רכב</option>
+
+</select>
+
+
+                                        
+
+                                            <div class="d-flex p-0">
+	
+                                                <input name="tbSearch" maxlength="10" id="tbSearch" type="text" class="form-control  w-33.333 p-1" aria-label="חיפוש דינאמי" />
+                                                <input type="submit" name="btnSearch" value="חפש" id="btnSearch" class="btn btn-outline-secondary turnOnSpinnerOnTop  w-33.333 p-1" type="button" />
+                                                <br>
+                                                <span id="lblMessage" class="text-danger d-block mt-1"></span>
+
+                                            
+</div>
+
+                                    </div>
+                                </div>
+                                <div id="CardInfo" class="table-responsive">
+                                </div>
+                                
+                            </div>
+
+
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    
+
+<script type="text/javascript">
+//<![CDATA[
+window.__TsmHiddenField = $get('RadScriptManager1_TSM');Sys.Application.add_init(function() {
+    $create(Telerik.Web.UI.RadAjaxManager, {"_updatePanels":"","ajaxSettings":[{InitControlID : "",UpdatedControls : [{ControlID:"",PanelID:""}]}],"clientEvents":{OnRequestStart:"",OnResponseEnd:""},"defaultLoadingPanelID":"","enableAJAX":true,"enableHistory":false,"links":[],"styles":[],"uniqueID":"RadAjaxManager1","updatePanelsRenderMode":0}, null, null, $get("RadAjaxManager1"));
+});
+//]]>
+</script>
+</form>
+
+
+    <div id="loadingSpinner" class="loading spinnerOnTop spinnerOnBottom" align="center">
+        <span>טוען אנא המתן.</span>
+        <br />
+        <br />
+        <img src="loader.gif" alt="Icon of spinner" />
+    </div>
+
+    <iframe id="txtArea1" style="display:none"></iframe>
+     <script src='js/turnOnSpinner.js'></script>
+      <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d3c52dd47410430299fa1a90f168add6"}'></script><!-- End Cloudflare Web Analytics -->
+<script>
+    // חסימת לחצן ימני
+    document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+    });
+
+    // חסימת קיצורי DevTools
+    document.addEventListener("keydown", function (e) {
+        // F12
+        if (e.key === "F12") {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+I / Ctrl+Shift+J
+        if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) {
+            e.preventDefault();
+        }
+        // Ctrl+U
+        if (e.ctrlKey && e.key === "U") {
+            e.preventDefault();
+        }
+    });
+</script>
+
+</body>
+</html>
