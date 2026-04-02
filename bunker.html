@@ -791,8 +791,9 @@
                     <div class="item-card">
                         <div class="item-name">${item.label}</div>
                         <div style="color:#aaa;font-size:0.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
-                        <input type="number" min="0" max="${stock}" value="${val}" id="disp_${item.key}"
-                               oninput="dispenseValues['${item.key}']=+this.value"
+                        <input type="number" min="0" max="${stock}" value="${val}"
+                               data-dkey="${item.key.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
+                               oninput="dispenseValues[this.dataset.dkey]=+this.value"
                                style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;"
                                ${stock === 0 ? 'disabled title="אין מלאי"' : ''} />
                     </div>`;
@@ -931,8 +932,9 @@
             document.getElementById('receiveGrid').innerHTML = visible.map(item => `
                 <div class="item-card">
                     <div class="item-name">${item.label}</div>
-                    <input type="number" min="0" value="${receiveValues[item.key] || 0}" id="rec_${item.key}"
-                           oninput="receiveValues['${item.key}']=+this.value"
+                    <input type="number" min="0" value="${receiveValues[item.key] || 0}"
+                           data-rkey="${item.key.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
+                           oninput="receiveValues[this.dataset.rkey]=+this.value"
                            style="text-align:center;font-size:1.2em;font-weight:700;color:#4ade80;" />
                 </div>`).join('');
         }
