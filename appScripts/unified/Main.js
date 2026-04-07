@@ -94,7 +94,8 @@ function doPost(e) {
       case 'apson_get':            return handleApsonGet(data, e);
       case 'apson_add':            return handleApsonAdd(data, e);
       case 'apson_remove':         return handleApsonRemove(data, e);
-      case 'get_units':            return handleGetUnits(data, e);
+      case 'get_units':               return handleGetUnits(data, e);
+      case 'weapons_search_soldiers': return handleSearchSoldiers(data, e);
       // ── Inspections ──
       case 'inspections_get_units':     return handleInspectionsGetUnits(data, e);
       case 'inspections_get_unit_data': return handleInspectionsGetUnitData(data, e);
@@ -625,6 +626,13 @@ function handleApsonRemove(data, request) {
 function handleGetUnits(data, request) {
   if (!AuthMiddleware.requirePermission(data, 'read')) return createResponse(403, 'אין הרשאה', null);
   var result = weapons_getUnits();
+  return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
+}
+
+function handleSearchSoldiers(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  var result = weapons_searchSoldiers();
   return result.success ? createResponse(200, 'ok', result.data) : createResponse(500, result.error, null);
 }
 

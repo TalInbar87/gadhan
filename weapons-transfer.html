@@ -118,6 +118,24 @@
                         </button>
                     </div>
 
+                    <!-- Name search -->
+                    <div class="relative mt-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-stone-500 text-sm font-medium">או חיפוש לפי שם:</span>
+                            <span id="nameSearchStatus" class="text-xs text-stone-400"></span>
+                        </div>
+                        <input
+                            type="text"
+                            id="nameSearchInput"
+                            autocomplete="off"
+                            class="w-full px-4 py-3 text-base border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-500 bg-stone-50"
+                            placeholder="הקלד שם חייל..."
+                        />
+                        <div id="nameSearchDropdown"
+                             class="hidden absolute w-full mt-1 bg-white border-2 border-stone-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                        </div>
+                    </div>
+
                     <!-- Status messages -->
                     <div id="importStatusError" class="hidden bg-red-50 border-2 border-red-300 rounded-lg p-3">
                         <p class="text-red-700 font-bold text-sm" id="importErrorMessage">שגיאה</p>
@@ -368,6 +386,7 @@
         let currentSourceData = null;
         let currentMode = 'credit';
         let creditHasSignature = false;
+        let allSoldiers = [];  // [{pn, name, unit}] — loaded once after auth
 
         // ============================================================
         // AUTHENTICATION (Admin only)
@@ -393,6 +412,8 @@
                 displayUserInfo();
                 setupUIForRole();
                 setupSignatureCanvas();
+                setupNameSearch();
+                loadSoldiersForSearch();  // fire-and-forget
 
                 // מילוי אוטומטי מ-URL param ?pn=
                 const urlPn = new URLSearchParams(window.location.search).get('pn');
@@ -439,6 +460,79 @@
             if (confirm('האם אתה בטוח שברצונך להתנתק?')) {
                 await authClient.logout();
             }
+        }
+
+        // ============================================================
+        // NAME SEARCH
+        // ============================================================
+
+        async function loadSoldiersForSearch() {
+            const status = document.getElementById('nameSearchStatus');
+            try {
+                const p = new URLSearchParams();
+                p.append('data', JSON.stringify({ action: 'weapons_search_soldiers', token: authClient.token }));
+                const res  = await fetch(API_URL, { method: 'POST', body: p });
+                const json = await res.json();
+                if (json.statusCode === 200) {
+                    allSoldiers = json.data || [];
+                    status.textContent = allSoldiers.length + ' חיילים';
+                }
+            } catch (e) {
+                console.warn('Name search unavailable:', e);
+                status.textContent = '';
+            }
+        }
+
+        function setupNameSearch() {
+            const input    = document.getElementById('nameSearchInput');
+            const dropdown = document.getElementById('nameSearchDropdown');
+
+            input.addEventListener('input', () => {
+                const q = input.value.trim();
+                if (q.length < 2 || !allSoldiers.length) { dropdown.classList.add('hidden'); return; }
+
+                const results = allSoldiers
+                    .filter(s => s.name.includes(q) || s.pn.includes(q))
+                    .slice(0, 12);
+
+                if (!results.length) { dropdown.classList.add('hidden'); return; }
+
+                dropdown.innerHTML = results.map(s => `
+                    <div class="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-stone-100 last:border-0 flex justify-between items-center gap-3"
+                         data-pn="${s.pn}" data-name="${s.name.replace(/"/g,'&quot;')}">
+                        <span class="font-bold text-stone-800">${s.name}</span>
+                        <span class="text-stone-400 text-sm whitespace-nowrap">${s.unit || '—'} &middot; ${s.pn}</span>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+
+                dropdown.querySelectorAll('[data-pn]').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const pn = el.dataset.pn;
+                        sourceInput.value = pn;
+                        input.value = el.dataset.name;
+                        dropdown.classList.add('hidden');
+                        // enable + trigger import
+                        sourceInput.dispatchEvent(new Event('input'));
+                        importBtn.click();
+                    });
+                });
+            });
+
+            // סגור dropdown בקליק מחוץ
+            document.addEventListener('click', e => {
+                if (!e.target.closest('#nameSearchInput') && !e.target.closest('#nameSearchDropdown')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // reset name search כשמ"א משתנה ידנית
+            sourceInput.addEventListener('input', () => {
+                if (document.activeElement !== input) {
+                    input.value = '';
+                    dropdown.classList.add('hidden');
+                }
+            });
         }
 
         // ============================================================

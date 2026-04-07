@@ -1847,6 +1847,34 @@ function _insp_ensureBase(sheet) {
 // ── public functions ──────────────────────────────────────────────
 
 /**
+ * מחזיר רשימת חיילים (שם + מ"א + מסגרת) לחיפוש לפי שם
+ */
+function weapons_searchSoldiers() {
+  try {
+    var ss    = SpreadsheetApp.openById(CONFIG.SHEETS.WEAPONS);
+    var sheet = ss.getSheetByName(CONFIG.WEAPONS.MAIN_SHEET_NAME);
+    if (!sheet) return { success: false, error: 'גיליון לא נמצא' };
+    var rows = sheet.getDataRange().getValues();
+    var seen = {};
+    var result = [];
+    for (var i = 1; i < rows.length; i++) {
+      var pn   = (rows[i][2] || '').toString().trim();
+      var name = (rows[i][1] || '').toString().trim();
+      var unit = (rows[i][5] || '').toString().trim();
+      if (pn && name && !seen[pn]) {
+        seen[pn] = true;
+        result.push({ pn: pn, name: name, unit: unit });
+      }
+    }
+    result.sort(function(a, b) { return a.name.localeCompare(b.name, 'he'); });
+    return { success: true, data: result };
+  } catch (e) {
+    Logger.log('❌ [Weapons] searchSoldiers: ' + e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
  * מחזיר מסגרות ייחודיות מגיליון הנשקים
  */
 function inspections_getUnits() {
