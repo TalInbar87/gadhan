@@ -95,8 +95,27 @@
 
                 <!-- Source person lookup -->
                 <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-6 space-y-4">
+
+                    <!-- Name search — מעל המ"א -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-1">
+                            <label class="text-stone-700 font-bold text-lg">חיפוש לפי שם</label>
+                            <span id="nameSearchStatus" class="text-xs text-stone-400 font-normal"></span>
+                        </div>
+                        <input
+                            type="text"
+                            id="nameSearchInput"
+                            autocomplete="off"
+                            class="w-full px-4 py-3 text-base border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-600"
+                            placeholder="הקלד שם חייל..."
+                        />
+                        <div id="nameSearchDropdown"
+                             class="hidden absolute w-full mt-1 bg-white border-2 border-stone-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                        </div>
+                    </div>
+
                     <label for="sourcePersonalNumber" class="block text-stone-700 font-bold text-lg">
-                        מספר אישי <span class="text-red-600">*</span>
+                        או מספר אישי <span class="text-red-600">*</span>
                     </label>
 
                     <div class="flex flex-col sm:flex-row gap-3">
@@ -116,24 +135,6 @@
                         >
                             ייבא
                         </button>
-                    </div>
-
-                    <!-- Name search -->
-                    <div class="relative mt-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-stone-500 text-sm font-medium">או חיפוש לפי שם:</span>
-                            <span id="nameSearchStatus" class="text-xs text-stone-400"></span>
-                        </div>
-                        <input
-                            type="text"
-                            id="nameSearchInput"
-                            autocomplete="off"
-                            class="w-full px-4 py-3 text-base border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-500 bg-stone-50"
-                            placeholder="הקלד שם חייל..."
-                        />
-                        <div id="nameSearchDropdown"
-                             class="hidden absolute w-full mt-1 bg-white border-2 border-stone-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                        </div>
                     </div>
 
                     <!-- Status messages -->
@@ -258,8 +259,18 @@
                                 <strong>ראש בראש:</strong> החלפת מספרי סידורי של אותו סוג ציוד בין שני חיילים.
                             </p>
 
-                            <div>
-                                <label class="block text-stone-700 font-bold mb-2 text-lg">מספר אישי חייל ב׳ <span class="text-red-600">*</span></label>
+                            <div class="space-y-3">
+                                <!-- Swap name search -->
+                                <div class="relative">
+                                    <label class="block text-stone-700 font-bold mb-1">חיפוש חייל ב׳ לפי שם</label>
+                                    <input type="text" id="swapNameSearch" autocomplete="off"
+                                        class="w-full px-4 py-3 text-base border-2 border-teal-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600"
+                                        placeholder="הקלד שם חייל..." />
+                                    <div id="swapNameDropdown"
+                                         class="hidden absolute w-full mt-1 bg-white border-2 border-stone-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                    </div>
+                                </div>
+                                <label class="block text-stone-700 font-bold">או מספר אישי חייל ב׳ <span class="text-red-600">*</span></label>
                                 <div class="flex gap-3">
                                     <input type="text" id="swapTargetPN" maxlength="7" inputmode="numeric"
                                         class="flex-1 px-4 py-3 text-lg border-2 border-teal-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-200 focus:border-teal-600"
@@ -269,7 +280,7 @@
                                         טען
                                     </button>
                                 </div>
-                                <p id="swapTargetError" class="hidden text-red-600 text-sm mt-2 font-semibold"></p>
+                                <p id="swapTargetError" class="hidden text-red-600 text-sm font-semibold"></p>
                             </div>
 
                             <div id="swapTargetInfo" class="hidden bg-stone-50 border border-stone-200 rounded-xl p-4">
@@ -306,9 +317,19 @@
                                 <strong>שים לב:</strong> ההעברה תסיר את הפריטים הנבחרים מחייל המקור ותוסיף אותם לחייל היעד.
                             </p>
 
-                            <div>
-                                <label for="targetPersonalNumber" class="block text-stone-700 font-bold mb-2 text-lg">
-                                    מספר אישי להעברה <span class="text-red-600">*</span>
+                            <div class="space-y-3">
+                                <!-- Transfer name search -->
+                                <div class="relative">
+                                    <label class="block text-stone-700 font-bold mb-1">חיפוש יעד לפי שם</label>
+                                    <input type="text" id="transferNameSearch" autocomplete="off"
+                                        class="w-full px-4 py-3 text-base border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
+                                        placeholder="הקלד שם חייל..." />
+                                    <div id="transferNameDropdown"
+                                         class="hidden absolute w-full mt-1 bg-white border-2 border-stone-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                    </div>
+                                </div>
+                                <label for="targetPersonalNumber" class="block text-stone-700 font-bold">
+                                    או מספר אישי להעברה <span class="text-red-600">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -318,7 +339,7 @@
                                     class="w-full px-4 py-3 text-lg border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-600"
                                     placeholder="7 ספרות"
                                 />
-                                <p id="targetErrorMsg" class="hidden text-red-600 text-sm mt-2 font-semibold"></p>
+                                <p id="targetErrorMsg" class="hidden text-red-600 text-sm font-semibold"></p>
                             </div>
 
                             <button
@@ -483,56 +504,89 @@
             }
         }
 
-        function setupNameSearch() {
-            const input    = document.getElementById('nameSearchInput');
-            const dropdown = document.getElementById('nameSearchDropdown');
-
-            input.addEventListener('input', () => {
-                const q = input.value.trim();
-                if (q.length < 2 || !allSoldiers.length) { dropdown.classList.add('hidden'); return; }
+        // ── Generic name search — ניתן לצרף לכל שדה מ"א ──────────────
+        function attachNameSearch(inputEl, dropdownEl, onSelect, linkedPnEl) {
+            inputEl.addEventListener('input', () => {
+                const q = inputEl.value.trim();
+                if (q.length < 2 || !allSoldiers.length) { dropdownEl.classList.add('hidden'); return; }
 
                 const results = allSoldiers
                     .filter(s => s.name.includes(q) || s.pn.includes(q))
                     .slice(0, 12);
 
-                if (!results.length) { dropdown.classList.add('hidden'); return; }
+                if (!results.length) { dropdownEl.classList.add('hidden'); return; }
 
-                dropdown.innerHTML = results.map(s => `
+                dropdownEl.innerHTML = results.map(s => `
                     <div class="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-stone-100 last:border-0 flex justify-between items-center gap-3"
                          data-pn="${s.pn}" data-name="${s.name.replace(/"/g,'&quot;')}">
                         <span class="font-bold text-stone-800">${s.name}</span>
                         <span class="text-stone-400 text-sm whitespace-nowrap">${s.unit || '—'} &middot; ${s.pn}</span>
                     </div>
                 `).join('');
-                dropdown.classList.remove('hidden');
+                dropdownEl.classList.remove('hidden');
 
-                dropdown.querySelectorAll('[data-pn]').forEach(el => {
+                dropdownEl.querySelectorAll('[data-pn]').forEach(el => {
                     el.addEventListener('click', () => {
-                        const pn = el.dataset.pn;
-                        sourceInput.value = pn;
-                        input.value = el.dataset.name;
-                        dropdown.classList.add('hidden');
-                        // enable + trigger import
-                        sourceInput.dispatchEvent(new Event('input'));
-                        importBtn.click();
+                        inputEl.value = el.dataset.name;
+                        dropdownEl.classList.add('hidden');
+                        onSelect(el.dataset.pn, el.dataset.name);
                     });
                 });
             });
 
-            // סגור dropdown בקליק מחוץ
+            // סגור בקליק מחוץ
             document.addEventListener('click', e => {
-                if (!e.target.closest('#nameSearchInput') && !e.target.closest('#nameSearchDropdown')) {
-                    dropdown.classList.add('hidden');
+                if (!e.target.closest(`#${inputEl.id}`) && !e.target.closest(`#${dropdownEl.id}`)) {
+                    dropdownEl.classList.add('hidden');
                 }
             });
 
-            // reset name search כשמ"א משתנה ידנית
-            sourceInput.addEventListener('input', () => {
-                if (document.activeElement !== input) {
-                    input.value = '';
-                    dropdown.classList.add('hidden');
-                }
-            });
+            // ניקוי כשמ"א משתנה ידנית
+            if (linkedPnEl) {
+                linkedPnEl.addEventListener('input', () => {
+                    if (document.activeElement !== inputEl) {
+                        inputEl.value = '';
+                        dropdownEl.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        function setupNameSearch() {
+            // מקור — חיפוש + ייבא אוטומטי
+            attachNameSearch(
+                document.getElementById('nameSearchInput'),
+                document.getElementById('nameSearchDropdown'),
+                (pn) => {
+                    sourceInput.value = pn;
+                    sourceInput.dispatchEvent(new Event('input'));
+                    importBtn.click();
+                },
+                sourceInput
+            );
+
+            // העברה — ממלא מ"א יעד
+            attachNameSearch(
+                document.getElementById('transferNameSearch'),
+                document.getElementById('transferNameDropdown'),
+                (pn) => {
+                    document.getElementById('targetPersonalNumber').value = pn;
+                },
+                document.getElementById('targetPersonalNumber')
+            );
+
+            // ראש בראש — ממלא מ"א חייל ב׳ + טוען אוטומטי
+            attachNameSearch(
+                document.getElementById('swapNameSearch'),
+                document.getElementById('swapNameDropdown'),
+                (pn) => {
+                    const swapPN = document.getElementById('swapTargetPN');
+                    swapPN.value = pn;
+                    swapPN.dispatchEvent(new Event('input'));
+                    document.getElementById('swapLoadBtn').click();
+                },
+                document.getElementById('swapTargetPN')
+            );
         }
 
         // ============================================================
