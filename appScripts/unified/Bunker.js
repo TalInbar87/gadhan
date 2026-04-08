@@ -484,11 +484,13 @@ function bunker_dispenseSummary(filterUnit) {
   var dispByItem = {};
   var dispSheet = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
   if (dispSheet && dispSheet.getLastRow() > 1) {
-    var dispRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 6).getValues();
+    var dispRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 8).getValues();
     dispRows.forEach(function(r) {
       var unit    = String(r[3] || '').trim();
       var itemKey = String(r[4] || '').trim();
       var qty     = Number(r[5]) || 0;
+      var status  = String(r[7] || '').trim();
+      if (status !== 'פעיל') return;
       if (!itemKey || !unit || !qty) return;
       if (filterUnit && unit !== filterUnit) return;
       if (!dispByItem[itemKey]) dispByItem[itemKey] = {};
