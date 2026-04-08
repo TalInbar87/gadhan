@@ -1479,23 +1479,10 @@
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
             }).join('');
 
-            const totDispPerUnit = units.map(u => rows.reduce((s, r) => s + (r.dispenses[u] || 0), 0));
-            const totDisp        = rows.reduce((s, r) => s + r.totalDisp, 0);
-            const totShatsal     = rows.reduce((s, r) => s + r.shatsal, 0);
-            const totRem         = totDisp - totShatsal;
-            const footerCells = [
-                `<td style="padding:8px;font-weight:700;color:#ff6600;">סה״כ</td>`,
-                ...totDispPerUnit.map(q => `<td style="padding:8px;font-weight:700;color:#a78bfa;">${q}</td>`),
-                ...(multiUnit ? [`<td style="padding:8px;font-weight:700;color:#facc15;">${totDisp}</td>`] : []),
-                `<td style="padding:8px;font-weight:700;color:#f87171;">${totShatsal}</td>`,
-                `<td style="padding:8px;font-weight:700;color:${totRem < 0 ? '#f87171' : '#4ade80'};">${totRem}</td>`
-            ].join('');
-
             document.getElementById('summaryTableWrap').innerHTML =
                 `<table style="width:100%;border-collapse:collapse;font-size:13px;">
                     <thead><tr style="background:#1e1e1e;color:#ff6600;">${headerCells}</tr></thead>
                     <tbody>${bodyRows}</tbody>
-                    <tfoot><tr style="background:#1e1e1e;border-top:2px solid #ff6600;">${footerCells}</tr></tfoot>
                 </table>`;
         }
 
