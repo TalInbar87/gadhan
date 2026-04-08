@@ -384,3 +384,56 @@ function bunker_transfer(data) {
   if (errors.length) return { success: false, error: errors.join(' | ') };
   return { success: true };
 }
+
+// ================================================================
+// 9. וויסות תחמושת (יציאה למחוץ)
+// ================================================================
+var REGULATE_SHEET   = 'וויסותים';
+var REGULATE_HEADERS = ['מזהה', 'תאריך', 'מחסן מקור', 'יעד', 'אחראי', 'פריט', 'כמות'];
+
+function bunker_regulate(data) {
+  if (!data.warehouse || !data.target || !data.responsible || !data.items || !data.items.length)
+    return { success: false, error: 'חסרים נתונים לוויסות' };
+
+  var warehouseCol = BUNKER_WAREHOUSE_COLS[data.warehouse];
+  if (!warehouseCol) return { success: false, error: 'מחסן לא מזוהה: ' + data.warehouse };
+
+  var ss   = bunker_ss();
+  var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  // בדוק מלאי לכל הפריטים לפני שמשנים דבר
+  var errors = [];
+  data.items.forEach(function(item) {
+    var qty  = Number(item.qty) || 0;
+    var row  = bunker_findItemRow(main, item.key);
+    if (row === -1) { errors.push('פריט לא נמצא: ' + item.key); return; }
+    var stock = Number(main.getRange(row, warehouseCol).getValue()) || 0;
+    if (qty > stock) errors.push(item.label + ': נדרש ' + qty + ', קיים ' + stock);
+  });
+  if (errors.length) return { success: false, error: errors.join(' | ') };
+
+  var reg = bunker_ensureSheet(ss, REGULATE_SHEET, REGULATE_HEADERS);
+  var ts  = bunker_ts();
+
+  data.items.forEach(function(item) {
+    var qty   = Number(item.qty) || 0;
+    var row   = bunker_findItemRow(main, item.key);
+    var stock = Number(main.getRange(row, warehouseCol).getValue()) || 0;
+    main.getRange(row, warehouseCol).setValue(stock - qty);
+    reg.appendRow([bunker_uid(), ts, data.warehouse, data.target, data.responsible, item.key, qty]);
+  });
+
+  return { success: true };
+}
+
+function bunker_getRegulations() {
+  var ss  = bunker_ss();
+  var reg = ss.getSheetByName(REGULATE_SHEET);
+  if (!reg || reg.getLastRow() < 2) return { success: true, data: [] };
+  var rows = reg.getRange(2, 1, reg.getLastRow() - 1, REGULATE_HEADERS.length).getValues();
+  var result = rows.map(function(r) {
+    return { id: r[0], date: r[1], warehouse: r[2], target: r[3], responsible: r[4], itemKey: r[5], qty: r[6] };
+  }).reverse();
+  return { success: true, data: result };
+}

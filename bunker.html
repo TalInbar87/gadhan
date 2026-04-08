@@ -307,6 +307,7 @@
             <button class="tab-btn"        onclick="switchTab('dispense')">⬇️ ניפוק</button>
             <button class="tab-btn"        onclick="switchTab('credit')">⬆️ זיכוי</button>
             <button class="tab-btn"        onclick="switchTab('transfer')">🔄 העברה</button>
+            <button class="tab-btn"        onclick="switchTab('regulate')">⚖️ וויסותים</button>
         </div>
 
         <!-- ═══════════════════════════════════════
@@ -585,6 +586,59 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════
+             TAB 5: וויסותים
+        ═══════════════════════════════════════ -->
+        <div id="tab-regulate" class="tab-panel">
+            <div class="card">
+                <h2>⚖️ וויסות תחמושת</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מחסן מקור</label>
+                        <select id="regulateWarehouse">
+                            <option value="">— בחר מחסן —</option>
+                            <option value="נפתלי">מחסן א — נפתלי</option>
+                            <option value="בילו">מחסן ב — בילו</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>יעד (טקסט חופשי)</label>
+                        <input type="text" id="regulateTarget" placeholder="לאן המלאי עובר..." />
+                    </div>
+                    <div class="form-group">
+                        <label>אחראי ביצוע</label>
+                        <input type="text" id="regulateResponsible" placeholder="שם מלא..." />
+                    </div>
+                </div>
+
+                <div id="regulateItemsSection" style="display:none;">
+                    <div style="margin-bottom:12px;">
+                        <input type="text" class="search-box" id="regulateSearch"
+                               placeholder="🔍 סינון פריט..." oninput="renderRegulateGrid()" style="max-width:280px;" />
+                    </div>
+                    <div class="items-grid" id="regulateGrid"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-success" id="submitRegulateBtn" onclick="submitRegulate()" style="min-width:200px;">
+                            ⚖️ בצע וויסות
+                        </button>
+                    </div>
+                </div>
+
+                <div id="regulatePrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מחסן, יעד ואחראי כדי להמשיך
+                </div>
+
+                <div class="msg-success" id="regulateSuccess"></div>
+                <div class="msg-error"   id="regulateError"></div>
+            </div>
+
+            <div class="card" style="margin-top:16px;">
+                <h2>📋 היסטוריית וויסותים</h2>
+                <div id="regulationsTable" style="overflow-x:auto;"></div>
+            </div>
+        </div>
+
     </div><!-- /container -->
 
     <script src="config.js"></script>
@@ -612,6 +666,7 @@
             document.getElementById('loadingOverlay').style.display = 'none';
             document.getElementById('mainContent').style.display    = 'block';
             await Promise.all([loadItems(), loadInventory(), loadActiveDispenses()]);
+            setupRegulateListeners();
         });
 
         // ============================================================
@@ -664,6 +719,7 @@
             if (name === 'transfer')  loadInventory();
             if (name === 'receive')   { resetReceiveTab(); loadInventory(); }
             if (name === 'credit')    resetCreditTab();
+            if (name === 'regulate')  { resetRegulateTab(); loadInventory(); loadRegulations(); }
         }
 
         // ============================================================
@@ -1057,6 +1113,128 @@
 
         function setPageDisabled(disabled) {
             document.getElementById('loadingOverlay').style.display = disabled ? 'flex' : 'none';
+        }
+
+        // ============================================================
+        // TAB 5 — וויסותים
+        // ============================================================
+        let regulateValues = {};
+
+        function resetRegulateTab() {
+            regulateValues = {};
+            document.getElementById('regulateWarehouse').value   = '';
+            document.getElementById('regulateTarget').value      = '';
+            document.getElementById('regulateResponsible').value = '';
+            const s = document.getElementById('regulateSearch');
+            if (s) s.value = '';
+            document.getElementById('regulateGrid').innerHTML              = '';
+            document.getElementById('regulateItemsSection').style.display = 'none';
+            document.getElementById('regulatePrompt').style.display       = 'block';
+            document.getElementById('regulateSuccess').style.display      = 'none';
+            document.getElementById('regulateError').style.display        = 'none';
+        }
+
+        function setupRegulateListeners() {
+            function updateRegulateVisibility() {
+                const wh   = document.getElementById('regulateWarehouse').value;
+                const tgt  = document.getElementById('regulateTarget').value.trim();
+                const resp = document.getElementById('regulateResponsible').value.trim();
+                const show = wh && tgt && resp;
+                document.getElementById('regulatePrompt').style.display       = show ? 'none'  : 'block';
+                document.getElementById('regulateItemsSection').style.display = show ? 'block' : 'none';
+                if (show) renderRegulateGrid();
+            }
+            ['regulateWarehouse', 'regulateTarget', 'regulateResponsible'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateRegulateVisibility);
+                document.getElementById(id).addEventListener('input',  updateRegulateVisibility);
+            });
+        }
+
+        function renderRegulateGrid() {
+            const wh    = document.getElementById('regulateWarehouse').value;
+            const query = (document.getElementById('regulateSearch')?.value || '').toLowerCase();
+            const visible = inventoryItems.filter(item => !query || item.label.includes(query));
+            document.getElementById('regulateGrid').innerHTML = visible.map(item => {
+                const stock = wh === 'נפתלי' ? (item.nafatli ?? 0) : (item.bilo ?? 0);
+                const color = stock > 0 ? '#a78bfa' : '#666';
+                const val   = regulateValues[item.key] || 0;
+                const safeKey = item.key.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                return `<div class="item-card">
+                    <div class="item-name">${item.label}</div>
+                    <div style="color:#aaa;font-size:.75em;margin-bottom:4px;">זמין: <strong style="color:${color}">${stock}</strong></div>
+                    <input type="number" min="0" max="${stock}" value="${val}"
+                           data-rkey="${safeKey}"
+                           oninput="regulateValues[this.dataset.rkey]=+this.value"
+                           style="text-align:center;font-size:1.2em;font-weight:700;color:${color};"
+                           ${stock === 0 ? 'disabled' : ''} />
+                </div>`;
+            }).join('');
+        }
+
+        async function submitRegulate() {
+            const warehouse   = document.getElementById('regulateWarehouse').value;
+            const target      = document.getElementById('regulateTarget').value.trim();
+            const responsible = document.getElementById('regulateResponsible').value.trim();
+            if (!warehouse)   { showMsg('regulate', false, 'יש לבחור מחסן'); return; }
+            if (!target)      { showMsg('regulate', false, 'יש להזין יעד'); return; }
+            if (!responsible) { showMsg('regulate', false, 'יש להזין אחראי'); return; }
+
+            const items = [];
+            inventoryItems.forEach(item => {
+                const qty = regulateValues[item.key] || 0;
+                if (qty > 0) items.push({ key: item.key, label: item.label, qty });
+            });
+            if (!items.length) { showMsg('regulate', false, 'יש להזין כמות לפחות לפריט אחד'); return; }
+
+            const btn = document.getElementById('submitRegulateBtn');
+            btn.disabled = true; btn.textContent = 'שומר...';
+            try {
+                const json = await apiPost('bunker_regulate', { warehouse, target, responsible, items });
+                showMsg('regulate', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) {
+                    regulateValues = {};
+                    await loadInventory();
+                    renderRegulateGrid();
+                    loadRegulations();
+                }
+            } finally { btn.disabled = false; btn.textContent = '⚖️ בצע וויסות'; }
+        }
+
+        async function loadRegulations() {
+            const json = await apiPost('bunker_get_regulations', {});
+            if (json.statusCode !== 200 || !json.data) return;
+            const rows  = json.data;
+            const table = document.getElementById('regulationsTable');
+            if (!rows.length) {
+                table.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין וויסותים עדיין</p>';
+                return;
+            }
+
+            const grouped = {};
+            rows.forEach(r => {
+                if (!grouped[r.id]) grouped[r.id] = { date: r.date, warehouse: r.warehouse, target: r.target, responsible: r.responsible, items: [] };
+                const label = inventoryItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                grouped[r.id].items.push(label + ' ×' + r.qty);
+            });
+
+            table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#1e1e1e;color:#ff6600;">
+                    <th style="padding:8px;text-align:right;">תאריך</th>
+                    <th style="padding:8px;text-align:right;">מחסן מקור</th>
+                    <th style="padding:8px;text-align:right;">יעד</th>
+                    <th style="padding:8px;text-align:right;">אחראי</th>
+                    <th style="padding:8px;text-align:right;">פריטים</th>
+                </tr></thead>
+                <tbody>
+                    ${Object.values(grouped).map(g => `<tr style="border-bottom:1px solid #2a2a2a;">
+                        <td style="padding:8px;">${g.date}</td>
+                        <td style="padding:8px;">${g.warehouse}</td>
+                        <td style="padding:8px;">${g.target}</td>
+                        <td style="padding:8px;">${g.responsible}</td>
+                        <td style="padding:8px;color:#aaa;">${g.items.join(', ')}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
         }
 
         function showMsg(section, success, errText) {

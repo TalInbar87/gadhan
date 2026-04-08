@@ -109,8 +109,10 @@ function doPost(e) {
       case 'bunker_credit':        return handleBunkerCredit(data, e);
       case 'bunker_transfer':      return handleBunkerTransfer(data, e);
       case 'bunker_receive':       return handleBunkerReceive(data, e);
-      case 'bunker_add_item':      return handleBunkerAddItem(data, e);
-      default:                     return createResponse(400, 'Unknown action: ' + data.action, null);
+      case 'bunker_add_item':         return handleBunkerAddItem(data, e);
+      case 'bunker_regulate':         return handleBunkerRegulate(data, e);
+      case 'bunker_get_regulations':  return handleBunkerGetRegulations(data, e);
+      default:                        return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
   } catch (err) {
@@ -721,6 +723,29 @@ function handleBunkerTransfer(data, request) {
     if (!payload) return createResponse(401, 'Invalid or expired token', null);
     var result = bunker_transfer({ from: data.from, to: data.to, items: data.items, by: data.by });
     return result.success ? createResponse(200, 'העברה בוצעה בהצלחה', null) : createResponse(400, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerRegulate(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  if (!Authorization.canAccessResource(payload, null, 'write'))
+    return createResponse(403, 'Insufficient permissions', null);
+  try {
+    var result = bunker_regulate({ warehouse: data.warehouse, target: data.target,
+      responsible: data.responsible, items: data.items });
+    return result.success ? createResponse(200, 'וויסות בוצע', null)
+                          : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerGetRegulations(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_getRegulations();
+    return result.success ? createResponse(200, 'ok', result.data)
+                          : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 
