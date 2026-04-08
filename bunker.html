@@ -659,6 +659,10 @@
                         <label>אחראי דיווח</label>
                         <input type="text" id="shatsalResponsible" placeholder="שם מלא..." />
                     </div>
+                    <div class="form-group">
+                        <label>תאריך דיווח <span style="color:#666;font-size:0.8em;">(אופציונלי — ברירת מחדל: היום)</span></label>
+                        <input type="date" id="shatsalDate" />
+                    </div>
                 </div>
 
                 <div id="shatsalItemsSection" style="display:none;">
@@ -680,6 +684,11 @@
 
                 <div class="msg-success" id="shatsalSuccess"></div>
                 <div class="msg-error"   id="shatsalError"></div>
+            </div>
+
+            <div class="card" style="margin-top:16px;">
+                <h2>📊 סיכום שצ״ל לפי מסגרת</h2>
+                <div id="shatsalSummaryTable" style="overflow-x:auto;"></div>
             </div>
 
             <div class="card" style="margin-top:16px;">
@@ -1206,6 +1215,7 @@
             document.getElementById('shatsalResponsible').value = '';
             const s = document.getElementById('shatsalSearch');
             if (s) s.value = '';
+            document.getElementById('shatsalDate').value                 = '';
             document.getElementById('shatsalGrid').innerHTML             = '';
             document.getElementById('shatsalItemsSection').style.display = 'none';
             document.getElementById('shatsalPrompt').style.display       = 'block';
@@ -1260,7 +1270,13 @@
             const btn = document.getElementById('submitShatsalBtn');
             btn.disabled = true; btn.textContent = 'שומר...';
             try {
-                const json = await apiPost('bunker_shatsal_report', { unit, responsible, items });
+                const dateInput = document.getElementById('shatsalDate').value;
+                let date = '';
+                if (dateInput) {
+                    const [y, m, d] = dateInput.split('-');
+                    date = `${d}/${m}/${y}`;
+                }
+                const json = await apiPost('bunker_shatsal_report', { unit, responsible, items, date });
                 showMsg('shatsal', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) {
                     shatsalValues = {};
@@ -1274,6 +1290,7 @@
             const json = await apiPost('bunker_get_shatsal', {});
             if (json.statusCode !== 200 || !json.data) return;
             const rows  = json.data;
+            renderShatsalSummary(rows);
             const table = document.getElementById('shatsalTable');
             if (!rows.length) {
                 table.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
@@ -1427,6 +1444,43 @@
             </table>`;
         }
 
+        function renderShatsalSummary(rows) {
+            const summaryEl = document.getElementById('shatsalSummaryTable');
+            if (!rows.length) {
+                summaryEl.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
+                return;
+            }
+            const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+            const unitsInData = new Set(rows.map(r => r.unit));
+            const units = UNIT_ORDER.filter(u => unitsInData.has(u));
+
+            // aggregate itemKey → unit → qty
+            const byItem = {};
+            rows.forEach(r => {
+                if (!byItem[r.itemKey]) byItem[r.itemKey] = {};
+                byItem[r.itemKey][r.unit] = (byItem[r.itemKey][r.unit] || 0) + Number(r.qty);
+            });
+            const items = Object.keys(byItem).sort((a, b) => a.localeCompare(b, 'he'));
+
+            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;">${s}</th>`;
+            const header = [th('פריט'), ...units.map(th), th('סה״כ')].join('');
+            const bodyRows = items.map(itemKey => {
+                const label = bunkerItems.find(i => i.key === itemKey)?.label || itemKey;
+                const unitCols = units.map(u => `<td style="padding:8px;color:#f87171;">${byItem[itemKey][u] || 0}</td>`).join('');
+                const total = units.reduce((s, u) => s + (byItem[itemKey][u] || 0), 0);
+                return `<tr style="border-bottom:1px solid #2a2a2a;">
+                    <td style="padding:8px;font-weight:600;color:#fff;">${label}</td>
+                    ${unitCols}
+                    <td style="padding:8px;color:#f87171;font-weight:700;">${total}</td>
+                </tr>`;
+            }).join('');
+
+            summaryEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#1e1e1e;color:#f87171;">${header}</tr></thead>
+                <tbody>${bodyRows}</tbody>
+            </table>`;
+        }
+
         // ============================================================
         // TAB 7 — סיכום ניפוקים
         // ============================================================
@@ -1456,18 +1510,19 @@
             }
 
             const multiUnit = units.length > 1;
-            const th  = (s, color) => `<th style="padding:8px;text-align:right;white-space:nowrap;${color ? 'color:' + color + ';' : ''}">${s}</th>`;
-            const thG = s => `<th style="padding:6px 8px 2px;text-align:center;font-size:0.7em;letter-spacing:1px;border-bottom:1px solid #333;" colspan="${units.length}">${s}</th>`;
+            const th = (s, color) => `<th style="padding:8px;text-align:right;white-space:nowrap;${color ? 'color:' + color + ';' : ''}">${s}</th>`;
 
-            // שתי שורות header: קבוצות + שמות מסגרות
-            const headerRow1 = [
-                `<th rowspan="2" style="padding:8px;text-align:right;">פריט</th>`,
-                ...(multiUnit ? [thG('ניפוקים'), thG('שצ״ל')] : []),
-                `<th rowspan="2" style="padding:8px;text-align:right;white-space:nowrap;">נותר</th>`
+            // שורת header אחת שטוחה — ניפוק כל המסגרות, אחר כך שצ״ל כל המסגרות
+            const headerCells = [
+                th('פריט'),
+                ...(multiUnit
+                    ? units.map(u => th('ניפוק ' + u, '#a78bfa'))
+                    : [th('ניפוק', '#a78bfa')]),
+                ...(multiUnit
+                    ? units.map(u => th('שצ״ל ' + u, '#f87171'))
+                    : [th('שצ״ל', '#f87171')]),
+                th('נותר')
             ].join('');
-            const headerRow2 = multiUnit
-                ? [...units.map(u => th(u, '#a78bfa')), ...units.map(u => th(u, '#f87171'))].join('')
-                : [th('ניפוק', '#a78bfa'), th('שצ״ל', '#f87171')].join('');
 
             const bodyRows = rows.map(row => {
                 const rem      = row.remaining;
@@ -1484,10 +1539,7 @@
 
             document.getElementById('summaryTableWrap').innerHTML =
                 `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-                    <thead style="background:#1e1e1e;color:#ff6600;">
-                        <tr>${headerRow1}</tr>
-                        <tr style="background:#1a1a1a;">${headerRow2}</tr>
-                    </thead>
+                    <thead><tr style="background:#1e1e1e;">${headerCells}</tr></thead>
                     <tbody>${bodyRows}</tbody>
                 </table>`;
         }

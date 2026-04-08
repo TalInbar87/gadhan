@@ -450,7 +450,7 @@ function bunker_shatsalReport(data) {
 
   var ss = bunker_ss();
   var sh = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
-  var ts = bunker_ts();
+  var ts = (data.date && data.date.trim()) ? data.date.trim() : bunker_ts();
 
   data.items.forEach(function(item) {
     sh.appendRow([bunker_uid(), ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
