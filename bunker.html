@@ -1516,8 +1516,8 @@
             const headerCells = [
                 th('פריט'),
                 ...(multiUnit
-                    ? units.map(u => th('ניפוק ' + u, '#a78bfa'))
-                    : [th('ניפוק', '#a78bfa')]),
+                    ? units.map(u => th('ניפוק ' + u, '#000'))
+                    : [th('ניפוק', '#000')]),
                 ...(multiUnit
                     ? units.map(u => th('שצ״ל ' + u, '#f87171'))
                     : [th('שצ״ל', '#f87171')]),
@@ -1530,8 +1530,8 @@
                 const tdBase   = 'padding:8px;';
                 const cells = [
                     `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
-                    ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
-                    ...units.map(u => `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
+                    ...units.map(u => `<td style="${tdBase}color:#000;">${row.dispenses[u] || 0}</td>`),
+                    ...units.map(u => `<td style="${tdBase}color:#000;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
                     `<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`
                 ].join('');
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
