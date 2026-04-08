@@ -437,3 +437,37 @@ function bunker_getRegulations() {
   }).reverse();
   return { success: true, data: result };
 }
+
+// ================================================================
+// 10. שצ״ל — דיווח שימוש בתחמושת בשטח
+// ================================================================
+var SHATSAL_SHEET   = 'שצ״ל';
+var SHATSAL_HEADERS = ['מזהה', 'תאריך', 'מסגרת', 'אחראי', 'פריט', 'כמות'];
+
+function bunker_shatsalReport(data) {
+  if (!data.unit || !data.responsible || !data.items || !data.items.length)
+    return { success: false, error: 'חסרים נתונים לשצ״ל' };
+
+  var ss = bunker_ss();
+  var sh = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
+  var ts = bunker_ts();
+
+  data.items.forEach(function(item) {
+    sh.appendRow([bunker_uid(), ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
+  });
+
+  return { success: true };
+}
+
+function bunker_getShatsal() {
+  var ss = bunker_ss();
+  var sh = ss.getSheetByName(SHATSAL_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, SHATSAL_HEADERS.length).getValues();
+  return {
+    success: true,
+    data: rows.map(function(r) {
+      return { id: r[0], date: r[1], unit: r[2], responsible: r[3], itemKey: r[4], qty: r[5] };
+    }).reverse()
+  };
+}

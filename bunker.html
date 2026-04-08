@@ -308,6 +308,7 @@
             <button class="tab-btn"        onclick="switchTab('credit')">⬆️ זיכוי</button>
             <button class="tab-btn"        onclick="switchTab('transfer')">🔄 העברה</button>
             <button class="tab-btn"        onclick="switchTab('regulate')">⚖️ וויסותים</button>
+            <button class="tab-btn"        onclick="switchTab('shatsal')">🔴 שצ״ל</button>
         </div>
 
         <!-- ═══════════════════════════════════════
@@ -639,6 +640,53 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════
+             TAB 6: שצ״ל
+        ═══════════════════════════════════════ -->
+        <div id="tab-shatsal" class="tab-panel">
+            <div class="card">
+                <h2>🔴 שצ״ל — דיווח שימוש בתחמושת</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מסגרת</label>
+                        <select id="shatsalUnit">
+                            <option value="">— בחר מסגרת —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>אחראי דיווח</label>
+                        <input type="text" id="shatsalResponsible" placeholder="שם מלא..." />
+                    </div>
+                </div>
+
+                <div id="shatsalItemsSection" style="display:none;">
+                    <div style="margin-bottom:12px;">
+                        <input type="text" class="search-box" id="shatsalSearch"
+                               placeholder="🔍 סינון פריט..." oninput="renderShatsalGrid()" style="max-width:280px;" />
+                    </div>
+                    <div class="items-grid" id="shatsalGrid"></div>
+                    <div style="margin-top:20px; text-align:center;">
+                        <button class="btn btn-danger" id="submitShatsalBtn" onclick="submitShatsal()" style="min-width:200px;">
+                            🔴 שמור דיווח שצ״ל
+                        </button>
+                    </div>
+                </div>
+
+                <div id="shatsalPrompt" style="color:#666; text-align:center; padding:30px;">
+                    יש לבחור מסגרת ואחראי כדי להמשיך
+                </div>
+
+                <div class="msg-success" id="shatsalSuccess"></div>
+                <div class="msg-error"   id="shatsalError"></div>
+            </div>
+
+            <div class="card" style="margin-top:16px;">
+                <h2>📋 היסטוריית דיווחי שצ״ל</h2>
+                <div id="shatsalTable" style="overflow-x:auto;"></div>
+            </div>
+        </div>
+
     </div><!-- /container -->
 
     <script src="config.js"></script>
@@ -667,6 +715,7 @@
             document.getElementById('mainContent').style.display    = 'block';
             await Promise.all([loadItems(), loadInventory(), loadActiveDispenses()]);
             setupRegulateListeners();
+            setupShatsalListeners();
         });
 
         // ============================================================
@@ -720,6 +769,7 @@
             if (name === 'receive')   { resetReceiveTab(); loadInventory(); }
             if (name === 'credit')    resetCreditTab();
             if (name === 'regulate')  { resetRegulateTab(); loadInventory(); loadRegulations(); }
+            if (name === 'shatsal')   { resetShatsalTab(); loadShatsalHistory(); }
         }
 
         // ============================================================
@@ -820,6 +870,7 @@
             document.getElementById('filterDispenseUnit').innerHTML = '<option value="">כל המסגרות</option>' +
                 units.map(u => `<option value="${u}">${u}</option>`).join('');
             document.getElementById('creditUnit').innerHTML        = opts;
+            document.getElementById('shatsalUnit').innerHTML       = opts;
         }
 
         document.getElementById('dispenseUnit').addEventListener('change', function() {
@@ -1113,6 +1164,116 @@
 
         function setPageDisabled(disabled) {
             document.getElementById('loadingOverlay').style.display = disabled ? 'flex' : 'none';
+        }
+
+        // ============================================================
+        // TAB 6 — שצ״ל
+        // ============================================================
+        let shatsalValues = {};
+
+        function resetShatsalTab() {
+            shatsalValues = {};
+            document.getElementById('shatsalUnit').value        = '';
+            document.getElementById('shatsalResponsible').value = '';
+            const s = document.getElementById('shatsalSearch');
+            if (s) s.value = '';
+            document.getElementById('shatsalGrid').innerHTML             = '';
+            document.getElementById('shatsalItemsSection').style.display = 'none';
+            document.getElementById('shatsalPrompt').style.display       = 'block';
+            document.getElementById('shatsalSuccess').style.display      = 'none';
+            document.getElementById('shatsalError').style.display        = 'none';
+        }
+
+        function setupShatsalListeners() {
+            function updateShatsalVisibility() {
+                const unit = document.getElementById('shatsalUnit').value;
+                const resp = document.getElementById('shatsalResponsible').value.trim();
+                const show = unit && resp;
+                document.getElementById('shatsalPrompt').style.display       = show ? 'none'  : 'block';
+                document.getElementById('shatsalItemsSection').style.display = show ? 'block' : 'none';
+                if (show) renderShatsalGrid();
+            }
+            ['shatsalUnit', 'shatsalResponsible'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateShatsalVisibility);
+                document.getElementById(id).addEventListener('input',  updateShatsalVisibility);
+            });
+        }
+
+        function renderShatsalGrid() {
+            const query   = (document.getElementById('shatsalSearch')?.value || '').toLowerCase();
+            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
+            document.getElementById('shatsalGrid').innerHTML = visible.map(item => {
+                const val     = shatsalValues[item.key] || 0;
+                const safeKey = item.key.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                return `<div class="item-card">
+                    <div class="item-name">${item.label}</div>
+                    <input type="number" min="0" value="${val}"
+                           data-skey="${safeKey}"
+                           oninput="shatsalValues[this.dataset.skey]=+this.value"
+                           style="text-align:center;font-size:1.2em;font-weight:700;color:#f87171;" />
+                </div>`;
+            }).join('');
+        }
+
+        async function submitShatsal() {
+            const unit        = document.getElementById('shatsalUnit').value;
+            const responsible = document.getElementById('shatsalResponsible').value.trim();
+            if (!unit)        { showMsg('shatsal', false, 'יש לבחור מסגרת'); return; }
+            if (!responsible) { showMsg('shatsal', false, 'יש להזין אחראי'); return; }
+
+            const items = [];
+            bunkerItems.forEach(item => {
+                const qty = shatsalValues[item.key] || 0;
+                if (qty > 0) items.push({ key: item.key, label: item.label, qty });
+            });
+            if (!items.length) { showMsg('shatsal', false, 'יש להזין כמות לפחות לפריט אחד'); return; }
+
+            const btn = document.getElementById('submitShatsalBtn');
+            btn.disabled = true; btn.textContent = 'שומר...';
+            try {
+                const json = await apiPost('bunker_shatsal_report', { unit, responsible, items });
+                showMsg('shatsal', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
+                if (json.statusCode === 200) {
+                    shatsalValues = {};
+                    renderShatsalGrid();
+                    loadShatsalHistory();
+                }
+            } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
+        }
+
+        async function loadShatsalHistory() {
+            const json = await apiPost('bunker_get_shatsal', {});
+            if (json.statusCode !== 200 || !json.data) return;
+            const rows  = json.data;
+            const table = document.getElementById('shatsalTable');
+            if (!rows.length) {
+                table.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
+                return;
+            }
+
+            const grouped = {};
+            rows.forEach(r => {
+                if (!grouped[r.id]) grouped[r.id] = { date: r.date, unit: r.unit, responsible: r.responsible, items: [] };
+                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                grouped[r.id].items.push(label + ' ×' + r.qty);
+            });
+
+            table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#1e1e1e;color:#f87171;">
+                    <th style="padding:8px;text-align:right;">תאריך</th>
+                    <th style="padding:8px;text-align:right;">מסגרת</th>
+                    <th style="padding:8px;text-align:right;">אחראי</th>
+                    <th style="padding:8px;text-align:right;">פריטים</th>
+                </tr></thead>
+                <tbody>
+                    ${Object.values(grouped).map(g => `<tr style="border-bottom:1px solid #2a2a2a;">
+                        <td style="padding:8px;">${g.date}</td>
+                        <td style="padding:8px;">${g.unit}</td>
+                        <td style="padding:8px;">${g.responsible}</td>
+                        <td style="padding:8px;color:#aaa;">${g.items.join(', ')}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
         }
 
         // ============================================================
