@@ -531,11 +531,14 @@ function bunker_dispenseSummary(filterUnit) {
       dispenses[u] = q;
       totalDisp += q;
     });
+    var shatsalPerUnit = {};
     var totalShatsal = 0;
     activeUnits.forEach(function(u) {
-      totalShatsal += (shatsalByItem[itemKey] && shatsalByItem[itemKey][u]) || 0;
+      var q = (shatsalByItem[itemKey] && shatsalByItem[itemKey][u]) || 0;
+      shatsalPerUnit[u] = q;
+      totalShatsal += q;
     });
-    return { item: itemKey, dispenses: dispenses,
+    return { item: itemKey, dispenses: dispenses, shatsalPerUnit: shatsalPerUnit,
              totalDisp: totalDisp, shatsal: totalShatsal,
              remaining: totalDisp - totalShatsal };
   }).filter(function(r) { return r.totalDisp > 0 || r.shatsal > 0; });

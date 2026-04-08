@@ -1456,14 +1456,18 @@
             }
 
             const multiUnit = units.length > 1;
-            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;">${s}</th>`;
-            const headerCells = [
-                th('פריט'),
-                ...units.map(u => th(u)),
-                ...(multiUnit ? [th('סה״כ ניפוק')] : []),
-                th('סה״כ שצ״ל'),
-                th('נותר')
+            const th  = (s, color) => `<th style="padding:8px;text-align:right;white-space:nowrap;${color ? 'color:' + color + ';' : ''}">${s}</th>`;
+            const thG = s => `<th style="padding:6px 8px 2px;text-align:center;font-size:0.7em;letter-spacing:1px;border-bottom:1px solid #333;" colspan="${units.length}">${s}</th>`;
+
+            // שתי שורות header: קבוצות + שמות מסגרות
+            const headerRow1 = [
+                `<th rowspan="2" style="padding:8px;text-align:right;">פריט</th>`,
+                ...(multiUnit ? [thG('ניפוקים'), thG('שצ״ל')] : []),
+                `<th rowspan="2" style="padding:8px;text-align:right;white-space:nowrap;">נותר</th>`
             ].join('');
+            const headerRow2 = multiUnit
+                ? [...units.map(u => th(u, '#a78bfa')), ...units.map(u => th(u, '#f87171'))].join('')
+                : [th('ניפוק', '#a78bfa'), th('שצ״ל', '#f87171')].join('');
 
             const bodyRows = rows.map(row => {
                 const rem      = row.remaining;
@@ -1472,8 +1476,7 @@
                 const cells = [
                     `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
                     ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
-                    ...(multiUnit ? [`<td style="${tdBase}color:#facc15;font-weight:700;">${row.totalDisp}</td>`] : []),
-                    `<td style="${tdBase}color:#f87171;">${row.shatsal}</td>`,
+                    ...units.map(u => `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
                     `<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`
                 ].join('');
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
@@ -1481,7 +1484,10 @@
 
             document.getElementById('summaryTableWrap').innerHTML =
                 `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-                    <thead><tr style="background:#1e1e1e;color:#ff6600;">${headerCells}</tr></thead>
+                    <thead style="background:#1e1e1e;color:#ff6600;">
+                        <tr>${headerRow1}</tr>
+                        <tr style="background:#1a1a1a;">${headerRow2}</tr>
+                    </thead>
                     <tbody>${bodyRows}</tbody>
                 </table>`;
         }
