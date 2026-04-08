@@ -309,6 +309,7 @@
             <button class="tab-btn"        onclick="switchTab('transfer')">🔄 העברה</button>
             <button class="tab-btn"        onclick="switchTab('regulate')">⚖️ וויסותים</button>
             <button class="tab-btn"        onclick="switchTab('shatsal')">🔴 שצ״ל</button>
+            <button class="tab-btn"        onclick="switchTab('summary')">📊 סיכום</button>
         </div>
 
         <!-- ═══════════════════════════════════════
@@ -687,6 +688,30 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════
+             TAB 7: סיכום ניפוקים
+        ═══════════════════════════════════════ -->
+        <div id="tab-summary" class="tab-panel">
+            <div class="card">
+                <h2>📊 סיכום ניפוקים מול שצ״ל</h2>
+                <div class="form-row" style="align-items:flex-end; gap:12px; flex-wrap:wrap;">
+                    <div class="form-group">
+                        <label>מסגרת</label>
+                        <select id="summaryUnit"></select>
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end;">
+                        <button class="btn btn-primary" id="loadSummaryBtn" onclick="loadSummary()" style="margin-top:22px;">
+                            📊 טען סיכום
+                        </button>
+                    </div>
+                </div>
+                <div id="summaryLoader" style="display:none; justify-content:center; padding:20px;">
+                    <div class="spinner"></div>
+                </div>
+                <div id="summaryTableWrap" style="overflow-x:auto; margin-top:16px;"></div>
+            </div>
+        </div>
+
     </div><!-- /container -->
 
     <script src="config.js"></script>
@@ -770,6 +795,7 @@
             if (name === 'credit')    resetCreditTab();
             if (name === 'regulate')  { resetRegulateTab(); loadInventory(); loadRegulations(); }
             if (name === 'shatsal')   { resetShatsalTab(); loadShatsalHistory(); }
+            if (name === 'summary')   document.getElementById('summaryTableWrap').innerHTML = '';
         }
 
         // ============================================================
@@ -871,6 +897,9 @@
                 units.map(u => `<option value="${u}">${u}</option>`).join('');
             document.getElementById('creditUnit').innerHTML        = opts;
             document.getElementById('shatsalUnit').innerHTML       = opts;
+            document.getElementById('summaryUnit').innerHTML       =
+                '<option value="">כל המסגרות</option>' +
+                units.map(u => `<option value="${u}">${u}</option>`).join('');
         }
 
         document.getElementById('dispenseUnit').addEventListener('change', function() {
@@ -1396,6 +1425,78 @@
                     </tr>`).join('')}
                 </tbody>
             </table>`;
+        }
+
+        // ============================================================
+        // TAB 7 — סיכום ניפוקים
+        // ============================================================
+        async function loadSummary() {
+            const filterUnit = document.getElementById('summaryUnit').value;
+            showLoader('summaryLoader', true);
+            document.getElementById('summaryTableWrap').innerHTML = '';
+            const btn = document.getElementById('loadSummaryBtn');
+            btn.disabled = true;
+            try {
+                const json = await apiPost('bunker_dispense_summary', { filterUnit });
+                if (json.statusCode !== 200) {
+                    document.getElementById('summaryTableWrap').innerHTML =
+                        `<p style="color:#f87171;text-align:center;padding:20px;">❌ ${json.message || 'שגיאה'}</p>`;
+                    return;
+                }
+                renderSummaryTable(json.data);
+            } finally { showLoader('summaryLoader', false); btn.disabled = false; }
+        }
+
+        function renderSummaryTable(data) {
+            const { units, rows } = data;
+            if (!rows.length) {
+                document.getElementById('summaryTableWrap').innerHTML =
+                    '<p style="color:#666;text-align:center;padding:20px;">אין נתונים</p>';
+                return;
+            }
+
+            const multiUnit = units.length > 1;
+            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;">${s}</th>`;
+            const headerCells = [
+                th('פריט'),
+                ...units.map(u => th(u)),
+                ...(multiUnit ? [th('סה״כ ניפוק')] : []),
+                th('סה״כ שצ״ל'),
+                th('נותר')
+            ].join('');
+
+            const bodyRows = rows.map(row => {
+                const rem      = row.remaining;
+                const remColor = rem < 0 ? '#f87171' : rem === 0 ? '#666' : '#4ade80';
+                const tdBase   = 'padding:8px;';
+                const cells = [
+                    `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
+                    ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
+                    ...(multiUnit ? [`<td style="${tdBase}color:#facc15;font-weight:700;">${row.totalDisp}</td>`] : []),
+                    `<td style="${tdBase}color:#f87171;">${row.shatsal}</td>`,
+                    `<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`
+                ].join('');
+                return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
+            }).join('');
+
+            const totDispPerUnit = units.map(u => rows.reduce((s, r) => s + (r.dispenses[u] || 0), 0));
+            const totDisp        = rows.reduce((s, r) => s + r.totalDisp, 0);
+            const totShatsal     = rows.reduce((s, r) => s + r.shatsal, 0);
+            const totRem         = totDisp - totShatsal;
+            const footerCells = [
+                `<td style="padding:8px;font-weight:700;color:#ff6600;">סה״כ</td>`,
+                ...totDispPerUnit.map(q => `<td style="padding:8px;font-weight:700;color:#a78bfa;">${q}</td>`),
+                ...(multiUnit ? [`<td style="padding:8px;font-weight:700;color:#facc15;">${totDisp}</td>`] : []),
+                `<td style="padding:8px;font-weight:700;color:#f87171;">${totShatsal}</td>`,
+                `<td style="padding:8px;font-weight:700;color:${totRem < 0 ? '#f87171' : '#4ade80'};">${totRem}</td>`
+            ].join('');
+
+            document.getElementById('summaryTableWrap').innerHTML =
+                `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead><tr style="background:#1e1e1e;color:#ff6600;">${headerCells}</tr></thead>
+                    <tbody>${bodyRows}</tbody>
+                    <tfoot><tr style="background:#1e1e1e;border-top:2px solid #ff6600;">${footerCells}</tr></tfoot>
+                </table>`;
         }
 
         function showMsg(section, success, errText) {

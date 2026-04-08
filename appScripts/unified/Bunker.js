@@ -471,3 +471,76 @@ function bunker_getShatsal() {
     }).reverse()
   };
 }
+
+// ================================================================
+// 11. סיכום ניפוקים מול שצ״ל
+// ================================================================
+var UNIT_ORDER = Object.keys(BUNKER_UNIT_COLS); // ['פלוגה א','פלוגה ב',...]
+
+function bunker_dispenseSummary(filterUnit) {
+  var ss = bunker_ss();
+
+  // ניפוקים: כל השורות ללא סינון סטטוס (סיכום כולל היסטורי)
+  var dispByItem = {};
+  var dispSheet = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
+  if (dispSheet && dispSheet.getLastRow() > 1) {
+    var dispRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 6).getValues();
+    dispRows.forEach(function(r) {
+      var unit    = String(r[3] || '').trim();
+      var itemKey = String(r[4] || '').trim();
+      var qty     = Number(r[5]) || 0;
+      if (!itemKey || !unit || !qty) return;
+      if (filterUnit && unit !== filterUnit) return;
+      if (!dispByItem[itemKey]) dispByItem[itemKey] = {};
+      dispByItem[itemKey][unit] = (dispByItem[itemKey][unit] || 0) + qty;
+    });
+  }
+
+  // שצ״ל
+  var shatsalByItem = {};
+  var shSheet = ss.getSheetByName(SHATSAL_SHEET);
+  if (shSheet && shSheet.getLastRow() > 1) {
+    var shRows = shSheet.getRange(2, 1, shSheet.getLastRow() - 1, 6).getValues();
+    shRows.forEach(function(r) {
+      var unit    = String(r[2] || '').trim();
+      var itemKey = String(r[4] || '').trim();
+      var qty     = Number(r[5]) || 0;
+      if (!itemKey || !qty) return;
+      if (filterUnit && unit !== filterUnit) return;
+      if (!shatsalByItem[itemKey]) shatsalByItem[itemKey] = {};
+      shatsalByItem[itemKey][unit] = (shatsalByItem[itemKey][unit] || 0) + qty;
+    });
+  }
+
+  // עמודות מסגרת רלוונטיות לפי UNIT_ORDER
+  var activeUnits = filterUnit ? [filterUnit] : UNIT_ORDER.filter(function(u) {
+    return (Object.values(dispByItem).some(function(d) { return d[u]; }) ||
+            Object.values(shatsalByItem).some(function(s) { return s[u]; }));
+  });
+
+  // בנה שורות
+  var allKeys = {};
+  Object.keys(dispByItem).forEach(function(k) { allKeys[k] = true; });
+  Object.keys(shatsalByItem).forEach(function(k) { allKeys[k] = true; });
+
+  var rows = Object.keys(allKeys).map(function(itemKey) {
+    var dispenses = {};
+    var totalDisp = 0;
+    activeUnits.forEach(function(u) {
+      var q = (dispByItem[itemKey] && dispByItem[itemKey][u]) || 0;
+      dispenses[u] = q;
+      totalDisp += q;
+    });
+    var totalShatsal = 0;
+    activeUnits.forEach(function(u) {
+      totalShatsal += (shatsalByItem[itemKey] && shatsalByItem[itemKey][u]) || 0;
+    });
+    return { item: itemKey, dispenses: dispenses,
+             totalDisp: totalDisp, shatsal: totalShatsal,
+             remaining: totalDisp - totalShatsal };
+  }).filter(function(r) { return r.totalDisp > 0 || r.shatsal > 0; });
+
+  rows.sort(function(a, b) { return String(a.item).localeCompare(String(b.item), 'he'); });
+
+  return { success: true, data: { units: activeUnits, rows: rows } };
+}
