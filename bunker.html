@@ -1553,31 +1553,21 @@
             }
 
             const multiUnit = units.length > 1;
-            const th = (s, color) => `<th style="padding:8px;text-align:right;white-space:nowrap;${color ? 'color:' + color + ';' : ''}">${s}</th>`;
+            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;">${s}</th>`;
 
-            // שורת header אחת שטוחה — ניפוק | שצ״ל | לזיכוי (לכל מסגרת) + נותר כולל
+            // ניפוק כל המסגרות, אחר כך שצ״ל כל המסגרות
             const headerCells = [
                 th('פריט'),
-                ...(multiUnit ? units.map(u => th('ניפוק ' + u,   '#a78bfa')) : [th('ניפוק',   '#a78bfa')]),
-                ...(multiUnit ? units.map(u => th('שצ״ל ' + u,    '#f87171')) : [th('שצ״ל',    '#f87171')]),
-                ...(multiUnit ? units.map(u => th('לזיכוי ' + u,  '#4ade80')) : [th('לזיכוי',  '#4ade80')]),
-                ...(multiUnit ? [th('נותר כולל', '#facc15')]                  : [])
+                ...(multiUnit ? units.map(u => th('ניפוק ' + u)) : [th('ניפוק')]),
+                ...(multiUnit ? units.map(u => th('שצ״ל '  + u)) : [th('שצ״ל')]),
             ].join('');
 
             const bodyRows = rows.map(row => {
-                const rem      = row.remaining;
-                const remColor = rem < 0 ? '#f87171' : rem === 0 ? '#666' : '#4ade80';
-                const tdBase   = 'padding:8px;';
+                const tdBase = 'padding:8px;';
                 const cells = [
                     `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
                     ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
                     ...units.map(u => `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
-                    ...units.map(u => {
-                        const lz = (row.dispenses[u] || 0) - ((row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0);
-                        const c  = lz < 0 ? '#f87171' : lz === 0 ? '#666' : '#4ade80';
-                        return `<td style="${tdBase}color:${c};font-weight:700;">${lz}</td>`;
-                    }),
-                    ...(multiUnit ? [`<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`] : [])
                 ].join('');
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
             }).join('');
