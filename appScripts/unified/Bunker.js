@@ -452,12 +452,13 @@ function bunker_shatsalReport(data) {
   if (!data.unit || !data.responsible || !data.items || !data.items.length)
     return { success: false, error: 'חסרים נתונים לשצ״ל' };
 
-  var ss = bunker_ss();
-  var sh = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
-  var ts = (data.date && data.date.trim()) ? data.date.trim() : bunker_ts();
+  var ss       = bunker_ss();
+  var sh       = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
+  var ts       = (data.date && data.date.trim()) ? data.date.trim() : bunker_ts();
+  var reportId = bunker_uid(); // מזהה משותף לכל הפריטים בדיווח זה
 
   data.items.forEach(function(item) {
-    sh.appendRow([bunker_uid(), ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
+    sh.appendRow([reportId, ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
     bunker_schemaUpdateShatsal(ss, item.key, data.unit, Number(item.qty) || 0);
   });
 

@@ -663,7 +663,7 @@
                         <input type="text" id="shatsalResponsible" placeholder="שם מלא..." />
                     </div>
                     <div class="form-group">
-                        <label>תאריך דיווח <span style="color:#666;font-size:0.8em;">(אופציונלי — ברירת מחדל: היום)</span></label>
+                        <label>תאריך ביצוע <span style="color:#666;font-size:0.8em;">(אופציונלי — ברירת מחדל: היום)</span></label>
                         <input type="date" id="shatsalDate" />
                     </div>
                 </div>
@@ -1327,25 +1327,35 @@
 
             const grouped = {};
             rows.forEach(r => {
-                if (!grouped[r.id]) grouped[r.id] = { date: r.date, unit: r.unit, responsible: r.responsible, items: [] };
+                const dateKey = String(r.date || '').substring(0, 10);
+                const gk = `${r.unit}|${r.responsible}|${dateKey}`;
+                if (!grouped[gk]) grouped[gk] = { date: dateKey, unit: r.unit, responsible: r.responsible, items: [] };
                 const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                grouped[r.id].items.push(label + ' ×' + r.qty);
+                grouped[gk].items.push({ label, qty: Number(r.qty) });
             });
 
+            const parseDate = s => { const [d, m, y] = (s || '').split('/'); return new Date(y, m - 1, d); };
+            const sortedGroups = Object.values(grouped).sort((a, b) => parseDate(b.date) - parseDate(a.date));
             table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead><tr style="background:#1e1e1e;color:#f87171;">
-                    <th style="padding:8px;text-align:right;">תאריך</th>
-                    <th style="padding:8px;text-align:right;">מסגרת</th>
-                    <th style="padding:8px;text-align:right;">אחראי</th>
+                    <th style="padding:8px;text-align:right;width:110px;">תאריך ביצוע</th>
+                    <th style="padding:8px;text-align:right;width:80px;">מסגרת</th>
+                    <th style="padding:8px;text-align:right;width:90px;">אחראי</th>
                     <th style="padding:8px;text-align:right;">פריטים</th>
+                    <th style="padding:8px;text-align:center;width:55px;">סה״כ</th>
                 </tr></thead>
                 <tbody>
-                    ${Object.values(grouped).map(g => `<tr style="border-bottom:1px solid #2a2a2a;">
-                        <td style="padding:8px;">${g.date}</td>
-                        <td style="padding:8px;">${g.unit}</td>
-                        <td style="padding:8px;">${g.responsible}</td>
-                        <td style="padding:8px;color:#aaa;">${g.items.join(', ')}</td>
-                    </tr>`).join('')}
+                    ${sortedGroups.map(g => {
+                        const itemsText = g.items.map(i => `${i.label} ×${i.qty}`).join(', ');
+                        const total = g.items.reduce((s, i) => s + i.qty, 0);
+                        return `<tr style="border-bottom:1px solid #2a2a2a;">
+                            <td style="padding:8px;color:#facc15;white-space:nowrap;">${g.date}</td>
+                            <td style="padding:8px;">${g.unit}</td>
+                            <td style="padding:8px;color:#aaa;">${g.responsible}</td>
+                            <td style="padding:8px;color:#aaa;">${itemsText}</td>
+                            <td style="padding:8px;color:#f87171;font-weight:700;text-align:center;">${total}</td>
+                        </tr>`;
+                    }).join('')}
                 </tbody>
             </table>`;
         }
@@ -1479,34 +1489,62 @@
                 return;
             }
             const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
-            const unitsInData = new Set(rows.map(r => r.unit));
-            const units = UNIT_ORDER.filter(u => unitsInData.has(u));
 
-            // aggregate itemKey → unit → qty
-            const byItem = {};
+            // Group: unit → dateKey → rows[]
+            const byUnit = {};
             rows.forEach(r => {
-                if (!byItem[r.itemKey]) byItem[r.itemKey] = {};
-                byItem[r.itemKey][r.unit] = (byItem[r.itemKey][r.unit] || 0) + Number(r.qty);
+                const dateKey = String(r.date || '').substring(0, 10); // DD/MM/YYYY
+                if (!byUnit[r.unit]) byUnit[r.unit] = {};
+                if (!byUnit[r.unit][dateKey]) byUnit[r.unit][dateKey] = [];
+                byUnit[r.unit][dateKey].push(r);
             });
-            const items = Object.keys(byItem).sort((a, b) => a.localeCompare(b, 'he'));
 
-            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;">${s}</th>`;
-            const header = [th('פריט'), ...units.map(th), th('סה״כ')].join('');
-            const bodyRows = items.map(itemKey => {
-                const label = bunkerItems.find(i => i.key === itemKey)?.label || itemKey;
-                const unitCols = units.map(u => `<td style="padding:8px;color:#f87171;">${byItem[itemKey][u] || 0}</td>`).join('');
-                const total = units.reduce((s, u) => s + (byItem[itemKey][u] || 0), 0);
-                return `<tr style="border-bottom:1px solid #2a2a2a;">
-                    <td style="padding:8px;font-weight:600;color:#fff;">${label}</td>
-                    ${unitCols}
-                    <td style="padding:8px;color:#f87171;font-weight:700;">${total}</td>
-                </tr>`;
-            }).join('');
+            const parseDate = s => { const [d, m, y] = s.split('/'); return new Date(y, m - 1, d); };
 
-            summaryEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead><tr style="background:#1e1e1e;color:#f87171;">${header}</tr></thead>
-                <tbody>${bodyRows}</tbody>
-            </table>`;
+            const unitsInData = UNIT_ORDER.filter(u => byUnit[u]);
+
+            let html = '';
+            unitsInData.forEach(unit => {
+                const dates = Object.keys(byUnit[unit]).sort((a, b) => parseDate(b) - parseDate(a));
+                const unitTotal = dates.reduce((sum, d) =>
+                    sum + byUnit[unit][d].reduce((s, r) => s + Number(r.qty), 0), 0);
+
+                const bodyRows = dates.map(date => {
+                    const items = byUnit[unit][date];
+                    const responsible = items[0]?.responsible || '';
+                    const itemsText = items.map(r => {
+                        const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                        return `${label} ×${r.qty}`;
+                    }).join(', ');
+                    const dayTotal = items.reduce((s, r) => s + Number(r.qty), 0);
+                    return `<tr style="border-bottom:1px solid #2a2a2a;">
+                        <td style="padding:6px 8px;color:#facc15;white-space:nowrap;">${date}</td>
+                        <td style="padding:6px 8px;color:#aaa;white-space:nowrap;">${responsible}</td>
+                        <td style="padding:6px 8px;color:#ddd;">${itemsText}</td>
+                        <td style="padding:6px 8px;color:#f87171;font-weight:700;text-align:center;">${dayTotal}</td>
+                    </tr>`;
+                }).join('');
+
+                html += `<div style="margin-bottom:20px;">
+                    <div style="font-weight:700;color:#f87171;font-size:14px;padding:8px 10px;
+                                background:#1e1e1e;border-right:3px solid #f87171;
+                                display:flex;justify-content:space-between;align-items:center;">
+                        <span>${unit}</span>
+                        <span style="color:#666;font-weight:normal;font-size:12px;">סה״כ: ${unitTotal}</span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead><tr style="background:#181818;color:#888;">
+                            <th style="padding:6px 8px;text-align:right;width:110px;">תאריך</th>
+                            <th style="padding:6px 8px;text-align:right;width:90px;">אחראי</th>
+                            <th style="padding:6px 8px;text-align:right;">פריטים</th>
+                            <th style="padding:6px 8px;text-align:center;width:55px;">סה״כ</th>
+                        </tr></thead>
+                        <tbody>${bodyRows}</tbody>
+                    </table>
+                </div>`;
+            });
+
+            summaryEl.innerHTML = html;
         }
 
         // ============================================================
