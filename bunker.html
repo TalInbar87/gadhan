@@ -1013,15 +1013,27 @@
             showLoader('creditLoader', true);
             document.getElementById('creditItemsList').innerHTML = '';
             try {
-                const json = await apiPost('bunker_get_dispenses', { unit });
-                if (json.statusCode !== 200 || !json.data.length) {
+                const [dispJson, summJson] = await Promise.all([
+                    apiPost('bunker_get_dispenses',    { unit }),
+                    apiPost('bunker_dispense_summary', { filterUnit: unit })
+                ]);
+
+                if (dispJson.statusCode !== 200 || !dispJson.data.length) {
                     document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין ניפוקים פעילים למסגרת זו</p>';
                     return;
                 }
 
+                // מפה של שצ״ל לפי פריט (מהסכימה)
+                const shatsalMap = {};
+                if (summJson.statusCode === 200 && summJson.data?.rows) {
+                    summJson.data.rows.forEach(r => {
+                        shatsalMap[r.item] = (r.shatsalPerUnit && r.shatsalPerUnit[unit]) || 0;
+                    });
+                }
+
                 // אגד לפי itemKey — סה״כ לפי פריט
                 creditAggregated = {};
-                json.data.forEach(r => {
+                dispJson.data.forEach(r => {
                     if (!creditAggregated[r.itemKey]) {
                         const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
                         creditAggregated[r.itemKey] = { label, totalQty: 0, records: [] };
@@ -1031,20 +1043,27 @@
                 });
 
                 document.getElementById('creditItemsList').innerHTML =
-                    Object.entries(creditAggregated).map(([key, item]) => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
-                        <input type="checkbox" class="credit-cb" data-key="${key.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
-                               onchange="toggleCreditQty(this)"
-                               style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
-                        <span style="flex:1;color:#fff;font-weight:600;min-width:120px;">${item.label}</span>
-                        <span style="color:#888;font-size:0.85em;white-space:nowrap;">
-                            סה״כ פעיל:
-                            <input type="number" class="credit-qty" data-key="${key.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
-                                   value="${item.totalQty}" min="1" max="${item.totalQty}" disabled
-                                   style="width:65px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
-                        </span>
-                    </div>
-                `).join('');
+                    Object.entries(creditAggregated).map(([key, item]) => {
+                        const shatsal     = shatsalMap[key] || 0;
+                        const toCredit    = item.totalQty - shatsal;
+                        const creditColor = toCredit > 0 ? '#4ade80' : toCredit < 0 ? '#f87171' : '#666';
+                        const safeKey     = key.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+                        return `
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
+                            <input type="checkbox" class="credit-cb" data-key="${safeKey}"
+                                   onchange="toggleCreditQty(this)"
+                                   style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
+                            <span style="flex:1;color:#fff;font-weight:600;min-width:130px;">${item.label}</span>
+                            <span style="font-size:0.85em;white-space:nowrap;color:#888;">
+                                ניפוק:
+                                <input type="number" class="credit-qty" data-key="${safeKey}"
+                                       value="${item.totalQty}" min="1" max="${item.totalQty}" disabled
+                                       style="width:60px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
+                            </span>
+                            <span style="font-size:0.85em;white-space:nowrap;color:#f87171;">שצ״ל: <b>${shatsal}</b></span>
+                            <span style="font-size:0.85em;white-space:nowrap;color:${creditColor};font-weight:700;">לזיכוי: ${toCredit}</span>
+                        </div>`;
+                    }).join('');
             } finally { showLoader('creditLoader', false); }
         }
 
@@ -1536,16 +1555,13 @@
             const multiUnit = units.length > 1;
             const th = (s, color) => `<th style="padding:8px;text-align:right;white-space:nowrap;${color ? 'color:' + color + ';' : ''}">${s}</th>`;
 
-            // שורת header אחת שטוחה — ניפוק כל המסגרות, אחר כך שצ״ל כל המסגרות
+            // שורת header אחת שטוחה — ניפוק | שצ״ל | לזיכוי (לכל מסגרת) + נותר כולל
             const headerCells = [
                 th('פריט'),
-                ...(multiUnit
-                    ? units.map(u => th('ניפוק ' + u, '#000'))
-                    : [th('ניפוק', '#000')]),
-                ...(multiUnit
-                    ? units.map(u => th('שצ״ל ' + u, '#000'))
-                    : [th('שצ״ל', '#000')]),
-                th('נותר')
+                ...(multiUnit ? units.map(u => th('ניפוק ' + u,   '#a78bfa')) : [th('ניפוק',   '#a78bfa')]),
+                ...(multiUnit ? units.map(u => th('שצ״ל ' + u,    '#f87171')) : [th('שצ״ל',    '#f87171')]),
+                ...(multiUnit ? units.map(u => th('לזיכוי ' + u,  '#4ade80')) : [th('לזיכוי',  '#4ade80')]),
+                ...(multiUnit ? [th('נותר כולל', '#facc15')]                  : [])
             ].join('');
 
             const bodyRows = rows.map(row => {
@@ -1554,9 +1570,14 @@
                 const tdBase   = 'padding:8px;';
                 const cells = [
                     `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
-                    ...units.map(u => `<td style="${tdBase}color:#fff;">${row.dispenses[u] || 0}</td>`),
-                    ...units.map(u => `<td style="${tdBase}color:#fff;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
-                    `<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`
+                    ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
+                    ...units.map(u => `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
+                    ...units.map(u => {
+                        const lz = (row.dispenses[u] || 0) - ((row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0);
+                        const c  = lz < 0 ? '#f87171' : lz === 0 ? '#666' : '#4ade80';
+                        return `<td style="${tdBase}color:${c};font-weight:700;">${lz}</td>`;
+                    }),
+                    ...(multiUnit ? [`<td style="${tdBase}color:${remColor};font-weight:700;">${rem}</td>`] : [])
                 ].join('');
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
             }).join('');
