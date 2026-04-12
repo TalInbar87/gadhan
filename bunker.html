@@ -1317,47 +1317,9 @@
         async function loadShatsalHistory() {
             const json = await apiPost('bunker_get_shatsal', {});
             if (json.statusCode !== 200 || !json.data) return;
-            const rows  = json.data;
-            renderShatsalSummary(rows);
-            const table = document.getElementById('shatsalTable');
-            if (!rows.length) {
-                table.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
-                return;
-            }
-
-            const grouped = {};
-            rows.forEach(r => {
-                const dateKey = String(r.date || '').substring(0, 10);
-                const gk = `${r.unit}|${r.responsible}|${dateKey}`;
-                if (!grouped[gk]) grouped[gk] = { date: dateKey, unit: r.unit, responsible: r.responsible, items: [] };
-                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                grouped[gk].items.push({ label, qty: Number(r.qty) });
-            });
-
-            const parseDate = s => { const [d, m, y] = (s || '').split('/'); return new Date(y, m - 1, d); };
-            const sortedGroups = Object.values(grouped).sort((a, b) => parseDate(b.date) - parseDate(a.date));
-            table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead><tr style="background:#1e1e1e;color:#f87171;">
-                    <th style="padding:8px;text-align:right;width:110px;">תאריך ביצוע</th>
-                    <th style="padding:8px;text-align:right;width:80px;">מסגרת</th>
-                    <th style="padding:8px;text-align:right;width:90px;">אחראי</th>
-                    <th style="padding:8px;text-align:right;">פריטים</th>
-                    <th style="padding:8px;text-align:center;width:55px;">סה״כ</th>
-                </tr></thead>
-                <tbody>
-                    ${sortedGroups.map(g => {
-                        const itemsText = g.items.map(i => `${i.label} ×${i.qty}`).join(', ');
-                        const total = g.items.reduce((s, i) => s + i.qty, 0);
-                        return `<tr style="border-bottom:1px solid #2a2a2a;">
-                            <td style="padding:8px;color:#facc15;white-space:nowrap;">${g.date}</td>
-                            <td style="padding:8px;">${g.unit}</td>
-                            <td style="padding:8px;color:#aaa;">${g.responsible}</td>
-                            <td style="padding:8px;color:#aaa;">${itemsText}</td>
-                            <td style="padding:8px;color:#f87171;font-weight:700;text-align:center;">${total}</td>
-                        </tr>`;
-                    }).join('')}
-                </tbody>
-            </table>`;
+            const rows = json.data;
+            renderShatsalHierarchical(rows, 'shatsalSummaryTable');
+            renderShatsalHierarchical(rows, 'shatsalTable');
         }
 
         // ============================================================
@@ -1482,69 +1444,65 @@
             </table>`;
         }
 
-        function renderShatsalSummary(rows) {
-            const summaryEl = document.getElementById('shatsalSummaryTable');
+        function renderShatsalHierarchical(rows, containerId) {
+            const el = document.getElementById(containerId);
             if (!rows.length) {
-                summaryEl.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
+                el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
                 return;
             }
             const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+            const parseDate  = s => { const [d, m, y] = (s || '').split('/'); return new Date(y, m - 1, d); };
 
-            // Group: unit → dateKey → rows[]
+            // unit → dateKey → { responsible, items[] }
             const byUnit = {};
             rows.forEach(r => {
-                const dateKey = String(r.date || '').substring(0, 10); // DD/MM/YYYY
+                const dk = String(r.date || '').substring(0, 10);
                 if (!byUnit[r.unit]) byUnit[r.unit] = {};
-                if (!byUnit[r.unit][dateKey]) byUnit[r.unit][dateKey] = [];
-                byUnit[r.unit][dateKey].push(r);
+                if (!byUnit[r.unit][dk]) byUnit[r.unit][dk] = { responsible: r.responsible, items: [] };
+                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                byUnit[r.unit][dk].items.push({ label, qty: Number(r.qty) });
             });
 
-            const parseDate = s => { const [d, m, y] = s.split('/'); return new Date(y, m - 1, d); };
+            const units = UNIT_ORDER.filter(u => byUnit[u]);
+            let body = '';
 
-            const unitsInData = UNIT_ORDER.filter(u => byUnit[u]);
+            units.forEach(unit => {
+                const dates     = Object.keys(byUnit[unit]).sort((a, b) => parseDate(b) - parseDate(a));
+                const unitTotal = dates.reduce((s, d) =>
+                    s + byUnit[unit][d].items.reduce((ss, i) => ss + i.qty, 0), 0);
 
-            let html = '';
-            unitsInData.forEach(unit => {
-                const dates = Object.keys(byUnit[unit]).sort((a, b) => parseDate(b) - parseDate(a));
-                const unitTotal = dates.reduce((sum, d) =>
-                    sum + byUnit[unit][d].reduce((s, r) => s + Number(r.qty), 0), 0);
+                // unit header
+                body += `<tr>
+                    <td colspan="3" style="padding:8px 10px;font-weight:700;color:#f87171;
+                        background:#1e1e1e;border-right:3px solid #f87171;border-top:2px solid #333;">
+                        ${unit}&nbsp;<span style="color:#666;font-weight:normal;font-size:12px;">סה״כ: ${unitTotal}</span>
+                    </td>
+                </tr>`;
 
-                const bodyRows = dates.map(date => {
-                    const items = byUnit[unit][date];
-                    const responsible = items[0]?.responsible || '';
-                    const itemsText = items.map(r => {
-                        const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                        return `${label} ×${r.qty}`;
-                    }).join(', ');
-                    const dayTotal = items.reduce((s, r) => s + Number(r.qty), 0);
-                    return `<tr style="border-bottom:1px solid #2a2a2a;">
-                        <td style="padding:6px 8px;color:#facc15;white-space:nowrap;">${date}</td>
-                        <td style="padding:6px 8px;color:#aaa;white-space:nowrap;">${responsible}</td>
-                        <td style="padding:6px 8px;color:#ddd;">${itemsText}</td>
-                        <td style="padding:6px 8px;color:#f87171;font-weight:700;text-align:center;">${dayTotal}</td>
+                dates.forEach(dk => {
+                    const { responsible, items } = byUnit[unit][dk];
+                    const dayTotal = items.reduce((s, i) => s + i.qty, 0);
+
+                    // date sub-header
+                    body += `<tr style="background:#161616;">
+                        <td style="padding:5px 8px 5px 16px;color:#facc15;white-space:nowrap;">📅 ${dk}</td>
+                        <td style="padding:5px 8px;color:#888;font-size:12px;">${responsible}</td>
+                        <td style="padding:5px 8px;color:#888;text-align:center;font-size:12px;white-space:nowrap;">סה״כ: ${dayTotal}</td>
                     </tr>`;
-                }).join('');
 
-                html += `<div style="margin-bottom:20px;">
-                    <div style="font-weight:700;color:#f87171;font-size:14px;padding:8px 10px;
-                                background:#1e1e1e;border-right:3px solid #f87171;
-                                display:flex;justify-content:space-between;align-items:center;">
-                        <span>${unit}</span>
-                        <span style="color:#666;font-weight:normal;font-size:12px;">סה״כ: ${unitTotal}</span>
-                    </div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                        <thead><tr style="background:#181818;color:#888;">
-                            <th style="padding:6px 8px;text-align:right;width:110px;">תאריך</th>
-                            <th style="padding:6px 8px;text-align:right;width:90px;">אחראי</th>
-                            <th style="padding:6px 8px;text-align:right;">פריטים</th>
-                            <th style="padding:6px 8px;text-align:center;width:55px;">סה״כ</th>
-                        </tr></thead>
-                        <tbody>${bodyRows}</tbody>
-                    </table>
-                </div>`;
+                    // one row per item
+                    items.forEach(item => {
+                        body += `<tr style="border-bottom:1px solid #1e1e1e;">
+                            <td style="padding:4px 8px 4px 28px;color:#ddd;" colspan="2">${item.label}</td>
+                            <td style="padding:4px 8px;color:#f87171;font-weight:600;text-align:center;">${item.qty}</td>
+                        </tr>`;
+                    });
+                });
             });
 
-            summaryEl.innerHTML = html;
+            el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <tbody>${body}</tbody>
+            </table>`;
         }
 
         // ============================================================
