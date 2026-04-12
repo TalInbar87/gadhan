@@ -186,6 +186,9 @@ function bunker_dispense(data) {
 
     // רשום בגליון ניפוקים
     disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, item.key, qty, data.by || 'לא ידוע', 'פעיל', '', '']);
+
+    // עדכן סכימה
+    bunker_schemaUpdateDispense(ss, item.key, data.unit, qty);
   });
 
   if (errors.length) return { success: false, error: errors.join(', ') };
@@ -292,6 +295,7 @@ function bunker_credit(data) {
       disp.getRange(i + 1, 9).setValue(ts);
       disp.getRange(i + 1, 10).setValue(data.by || 'לא ידוע');
     }
+    bunker_schemaUpdateDispense(ss, itemKey, unit, -creditQty);
     credited++;
   }
 
@@ -454,6 +458,7 @@ function bunker_shatsalReport(data) {
 
   data.items.forEach(function(item) {
     sh.appendRow([bunker_uid(), ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
+    bunker_schemaUpdateShatsal(ss, item.key, data.unit, Number(item.qty) || 0);
   });
 
   return { success: true };
@@ -479,66 +484,45 @@ var UNIT_ORDER = Object.keys(BUNKER_UNIT_COLS); // ['פלוגה א','פלוגה 
 
 function bunker_dispenseSummary(filterUnit) {
   var ss = bunker_ss();
+  var sh = ss.getSheetByName(SCHEMA_SHEET);
 
-  // ניפוקים: כל השורות ללא סינון סטטוס (סיכום כולל היסטורי)
-  var dispByItem = {};
-  var dispSheet = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
-  if (dispSheet && dispSheet.getLastRow() > 1) {
-    var dispRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 8).getValues();
-    dispRows.forEach(function(r) {
-      var unit    = String(r[3] || '').trim();
-      var itemKey = String(r[4] || '').trim();
-      var qty     = Number(r[5]) || 0;
-      var status  = String(r[7] || '').trim();
-      if (status !== 'פעיל') return;
-      if (!itemKey || !unit || !qty) return;
-      if (filterUnit && unit !== filterUnit) return;
-      if (!dispByItem[itemKey]) dispByItem[itemKey] = {};
-      dispByItem[itemKey][unit] = (dispByItem[itemKey][unit] || 0) + qty;
-    });
+  // fallback: אם גליון סכימה לא קיים, בנה מחדש
+  if (!sh || sh.getLastRow() < 2) {
+    bunker_rebuildSchema();
+    sh = ss.getSheetByName(SCHEMA_SHEET);
   }
 
-  // שצ״ל
+  var dispByItem    = {};
   var shatsalByItem = {};
-  var shSheet = ss.getSheetByName(SHATSAL_SHEET);
-  if (shSheet && shSheet.getLastRow() > 1) {
-    var shRows = shSheet.getRange(2, 1, shSheet.getLastRow() - 1, 6).getValues();
-    shRows.forEach(function(r) {
-      var unit    = String(r[2] || '').trim();
-      var itemKey = String(r[4] || '').trim();
-      var qty     = Number(r[5]) || 0;
-      if (!itemKey || !qty) return;
-      if (filterUnit && unit !== filterUnit) return;
-      if (!shatsalByItem[itemKey]) shatsalByItem[itemKey] = {};
-      shatsalByItem[itemKey][unit] = (shatsalByItem[itemKey][unit] || 0) + qty;
+
+  if (sh && sh.getLastRow() > 1) {
+    var schemaRows = sh.getRange(2, 1, sh.getLastRow() - 1, 1 + UNIT_ORDER.length * 2).getValues();
+    schemaRows.forEach(function(r) {
+      var itemKey = String(r[0] || '').trim();
+      if (!itemKey) return;
+      dispByItem[itemKey]    = {};
+      shatsalByItem[itemKey] = {};
+      UNIT_ORDER.forEach(function(u, i) {
+        dispByItem[itemKey][u]    = Number(r[1 + i]) || 0;
+        shatsalByItem[itemKey][u] = Number(r[1 + UNIT_ORDER.length + i]) || 0;
+      });
     });
   }
 
-  // עמודות מסגרת רלוונטיות לפי UNIT_ORDER
   var activeUnits = filterUnit ? [filterUnit] : UNIT_ORDER.filter(function(u) {
-    return (Object.values(dispByItem).some(function(d) { return d[u]; }) ||
-            Object.values(shatsalByItem).some(function(s) { return s[u]; }));
+    return Object.values(dispByItem).some(function(d) { return d[u] > 0; }) ||
+           Object.values(shatsalByItem).some(function(s) { return s[u] > 0; });
   });
 
-  // בנה שורות
-  var allKeys = {};
-  Object.keys(dispByItem).forEach(function(k) { allKeys[k] = true; });
-  Object.keys(shatsalByItem).forEach(function(k) { allKeys[k] = true; });
-
-  var rows = Object.keys(allKeys).map(function(itemKey) {
-    var dispenses = {};
-    var totalDisp = 0;
+  var rows = Object.keys(dispByItem).map(function(itemKey) {
+    var dispenses = {}, shatsalPerUnit = {}, totalDisp = 0, totalShatsal = 0;
     activeUnits.forEach(function(u) {
-      var q = (dispByItem[itemKey] && dispByItem[itemKey][u]) || 0;
-      dispenses[u] = q;
-      totalDisp += q;
-    });
-    var shatsalPerUnit = {};
-    var totalShatsal = 0;
-    activeUnits.forEach(function(u) {
-      var q = (shatsalByItem[itemKey] && shatsalByItem[itemKey][u]) || 0;
-      shatsalPerUnit[u] = q;
-      totalShatsal += q;
+      var dq = (dispByItem[itemKey] && dispByItem[itemKey][u]) || 0;
+      var sq = (shatsalByItem[itemKey] && shatsalByItem[itemKey][u]) || 0;
+      dispenses[u]      = dq;
+      shatsalPerUnit[u] = sq;
+      totalDisp         += dq;
+      totalShatsal      += sq;
     });
     return { item: itemKey, dispenses: dispenses, shatsalPerUnit: shatsalPerUnit,
              totalDisp: totalDisp, shatsal: totalShatsal,
@@ -546,6 +530,105 @@ function bunker_dispenseSummary(filterUnit) {
   }).filter(function(r) { return r.totalDisp > 0 || r.shatsal > 0; });
 
   rows.sort(function(a, b) { return String(a.item).localeCompare(String(b.item), 'he'); });
-
   return { success: true, data: { units: activeUnits, rows: rows } };
+}
+
+// ================================================================
+// 12. סכימה — Materialized View
+// ================================================================
+var SCHEMA_SHEET   = 'סכימה';
+var SCHEMA_HEADERS = ['פריט'].concat(
+  UNIT_ORDER.map(function(u) { return 'ניפוק ' + u; }),
+  UNIT_ORDER.map(function(u) { return 'שצ״ל ' + u; })
+);
+var SCHEMA_DISP_COL    = {}; // unit → 1-indexed col (2–8)
+var SCHEMA_SHATSAL_COL = {}; // unit → 1-indexed col (9–15)
+(function() {
+  UNIT_ORDER.forEach(function(u, i) {
+    SCHEMA_DISP_COL[u]    = i + 2;
+    SCHEMA_SHATSAL_COL[u] = i + 2 + UNIT_ORDER.length;
+  });
+})();
+
+// עזר: מצא/צור שורה בסכימה לפריט נתון, החזר אינדקס 1-based
+function bunker_schemaEnsureRow(sh, itemKey) {
+  var rowIdx = bunker_findItemRow(sh, itemKey);
+  if (rowIdx === -1) {
+    sh.appendRow([itemKey].concat(new Array(UNIT_ORDER.length * 2).fill(0)));
+    rowIdx = sh.getLastRow();
+  }
+  return rowIdx;
+}
+
+// עדכן ניפוק פעיל בסכימה (delta חיובי=ניפוק, שלילי=זיכוי)
+function bunker_schemaUpdateDispense(ss, itemKey, unit, delta) {
+  var col = SCHEMA_DISP_COL[unit];
+  if (!col) return;
+  var sh     = bunker_ensureSheet(ss, SCHEMA_SHEET, SCHEMA_HEADERS);
+  var rowIdx = bunker_schemaEnsureRow(sh, itemKey);
+  var cur    = Number(sh.getRange(rowIdx, col).getValue()) || 0;
+  sh.getRange(rowIdx, col).setValue(Math.max(0, cur + delta));
+}
+
+// עדכן שצ״ל בסכימה
+function bunker_schemaUpdateShatsal(ss, itemKey, unit, delta) {
+  var col = SCHEMA_SHATSAL_COL[unit];
+  if (!col) return;
+  var sh     = bunker_ensureSheet(ss, SCHEMA_SHEET, SCHEMA_HEADERS);
+  var rowIdx = bunker_schemaEnsureRow(sh, itemKey);
+  var cur    = Number(sh.getRange(rowIdx, col).getValue()) || 0;
+  sh.getRange(rowIdx, col).setValue(Math.max(0, cur + delta));
+}
+
+// בנה מחדש את גליון הסכימה מהנתונים הגולמיים (קריאה בלבד מהמקורות)
+function bunker_rebuildSchema() {
+  var ss = bunker_ss();
+
+  var existing = ss.getSheetByName(SCHEMA_SHEET);
+  if (existing) ss.deleteSheet(existing);
+  var sh = bunker_ensureSheet(ss, SCHEMA_SHEET, SCHEMA_HEADERS);
+
+  // ניפוקים — סטטוס פעיל בלבד
+  var dispAgg = {};
+  var dispSheet = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
+  if (dispSheet && dispSheet.getLastRow() > 1) {
+    var dRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 8).getValues();
+    dRows.forEach(function(r) {
+      if (String(r[7] || '').trim() !== 'פעיל') return;
+      var itemKey = String(r[4] || '').trim();
+      var unit    = String(r[3] || '').trim();
+      var qty     = Number(r[5]) || 0;
+      if (!itemKey || !unit || !qty) return;
+      if (!dispAgg[itemKey]) dispAgg[itemKey] = {};
+      dispAgg[itemKey][unit] = (dispAgg[itemKey][unit] || 0) + qty;
+    });
+  }
+
+  // שצ״ל
+  var shAgg = {};
+  var shSheet = ss.getSheetByName(SHATSAL_SHEET);
+  if (shSheet && shSheet.getLastRow() > 1) {
+    var sRows = shSheet.getRange(2, 1, shSheet.getLastRow() - 1, 6).getValues();
+    sRows.forEach(function(r) {
+      var itemKey = String(r[4] || '').trim();
+      var unit    = String(r[2] || '').trim();
+      var qty     = Number(r[5]) || 0;
+      if (!itemKey || !qty) return;
+      if (!shAgg[itemKey]) shAgg[itemKey] = {};
+      shAgg[itemKey][unit] = (shAgg[itemKey][unit] || 0) + qty;
+    });
+  }
+
+  var allKeys = {};
+  Object.keys(dispAgg).forEach(function(k) { allKeys[k] = true; });
+  Object.keys(shAgg).forEach(function(k)   { allKeys[k] = true; });
+
+  Object.keys(allKeys).forEach(function(itemKey) {
+    var row = [itemKey];
+    UNIT_ORDER.forEach(function(u) { row.push((dispAgg[itemKey] && dispAgg[itemKey][u]) || 0); });
+    UNIT_ORDER.forEach(function(u) { row.push((shAgg[itemKey]  && shAgg[itemKey][u])   || 0); });
+    sh.appendRow(row);
+  });
+
+  return { success: true, rebuilt: Object.keys(allKeys).length };
 }

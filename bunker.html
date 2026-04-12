@@ -358,9 +358,12 @@
                         <tbody id="inventoryTableBody"></tbody>
                     </table>
                 </div>
-                <div style="margin-top:16px; text-align:center;">
+                <div style="margin-top:16px; text-align:center; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
                     <button class="btn btn-secondary" onclick="exportInventoryCSV()" style="min-width:150px; width:auto;">
                         📤 ייצוא CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="rebuildSchema()" style="min-width:150px; width:auto; background:#2a2a2a;" title="בנה מחדש גליון סכימה מהנתונים הגולמיים">
+                        🔄 בנה סכימה
                     </button>
                 </div>
             </div>
@@ -1567,6 +1570,26 @@
                     <thead><tr style="background:#1e1e1e;">${headerCells}</tr></thead>
                     <tbody>${bodyRows}</tbody>
                 </table>`;
+        }
+
+        // ============================================================
+        // כלי אדמין — בנה מחדש גליון סכימה
+        // ============================================================
+        async function rebuildSchema() {
+            if (!confirm('בנה מחדש את גליון הסכימה מהנתונים הגולמיים?\n(פעולה קריאה בלבד — לא תשנה נתוני מקור)')) return;
+            const btn = event.currentTarget;
+            btn.disabled = true; btn.textContent = 'בונה...';
+            try {
+                const json = await apiPost('bunker_rebuild_schema', {});
+                if (json.statusCode === 200)
+                    alert('✅ סכימה נבנתה בהצלחה — ' + json.data.rebuilt + ' פריטים');
+                else
+                    alert('❌ שגיאה: ' + (json.message || 'לא ידוע'));
+            } catch (e) {
+                alert('❌ שגיאה: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '🔄 בנה סכימה';
+            }
         }
 
         function showMsg(section, success, errText) {
