@@ -1321,7 +1321,7 @@
                 let date = '';
                 if (dateInput) {
                     const [y, m, d] = dateInput.split('-');
-                    date = `${d}/${m}/${y}`;
+                    date = `${d}/${m}/${y} 00:00`;
                 }
                 const json = await apiPost('bunker_shatsal_report', { unit, responsible, items, date });
                 showMsg('shatsal', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
@@ -1477,7 +1477,7 @@
             rows.forEach(r => {
                 const dk = String(r.date || '').substring(0, 10);
                 if (!byUnit[r.unit]) byUnit[r.unit] = {};
-                if (!byUnit[r.unit][dk]) byUnit[r.unit][dk] = { responsible: r.responsible, items: [] };
+                if (!byUnit[r.unit][dk]) byUnit[r.unit][dk] = { displayDate: String(r.date || '').trim(), responsible: r.responsible, items: [] };
                 const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
                 byUnit[r.unit][dk].items.push({ label, qty: Number(r.qty) });
             });
@@ -1504,7 +1504,7 @@
 
                     // date sub-header
                     body += `<tr style="background:#161616;">
-                        <td style="padding:5px 8px 5px 16px;color:#facc15;white-space:nowrap;">📅 ${dk}</td>
+                        <td style="padding:5px 8px 5px 16px;color:#facc15;white-space:nowrap;">📅 ${byUnit[unit][dk].displayDate}</td>
                         <td style="padding:5px 8px;color:#888;font-size:12px;">${responsible}</td>
                         <td style="padding:5px 8px;color:#888;text-align:center;font-size:12px;white-space:nowrap;">סה״כ: ${dayTotal}</td>
                     </tr>`;
@@ -1555,19 +1555,20 @@
             const multiUnit = units.length > 1;
             const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;">${s}</th>`;
 
-            // ניפוק כל המסגרות, אחר כך שצ״ל כל המסגרות
+            // ניפוק + שצ״ל לכל מסגרת בזוגות
             const headerCells = [
                 th('פריט'),
-                ...(multiUnit ? units.map(u => th('ניפוק ' + u)) : [th('ניפוק')]),
-                ...(multiUnit ? units.map(u => th('שצ״ל '  + u)) : [th('שצ״ל')]),
+                ...units.flatMap(u => [th('ניפוק ' + u), th('שצ״ל ' + u)]),
             ].join('');
 
             const bodyRows = rows.map(row => {
                 const tdBase = 'padding:8px;';
                 const cells = [
                     `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
-                    ...units.map(u => `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`),
-                    ...units.map(u => `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`),
+                    ...units.flatMap(u => [
+                        `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`,
+                        `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`,
+                    ]),
                 ].join('');
                 return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
             }).join('');
