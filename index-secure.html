@@ -285,48 +285,54 @@
             </div>
         </header>
 
-        <div class="section-title">מערכות חתימה</div>
-        <div class="nav-grid">
+        <!-- ══ נשקייה ══ -->
+        <div class="section-title" id="nashkiyaSection" style="display:none;">נשקייה</div>
+        <div class="nav-grid" id="nashkiyaCards" style="display:none;">
             <a href="#" id="weaponsLink" class="nav-card weapons" onclick="navigateTo('weapons-checkout-secure.html', event)">
                 <div class="icon">⬛</div>
-                <h2>מערכת חתימה - נשקים</h2>
+                <h2>מערכת חתימה על נשק</h2>
                 <p>מערכת לניהול וחתימה על נשקים ואמצעי לחימה</p>
             </a>
-
-        </div>
-
-        <div class="section-title" id="reportsSection" style="display: none;">דוחות ומעקב</div>
-        <div class="nav-grid" id="reportsCards" style="display: none;">
-            <a href="#" id="armoryLink" class="nav-card report" onclick="navigateTo('armory-count.html', event)">
+            <a href="#" id="armoryLink" class="nav-card weapons" onclick="navigateTo('armory-count.html', event)">
                 <div class="icon">📋</div>
                 <h2>ספירת מלאי נשקייה</h2>
                 <p>הזנת כמויות ציוד פיזי הנמצא בנשקייה</p>
             </a>
-
-            <a href="#" id="inventoryLink" class="nav-card report" onclick="navigateTo('weapons-inventory.html', event)">
+            <a href="#" id="inventoryLink" class="nav-card weapons" onclick="navigateTo('weapons-inventory.html', event)">
                 <div class="icon">📦</div>
                 <h2>סיכום מלאי נשקים</h2>
                 <p>כמות חיילים המחזיקים כל פריט, מפוצל לפי מסגרת וסה"כ</p>
             </a>
-
-            <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
-                <div class="icon">⬛</div>
-                <h2>דוח צלם</h2>
-                <p>מעקב אחר צלם</p>
+            <a href="#" id="transferLink" class="nav-card weapons" onclick="navigateTo('weapons-transfer.html', event)">
+                <div class="icon">🔄</div>
+                <h2>העברת/זיכוי ציוד</h2>
+                <p>העברת או זיכוי ציוד נשקים בין חיילים</p>
             </a>
+        </div>
 
-            <a href="#" id="radioReportLink" class="nav-card report" style="display:none" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1jUDDvC2PPYOcEWHgb2fc5Jds_K_YYhjveHYIgAurEBc/edit?usp=sharing', event, true)">
-                <div class="icon">⬛</div>
-                <h2>דוח קשר</h2>
-                <p>דוח מרכז לאמצעי קשר</p>
-            </a>
-
+        <!-- ══ בונקר ══ -->
+        <div class="section-title" id="bunkerSection" style="display:none;">בונקר</div>
+        <div class="nav-grid" id="bunkerCards" style="display:none;">
             <a href="#" id="bunkerLink" class="nav-card report" onclick="navigateTo('bunker.html', event)">
                 <div class="icon">🏗️</div>
                 <h2>בונקר</h2>
                 <p>ניהול מלאי, ניפוק וזיכוי לפי מסגרת</p>
             </a>
+        </div>
 
+        <!-- ══ דוחות ══ -->
+        <div class="section-title" id="reportsSection" style="display:none;">דוחות</div>
+        <div class="nav-grid" id="reportsCards" style="display:none;">
+            <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
+                <div class="icon">⬛</div>
+                <h2>דוח צלם</h2>
+                <p>מעקב אחר צלם</p>
+            </a>
+            <a href="#" id="driveLink" class="nav-card report" onclick="navigateTo('https://drive.google.com/drive/folders/15Eav5uBd2QfxHzSeyje8iTEr7_4UnxCG', event, true)">
+                <div class="icon">📁</div>
+                <h2>ארכיון טפסים</h2>
+                <p>תיקיית Drive עם כל קובצי ה-PDF של החתימות</p>
+            </a>
             <a href="#" id="inspectionsLink" class="nav-card report" onclick="navigateTo('inspections.html', event)">
                 <div class="icon">🔭</div>
                 <h2>מעקב בדיקות</h2>
@@ -334,30 +340,18 @@
             </a>
         </div>
 
-        <div class="section-title" id="adminSection" style="display: none;">ניהול מערכת</div>
-        <div class="nav-grid" id="adminCards" style="display: none;">
-            <a href="#" id="auditLink" class="nav-card admin" onclick="navigateTo('audit-log.html', event)">
-                <div class="icon">📊</div>
-                <h2>יומן ביקורת</h2>
-                <p>צפייה בכל הפעולות במערכת</p>
-            </a>
-
+        <!-- ══ ניהול מערכת ══ -->
+        <div class="section-title" id="adminSection" style="display:none;">ניהול מערכת</div>
+        <div class="nav-grid" id="adminCards" style="display:none;">
             <a href="#" id="usersLink" class="nav-card admin" onclick="navigateTo('user-management.html', event)">
                 <div class="icon">👥</div>
                 <h2>ניהול משתמשים</h2>
                 <p>הוספה ועריכת משתמשים והרשאות</p>
             </a>
-
-            <a href="#" id="transferLink" class="nav-card admin" onclick="navigateTo('weapons-transfer.html', event)">
-                <div class="icon">🔄</div>
-                <h2>העברת/זיכוי ציוד</h2>
-                <p>העברת או זיכוי ציוד נשקים בין חיילים</p>
-            </a>
-
-            <a href="#" id="driveLink" class="nav-card admin" onclick="navigateTo('https://drive.google.com/drive/folders/15Eav5uBd2QfxHzSeyje8iTEr7_4UnxCG', event, true)">
-                <div class="icon">📁</div>
-                <h2>ארכיון טפסים</h2>
-                <p>תיקיית Drive עם כל קובצי ה-PDF של החתימות</p>
+            <a href="#" id="auditLink" class="nav-card admin" onclick="navigateTo('audit-log.html', event)">
+                <div class="icon">📊</div>
+                <h2>יומן ביקורת</h2>
+                <p>צפייה בכל הפעולות במערכת</p>
             </a>
         </div>
 
@@ -422,48 +416,43 @@
         // ============================================================
         
         function setupPermissions(user) {
-            const isAdmin          = authClient.hasPermission('manage_users');
-            const hasReports       = authClient.hasPermission('view_reports');
-            const hasTransfer      = authClient.hasPermission('transfer');
-            const hasInspections   = authClient.hasPermission('inspections');
+            const isAdmin        = authClient.hasPermission('manage_users');
+            const hasReports     = authClient.hasPermission('view_reports');
+            const hasTransfer    = authClient.hasPermission('transfer');
+            const hasInspections = authClient.hasPermission('inspections');
 
-            // חימוש — בדיקות בלבד, מסתיר כל השאר
+            const show = (sectionId, cardsId) => {
+                document.getElementById(sectionId).style.display = 'block';
+                document.getElementById(cardsId).style.display   = 'grid';
+            };
+
+            // ── חימוש — בדיקות בלבד ──
             if (hasInspections && !isAdmin && !hasReports) {
-                // הסתר את מערכת חתימה כולה
-                document.querySelector('.section-title').style.display = 'none';
-                document.querySelector('.nav-grid').style.display = 'none';
-                // הצג רק כרטיס בדיקות
-                document.getElementById('reportsSection').style.display = 'block';
-                document.getElementById('reportsCards').style.display = 'grid';
-                ['armoryLink', 'inventoryLink', 'weaponsReportLink', 'radioReportLink', 'bunkerLink'].forEach(hideCard);
+                show('reportsSection', 'reportsCards');
+                hideCard('weaponsReportLink');
+                hideCard('driveLink');
                 return;
             }
 
-            // מערכת חתימה — מנהל בלבד
-            if (!isAdmin) hideCard('weaponsLink');
+            // ── נשקייה ──
+            show('nashkiyaSection', 'nashkiyaCards');
+            if (!isAdmin)                    hideCard('weaponsLink');   // חתימה — מנהל בלבד
+            if (!isAdmin)                    hideCard('armoryLink');    // ספירת מלאי — מנהל בלבד
+            if (!isAdmin && !hasReports)     hideCard('inventoryLink'); // סיכום מלאי — מנהל + סמל
+            if (!isAdmin && !hasTransfer)    hideCard('transferLink');  // העברה — מנהל + transfer
 
-            // דוחות — מנהל + סמל
-            if (hasReports || isAdmin) {
-                document.getElementById('reportsSection').style.display = 'block';
-                document.getElementById('reportsCards').style.display = 'grid';
+            // ── בונקר — מנהל + סמל ──
+            if (hasReports || isAdmin) show('bunkerSection', 'bunkerCards');
+
+            // ── דוחות ──
+            if (hasReports || isAdmin || hasInspections) {
+                show('reportsSection', 'reportsCards');
+                if (!isAdmin && !hasReports) hideCard('weaponsReportLink');
+                if (!isAdmin)                hideCard('driveLink'); // ארכיון — מנהל בלבד
             }
 
-            // ספירת מלאי, דוח קשר — מנהל בלבד
-            if (!isAdmin) {
-                hideCard('armoryLink');
-                hideCard('radioReportLink');
-            }
-
-            // ניהול מערכת — סמל רואה רק העברות, מנהל רואה הכל
-            if (isAdmin || hasTransfer) {
-                document.getElementById('adminSection').style.display = 'block';
-                document.getElementById('adminCards').style.display = 'grid';
-                if (!isAdmin) {
-                    hideCard('auditLink');
-                    hideCard('usersLink');
-                    hideCard('driveLink');
-                }
-            }
+            // ── ניהול מערכת — מנהל בלבד ──
+            if (isAdmin) show('adminSection', 'adminCards');
         }
 
         function hideCard(cardId) {
