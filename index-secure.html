@@ -188,10 +188,35 @@
 
         .section-title {
             color: #ff6600;
-            font-size: 1.8em;
-            margin: 40px 0 20px 0;
-            text-align: center;
+            font-size: 1.5em;
+            margin: 30px 0 0 0;
             font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 24px;
+            background: rgba(255, 102, 0, 0.06);
+            border: 1px solid rgba(255, 102, 0, 0.25);
+            border-radius: 10px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .section-title:hover {
+            background: rgba(255, 102, 0, 0.12);
+            border-color: rgba(255, 102, 0, 0.5);
+        }
+
+        .section-title .acc-arrow {
+            font-size: 0.55em;
+            transition: transform 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .section-title.collapsed .acc-arrow {
+            transform: rotate(-90deg);
         }
 
         footer {
@@ -286,7 +311,9 @@
         </header>
 
         <!-- ══ נשקייה ══ -->
-        <div class="section-title" id="nashkiyaSection" style="display:none;">נשקייה</div>
+        <div class="section-title" id="nashkiyaSection" style="display:none;" onclick="toggleSection('nashkiyaCards')">
+            נשקייה <span class="acc-arrow">▼</span>
+        </div>
         <div class="nav-grid" id="nashkiyaCards" style="display:none;">
             <a href="#" id="weaponsLink" class="nav-card weapons" onclick="navigateTo('weapons-checkout-secure.html', event)">
                 <div class="icon">⬛</div>
@@ -311,7 +338,9 @@
         </div>
 
         <!-- ══ בונקר ══ -->
-        <div class="section-title" id="bunkerSection" style="display:none;">בונקר</div>
+        <div class="section-title" id="bunkerSection" style="display:none;" onclick="toggleSection('bunkerCards')">
+            בונקר <span class="acc-arrow">▼</span>
+        </div>
         <div class="nav-grid" id="bunkerCards" style="display:none;">
             <a href="#" id="bunkerLink" class="nav-card report" onclick="navigateTo('bunker.html', event)">
                 <div class="icon">🏗️</div>
@@ -321,7 +350,9 @@
         </div>
 
         <!-- ══ דוחות ══ -->
-        <div class="section-title" id="reportsSection" style="display:none;">דוחות</div>
+        <div class="section-title" id="reportsSection" style="display:none;" onclick="toggleSection('reportsCards')">
+            דוחות <span class="acc-arrow">▼</span>
+        </div>
         <div class="nav-grid" id="reportsCards" style="display:none;">
             <a href="#" id="weaponsReportLink" class="nav-card report" onclick="navigateTo('https://docs.google.com/spreadsheets/d/1kPB-CL0dY7J-J_-KmOYvLUNc9Zw4vJhDYij_SOwRJN0/edit?gid=217191514#gid=217191514', event, true)">
                 <div class="icon">⬛</div>
@@ -341,7 +372,9 @@
         </div>
 
         <!-- ══ ניהול מערכת ══ -->
-        <div class="section-title" id="adminSection" style="display:none;">ניהול מערכת</div>
+        <div class="section-title" id="adminSection" style="display:none;" onclick="toggleSection('adminCards')">
+            ניהול מערכת <span class="acc-arrow">▼</span>
+        </div>
         <div class="nav-grid" id="adminCards" style="display:none;">
             <a href="#" id="usersLink" class="nav-card admin" onclick="navigateTo('user-management.html', event)">
                 <div class="icon">👥</div>
@@ -422,7 +455,7 @@
             const hasInspections = authClient.hasPermission('inspections');
 
             const show = (sectionId, cardsId) => {
-                document.getElementById(sectionId).style.display = 'block';
+                document.getElementById(sectionId).style.display = 'flex';
                 document.getElementById(cardsId).style.display   = 'grid';
             };
 
@@ -458,6 +491,15 @@
         function hideCard(cardId) {
             const card = document.getElementById(cardId);
             if (card) card.style.display = 'none';
+        }
+
+        function toggleSection(cardsId) {
+            const cards     = document.getElementById(cardsId);
+            const sectionId = cardsId.replace('Cards', 'Section');
+            const title     = document.getElementById(sectionId);
+            const open      = cards.style.display !== 'none';
+            cards.style.display = open ? 'none' : 'grid';
+            title.classList.toggle('collapsed', open);
         }
         
         // ============================================================
