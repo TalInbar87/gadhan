@@ -759,7 +759,7 @@ function handleBunkerShatsalReport(data, request) {
   if (!Authorization.canAccessResource(payload, null, 'write'))
     return createResponse(403, 'Insufficient permissions', null);
   try {
-    var result = bunker_shatsalReport({ unit: data.unit, responsible: data.responsible, items: data.items });
+    var result = bunker_shatsalReport({ unit: data.unit, responsible: data.responsible, items: data.items, date: data.date || '' });
     return result.success ? createResponse(200, 'דיווח שצ״ל נשמר', null)
                           : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }

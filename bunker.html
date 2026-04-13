@@ -692,14 +692,16 @@
             <div class="card" style="margin-top:16px;">
                 <h2>📊 סיכום שצ״ל לפי מסגרת</h2>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-                    <span style="color:#888;font-size:13px;">מיון:</span>
-                    <button id="sortByReportDateBtn" onclick="sortShatsalTable('reportDate')"
-                            style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#facc15;cursor:pointer;font-size:13px;">
-                        📅 תאריך דיווח
-                    </button>
-                    <button id="sortByUnitBtn" onclick="sortShatsalTable('unit')"
-                            style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#aaa;cursor:pointer;font-size:13px;">
-                        👥 מסגרת
+                    <select id="shatsalFilterUnit" onchange="filterShatsalTable()"
+                            style="padding:5px 10px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#fff;font-size:13px;">
+                        <option value="">כל המסגרות</option>
+                    </select>
+                    <input type="date" id="shatsalFilterDate" onchange="filterShatsalTable()"
+                           style="padding:5px 10px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#facc15;font-size:13px;"
+                           title="סינון לפי תאריך דיווח" />
+                    <button onclick="clearShatsalFilter()"
+                            style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#2a2a2a;color:#aaa;cursor:pointer;font-size:13px;">
+                        ✕ נקה
                     </button>
                     <button onclick="exportShatsalCSV()"
                             style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#4ade80;cursor:pointer;font-size:13px;margin-right:auto;">
@@ -1348,37 +1350,57 @@
             } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
         }
 
-        let shatsalAllRows  = [];
-        let shatsalSortBy   = 'reportDate'; // ברירת מחדל
+        let shatsalAllRows = [];
 
         async function loadShatsalHistory() {
             const json = await apiPost('bunker_get_shatsal', {});
             if (json.statusCode !== 200 || !json.data) return;
             shatsalAllRows = json.data;
-            renderShatsalFlatTable(shatsalAllRows, shatsalSortBy);
+            filterShatsalTable();
             renderShatsalHierarchical(shatsalAllRows, 'shatsalTable');
         }
 
-        function sortShatsalTable(by) {
-            shatsalSortBy = by;
-            // עדכן כפתורים
-            ['sortByReportDateBtn','sortByUnitBtn'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.style.color = '#aaa';
+        function filterShatsalTable() {
+            const unitFilter = document.getElementById('shatsalFilterUnit')?.value || '';
+            const dateInput  = document.getElementById('shatsalFilterDate')?.value || ''; // YYYY-MM-DD
+
+            const filtered = shatsalAllRows.filter(r => {
+                if (unitFilter && r.unit !== unitFilter) return false;
+                if (dateInput) {
+                    const [fy, fm, fd] = dateInput.split('-');
+                    const filterDay = `${fd}/${fm}/${fy}`;
+                    const rowDay    = String(r.reportDate || r.date || '').substring(0, 10);
+                    if (rowDay !== filterDay) return false;
+                }
+                return true;
             });
-            const activeId = by === 'reportDate' ? 'sortByReportDateBtn' : 'sortByUnitBtn';
-            const activeBtn = document.getElementById(activeId);
-            if (activeBtn) activeBtn.style.color = '#facc15';
-            renderShatsalFlatTable(shatsalAllRows, by);
+            renderShatsalFlatTable(filtered);
         }
 
-        function renderShatsalFlatTable(rows, sortBy) {
+        function clearShatsalFilter() {
+            const u = document.getElementById('shatsalFilterUnit');
+            const d = document.getElementById('shatsalFilterDate');
+            if (u) u.value = '';
+            if (d) d.value = '';
+            renderShatsalFlatTable(shatsalAllRows);
+        }
+
+        function renderShatsalFlatTable(rows) {
             const el = document.getElementById('shatsalSummaryTable');
+
+            // אכלס דרופדאון סינון מסגרת (מהנתונים המלאים)
+            const unitSel = document.getElementById('shatsalFilterUnit');
+            if (unitSel && unitSel.options.length <= 1) {
+                const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+                const units = UNIT_ORDER.filter(u => shatsalAllRows.some(r => r.unit === u));
+                unitSel.innerHTML = '<option value="">כל המסגרות</option>' +
+                    units.map(u => `<option value="${u}">${u}</option>`).join('');
+            }
+
             if (!rows.length) {
-                el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
+                el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין נתונים לתצוגה</p>';
                 return;
             }
-            const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
 
             const parseDt = s => {
                 if (!s) return new Date(0);
@@ -1388,15 +1410,9 @@
                 return new Date(y, m-1, d);
             };
 
-            const sorted = [...rows].sort((a, b) => {
-                if (sortBy === 'unit') {
-                    const ui = u => { const i = UNIT_ORDER.indexOf(u); return i === -1 ? 99 : i; };
-                    if (ui(a.unit) !== ui(b.unit)) return ui(a.unit) - ui(b.unit);
-                    return parseDt(b.reportDate) - parseDt(a.reportDate);
-                }
-                // ברירת מחדל: לפי תאריך דיווח, חדש ראשון
-                return parseDt(b.reportDate) - parseDt(a.reportDate);
-            });
+            // מיון: לפי תאריך דיווח, חדש ראשון
+            const sorted = [...rows].sort((a, b) =>
+                parseDt(b.reportDate || b.date) - parseDt(a.reportDate || a.date));
 
             const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;border-bottom:2px solid #333;">${s}</th>`;
             const bodyRows = sorted.map((r, idx) => {
