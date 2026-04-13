@@ -169,27 +169,38 @@ function apsnaut_generateAndSavePDF(data, uid, ts) {
   var html = apsnaut_createPdfHtml(data, uid, ts);
   var blob = Utilities.newBlob(html, 'text/html', 'apsnaut.html');
   var pdf  = blob.getAs('application/pdf');
-  var name = 'אפסנאות_' + data.fullName + '_' + data.personalNumber
-             + '_' + apsnaut_driveTimestamp() + '.pdf';
-  pdf.setName(name);
-  apsnaut_savePdfToDrive(pdf, data.unit);
-  Logger.log('✅ [Apsnaut] PDF saved: ' + name);
+  apsnaut_saveCurrentPdf(pdf, data.personalNumber, data.unit);
 }
 
-function apsnaut_savePdfToDrive(pdf, unit) {
+/**
+ * שומר PDF אחד בלבד לכל חייל (העדכני ביותר).
+ * שם קובץ: apsnaut_{pn}.pdf
+ * מחיקה גלובלית של כל קובץ בשם זה לפני שמירה.
+ * מיקום: Root / אפסנאות / {unit} / apsnaut_{pn}.pdf
+ */
+function apsnaut_saveCurrentPdf(pdfBlob, personalNumber, unit) {
   var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
   if (!rootId) { Logger.log('⚠️ [Apsnaut] No ROOT_FOLDER_ID — skipping Drive save'); return; }
+
+  var filename = 'apsnaut_' + String(personalNumber) + '.pdf';
   try {
+    // מחק את כל הקבצים הישנים בשם זה (בכל מיקום ב-Drive)
+    var old = DriveApp.searchFiles('title = "' + filename + '" and trashed = false');
+    while (old.hasNext()) { old.next().setTrashed(true); }
+
+    // שמור את החדש
     var root       = DriveApp.getFolderById(rootId);
     var typeIter   = root.getFoldersByName('אפסנאות');
     var typeFolder = typeIter.hasNext() ? typeIter.next() : root.createFolder('אפסנאות');
     var unitName   = (unit || '').trim() || 'ללא פלוגה';
     var unitIter   = typeFolder.getFoldersByName(unitName);
     var unitFolder = unitIter.hasNext() ? unitIter.next() : typeFolder.createFolder(unitName);
-    unitFolder.createFile(pdf);
-    Logger.log('✅ [Apsnaut][Drive] Saved to: אפסנאות/' + unitName);
+
+    pdfBlob.setName(filename);
+    unitFolder.createFile(pdfBlob);
+    Logger.log('✅ [Apsnaut] Current PDF saved: אפסנאות/' + unitName + '/' + filename);
   } catch(e) {
-    Logger.log('⚠️ [Apsnaut][Drive] Failed: ' + e);
+    Logger.log('⚠️ [Apsnaut] saveCurrentPdf failed: ' + e);
   }
 }
 
