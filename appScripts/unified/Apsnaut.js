@@ -5,18 +5,19 @@
  * גליון "פריטים":
  *   A = שם פריט  |  B = יחידת מידה  |  C = חשוב (true/false)
  *
- * גליון "חתימות":
+ * גליון "חתימות" — שורה אחת לחתימה, פריטים כעמודות דינמיות:
  *   A = מזהה  |  B = תאריך  |  C = שם מלא  |  D = מספר אישי
- *   E = פלוגה  |  F = פריט  |  G = יחידת מידה  |  H = כמות
- *   I = הערות  |  J = על ידי
+ *   E = פלוגה  |  F = על ידי  |  G+ = שם פריט (כמות בתא)
  * ================================================================
  */
 
 var APSNAUT_ITEMS_SHEET    = 'פריטים';
 var APSNAUT_CHECKOUT_SHEET = 'חתימות';
 var APSNAUT_ITEMS_HEADERS  = ['שם פריט', 'יחידת מידה', 'חשוב'];
-var APSNAUT_CHECKOUT_HEADERS = ['מזהה', 'תאריך', 'שם מלא', 'מספר אישי', 'פלוגה',
-                                 'פריט', 'יחידת מידה', 'כמות', 'הערות', 'על ידי'];
+
+// עמודות קבועות בגליון חתימות — שאר העמודות הן פריטים דינמיים
+var APSNAUT_CHECKOUT_FIXED   = ['מזהה', 'תאריך', 'שם מלא', 'מספר אישי', 'פלוגה', 'על ידי'];
+var APSNAUT_CHECKOUT_FIXED_N = 6;
 
 // ── עזר ──
 function apsnaut_ss() {
@@ -97,32 +98,63 @@ function apsnaut_addItem(data) {
 }
 
 // ================================================================
-// 3. החתמה — שמור עסקה + הפק PDF
+// 3. החתמה — שורה אחת לחתימה, פריטים כעמודות דינמיות
 // ================================================================
+
+// עזר: מוודא שכל פריט מיוצג בעמודה. מחזיר מפה itemName → col (1-based)
+function apsnaut_ensureItemCols(sh, itemNames) {
+  var lastCol = Math.max(sh.getLastColumn(), APSNAUT_CHECKOUT_FIXED_N);
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  var colMap = {};
+  headers.forEach(function(h, i) {
+    var name = String(h || '').trim();
+    if (i >= APSNAUT_CHECKOUT_FIXED_N && name) colMap[name] = i + 1;
+  });
+
+  itemNames.forEach(function(name) {
+    if (!name || colMap[name]) return;
+    var newCol = sh.getLastColumn() + 1;
+    sh.getRange(1, newCol).setValue(name)
+      .setBackground('#1a3a1a').setFontColor('#ffffff').setFontWeight('bold');
+    colMap[name] = newCol;
+  });
+
+  return colMap;
+}
+
 function apsnaut_checkout(data) {
   if (!data || !data.fullName || !data.personalNumber || !data.unit
       || !data.items || !data.items.length)
     return { success: false, error: 'חסרים נתונים לחתימה' };
 
   var ss  = apsnaut_ss();
-  var sh  = apsnaut_ensureSheet(ss, APSNAUT_CHECKOUT_SHEET, APSNAUT_CHECKOUT_HEADERS);
+  var sh  = apsnaut_ensureSheet(ss, APSNAUT_CHECKOUT_SHEET, APSNAUT_CHECKOUT_FIXED);
   var uid = apsnaut_uid();
   var ts  = apsnaut_ts();
 
+  // וודא שלכל פריט יש עמודה
+  var itemNames = data.items.map(function(i) { return (i.name || '').trim(); });
+  var colMap    = apsnaut_ensureItemCols(sh, itemNames);
+
+  // בנה שורה: עמודות קבועות + כמויות לפי עמודת פריט
+  var totalCols = sh.getLastColumn();
+  var row = new Array(totalCols).fill('');
+  row[0] = uid;
+  row[1] = ts;
+  row[2] = data.fullName;
+  row[3] = data.personalNumber;
+  row[4] = data.unit;
+  row[5] = data.by || '';
+
   data.items.forEach(function(item) {
-    sh.appendRow([
-      uid,
-      ts,
-      data.fullName,
-      data.personalNumber,
-      data.unit,
-      item.name,
-      item.unit    || '',
-      Number(item.qty) || 0,
-      item.notes   || '',
-      data.by      || ''
-    ]);
+    var name = (item.name || '').trim();
+    var col  = colMap[name];
+    if (!col) return;
+    row[col - 1] = Number(item.qty) || 0;
   });
+
+  sh.appendRow(row);
 
   try { apsnaut_generateAndSavePDF(data, uid, ts); }
   catch(e) { Logger.log('⚠️ [Apsnaut] PDF error: ' + e); }
@@ -195,30 +227,23 @@ function apsnaut_getSoldierItems(personalNumber) {
   var sh = ss.getSheetByName(APSNAUT_CHECKOUT_SHEET);
   if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
 
-  var rows = sh.getRange(2, 1, sh.getLastRow()-1,
-                         APSNAUT_CHECKOUT_HEADERS.length).getValues();
+  var lastCol = sh.getLastColumn();
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  var rows    = sh.getRange(2, 1, sh.getLastRow()-1, lastCol).getValues();
 
-  // מצא את מזהה החתימה האחרונה לפי תאריך
-  var latestId   = null;
-  var latestDate = new Date(0);
+  // השורה האחרונה לפי מ"א (appendRow — האחרונה שנמצאה היא הכי עדכנית)
+  var latestRow = null;
   rows.forEach(function(r) {
-    if (String(r[3] || '').trim() !== pn) return;
-    var d = r[1] instanceof Date ? r[1] : new Date(String(r[1]));
-    if (d > latestDate) { latestDate = d; latestId = String(r[0] || '').trim(); }
+    if (String(r[3] || '').trim() === pn) latestRow = r;
   });
+  if (!latestRow) return { success: true, data: [] };
 
-  if (!latestId) return { success: true, data: [] };
-
-  var items = rows
-    .filter(function(r) { return String(r[0] || '').trim() === latestId; })
-    .map(function(r) {
-      return {
-        name:  String(r[5] || '').trim(),
-        unit:  String(r[6] || '').trim(),
-        qty:   Number(r[7]) || 0,
-        notes: String(r[8] || '').trim()
-      };
-    });
+  var items = [];
+  for (var i = APSNAUT_CHECKOUT_FIXED_N; i < headers.length; i++) {
+    var name = String(headers[i] || '').trim();
+    var qty  = Number(latestRow[i]) || 0;
+    if (name && qty) items.push({ name: name, unit: '', qty: qty, notes: '' });
+  }
   return { success: true, data: items };
 }
 
@@ -230,11 +255,19 @@ function apsnaut_getCheckouts() {
   var sh = ss.getSheetByName(APSNAUT_CHECKOUT_SHEET);
   if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
 
-  var rows = sh.getRange(2, 1, sh.getLastRow()-1,
-                         APSNAUT_CHECKOUT_HEADERS.length).getValues();
+  var lastCol = sh.getLastColumn();
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  var rows    = sh.getRange(2, 1, sh.getLastRow()-1, lastCol).getValues();
+
   var result = rows
     .filter(function(r) { return String(r[0] || '').trim(); })
     .map(function(r) {
+      var items = [];
+      for (var i = APSNAUT_CHECKOUT_FIXED_N; i < headers.length; i++) {
+        var name = String(headers[i] || '').trim();
+        var qty  = Number(r[i]) || 0;
+        if (name && qty) items.push({ name: name, qty: qty });
+      }
       return {
         id:             String(r[0] || '').trim(),
         date:           r[1] instanceof Date
@@ -243,11 +276,8 @@ function apsnaut_getCheckouts() {
         fullName:       String(r[2] || '').trim(),
         personalNumber: String(r[3] || '').trim(),
         unit:           String(r[4] || '').trim(),
-        itemName:       String(r[5] || '').trim(),
-        itemUnit:       String(r[6] || '').trim(),
-        qty:            Number(r[7]) || 0,
-        notes:          String(r[8] || '').trim(),
-        by:             String(r[9] || '').trim()
+        by:             String(r[5] || '').trim(),
+        items:          items
       };
     }).reverse();
 

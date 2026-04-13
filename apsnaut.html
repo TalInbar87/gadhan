@@ -649,7 +649,12 @@ function trySetUnit(unit) {
 function fillPreviousItems(items) {
     document.getElementById('checkoutBody').innerHTML = '';
     rowCounter = 0;
-    items.forEach(item => addItemRow(item));
+    items.forEach(item => {
+        // השלם unit מרשימת הפריטים הראשית
+        const master = apsnautItems.find(a => a.name === item.name);
+        if (master) item.unit = master.unit || '';
+        addItemRow(item);
+    });
     if (!items.length) addItemRow();
 }
 
@@ -1005,16 +1010,11 @@ function renderHistory() {
         wrap.innerHTML = '<div style="color:#555;padding:20px;text-align:center;">אין נתונים</div>';
         return;
     }
-    const grouped = {};
-    historyFiltered.forEach(r => {
-        if (!grouped[r.id]) grouped[r.id] = { ...r, items: [] };
-        grouped[r.id].items.push({ name: r.itemName, unit: r.itemUnit, qty: r.qty, notes: r.notes });
-    });
-    let html = '<table class="history-table"><thead><tr><th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>פלוגה</th><th>פריטים</th><th>על ידי</th></tr></thead><tbody>';
-    Object.values(grouped).forEach(g => {
-        const itemsList = g.items.map(i =>
-            `<div style="margin-bottom:3px;">${i.name}${i.unit ? ' (' + i.unit + ')' : ''} × <strong>${i.qty}</strong>${i.notes ? ' — ' + i.notes : ''}</div>`
-        ).join('');
+    let html = '<table class="history-table"><thead><tr><th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>מסגרת</th><th>פריטים</th><th>על ידי</th></tr></thead><tbody>';
+    historyFiltered.forEach(g => {
+        const itemsList = (g.items || []).map(i =>
+            `<div style="margin-bottom:3px;">${i.name} × <strong>${i.qty}</strong></div>`
+        ).join('') || '<span style="color:#555">—</span>';
         html += `<tr><td style="white-space:nowrap">${g.date}</td><td>${g.fullName}</td><td>${g.personalNumber}</td><td>${g.unit}</td><td>${itemsList}</td><td style="color:#666;font-size:0.82em;">${g.by||''}</td></tr>`;
     });
     wrap.innerHTML = html + '</tbody></table>';
@@ -1022,13 +1022,18 @@ function renderHistory() {
 
 function exportHistoryCSV() {
     if (!historyFiltered.length) { alert('אין נתונים'); return; }
-    const h = ['מזהה','תאריך','שם מלא','מספר אישי','פלוגה','פריט','יח"מ','כמות','הערות','על ידי'];
-    const rows = [h.join(','), ...historyFiltered.map(r =>
-        [r.id,r.date,r.fullName,r.personalNumber,r.unit,r.itemName,r.itemUnit,r.qty,r.notes,r.by]
-        .map(v => '"' + String(v??'').replace(/"/g,'""') + '"').join(',')
+    const h = ['מזהה','תאריך','שם מלא','מספר אישי','מסגרת','פריט','כמות','על ידי'];
+    const flatRows = [];
+    historyFiltered.forEach(r => {
+        (r.items || []).forEach(item => {
+            flatRows.push([r.id, r.date, r.fullName, r.personalNumber, r.unit, item.name, item.qty, r.by]);
+        });
+    });
+    const csvRows = [h.join(','), ...flatRows.map(row =>
+        row.map(v => '"' + String(v??'').replace(/"/g,'""') + '"').join(',')
     )];
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8' }));
+    a.href = URL.createObjectURL(new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8' }));
     a.download = 'אפסנאות_' + (document.getElementById('historyFilter').value||'הכל') + '_' + new Date().toLocaleDateString('he-IL') + '.csv';
     a.click();
 }
