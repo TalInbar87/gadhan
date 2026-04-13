@@ -692,6 +692,10 @@
             <div class="card" style="margin-top:16px;">
                 <h2>📊 סיכום שצ״ל לפי מסגרת</h2>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
+                    <button onclick="loadShatsalSummary()"
+                            style="padding:5px 14px;border:1px solid #555;border-radius:6px;background:#2a2a2a;color:#facc15;cursor:pointer;font-size:13px;font-weight:600;">
+                        📥 טען
+                    </button>
                     <select id="shatsalFilterUnit" onchange="filterShatsalTable()"
                             style="padding:5px 10px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#fff;font-size:13px;">
                         <option value="">כל המסגרות</option>
@@ -1296,8 +1300,10 @@
         let shatsalRemaining = {}; // itemKey → remaining qty for selected unit
 
         function resetShatsalTab() {
-            shatsalValues    = {};
-            shatsalRemaining = {};
+            shatsalValues        = {};
+            shatsalRemaining     = {};
+            shatsalSummaryLoaded = false;
+            document.getElementById('shatsalSummaryTable').innerHTML = '';
             document.getElementById('shatsalUnit').value        = '';
             document.getElementById('shatsalResponsible').value = '';
             const s = document.getElementById('shatsalSearch');
@@ -1403,8 +1409,9 @@
             } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
         }
 
-        let shatsalAllRows    = [];
-        let shatsalSummaryData = null; // totals from schema for battalion view
+        let shatsalAllRows     = [];
+        let shatsalSummaryData  = null;  // totals from schema for battalion view
+        let shatsalSummaryLoaded = false; // האם הסיכום נטען בדרישה
 
         async function loadShatsalHistory() {
             const [histJson, summJson] = await Promise.all([
@@ -1413,7 +1420,7 @@
             ]);
             if (histJson.statusCode === 200 && histJson.data) {
                 shatsalAllRows = histJson.data;
-                filterShatsalTable();
+                if (shatsalSummaryLoaded) filterShatsalTable(); // רק אם כבר נטען בדרישה
             }
             if (summJson.statusCode === 200 && summJson.data) {
                 shatsalSummaryData = summJson.data;
@@ -1532,7 +1539,13 @@
             renderBattalionShatsal();
         }
 
+        function loadShatsalSummary() {
+            shatsalSummaryLoaded = true;
+            filterShatsalTable();
+        }
+
         function filterShatsalTable() {
+            if (!shatsalSummaryLoaded) return; // טרם נטען בדרישה
             const unitFilter = document.getElementById('shatsalFilterUnit')?.value || '';
             const dateInput  = document.getElementById('shatsalFilterDate')?.value || ''; // YYYY-MM-DD
 
