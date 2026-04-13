@@ -13,7 +13,7 @@
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             min-height: 100vh; padding: 20px; color: #fff;
         }
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 920px; margin: 0 auto; }
 
         /* ── Header ── */
         header {
@@ -23,25 +23,21 @@
         }
         header h1 { color: #fff; font-size: 2em; font-weight: bold; margin-bottom: 5px; }
         header .subtitle { color: rgba(255,255,255,0.82); font-size: 1em; }
-
         .back-btn {
             position: absolute; top: 20px; left: 20px;
             background: rgba(0,0,0,0.22); color: #fff; border: none;
-            padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9em;
-            font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-            transition: background 0.2s;
+            padding: 8px 18px; border-radius: 8px; cursor: pointer;
+            font-size: 0.9em; font-weight: 600; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
         }
         .back-btn:hover { background: rgba(0,0,0,0.38); }
 
         /* ── Tabs ── */
-        .tabs {
-            display: flex; gap: 8px; margin-bottom: 24px;
-            border-bottom: 2px solid #4a8f4a;
-        }
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #4a8f4a; }
         .tab-btn {
             padding: 10px 28px; border: none; border-radius: 10px 10px 0 0;
-            cursor: pointer; font-size: 1em; font-weight: 700; transition: all 0.2s;
-            background: #2d2d2d; color: #888;
+            cursor: pointer; font-size: 1em; font-weight: 700;
+            background: #2d2d2d; color: #888; transition: all 0.2s;
         }
         .tab-btn.active { background: #4a8f4a; color: #fff; }
         .tab-btn:hover:not(.active) { background: #3a3a3a; color: #ddd; }
@@ -65,9 +61,8 @@
             transition: border-color 0.2s; width: 100%;
         }
         input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: #4a8f4a; }
-        input[readonly] { color: #777; background: #141414; }
+        input[readonly] { color: #666; background: #141414; }
         select option { background: #1a1a1a; }
-
         .checkbox-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 16px; }
         .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a8f4a; cursor: pointer; }
         .checkbox-row label { color: #ccc; font-size: 0.9em; cursor: pointer; }
@@ -76,81 +71,98 @@
         .btn {
             padding: 10px 22px; border: none; border-radius: 9px; cursor: pointer;
             font-size: 0.95em; font-weight: 700; transition: all 0.2s;
-            display: inline-flex; align-items: center; gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
         }
-        .btn-primary  { background: #4a8f4a; color: #fff; }
-        .btn-primary:hover  { background: #5ba75b; }
+        .btn-primary   { background: #4a8f4a; color: #fff; }
+        .btn-primary:hover   { background: #5ba75b; }
         .btn-secondary { background: #3a3a3a; color: #ccc; border: 1px solid #555; }
         .btn-secondary:hover { background: #444; color: #fff; }
-        .btn-danger   { background: #7a1c1c; color: #fff; }
-        .btn-danger:hover   { background: #9a2525; }
+        .btn-danger    { background: #7a1c1c; color: #fff; }
+        .btn-danger:hover    { background: #9a2525; }
         .btn-lg  { padding: 14px 30px; font-size: 1.05em; width: 100%; justify-content: center; }
         .btn-sm  { padding: 6px 14px; font-size: 0.85em; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ── PN section ── */
-        .pn-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-        .pn-row .form-group { flex: 0; min-width: 160px; }
-        .pn-status { margin-top: 8px; font-size: 0.88em; font-weight: 600; }
-        .pn-status.found { color: #6abf6a; }
-        .pn-status.notfound { color: #60a5fa; }
-        .pn-status.loading { color: #888; }
-
         /* ── Section divider ── */
         .section-divider {
-            color: #6abf6a; font-size: 0.9em; font-weight: 700;
+            color: #6abf6a; font-size: 0.88em; font-weight: 700; letter-spacing: 0.04em;
             margin: 22px 0 14px; border-top: 1px solid #333; padding-top: 18px;
-            text-transform: uppercase; letter-spacing: 0.04em;
         }
 
-        /* ── Checkout items table ── */
-        .items-table-wrap { overflow-x: auto; margin-bottom: 14px; }
-        table.checkout-table {
-            width: 100%; border-collapse: collapse;
-            background: #1e1e1e; border-radius: 10px; overflow: hidden;
-        }
-        .checkout-table th {
-            background: #2d5a2d; color: #fff; padding: 10px 12px;
-            text-align: right; font-size: 0.88em; font-weight: 700;
-        }
-        .checkout-table td { padding: 7px 8px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
-        .checkout-table tbody tr:last-child td { border-bottom: none; }
-        .checkout-table .col-item  { min-width: 200px; }
-        .checkout-table .col-unit  { width: 90px; }
-        .checkout-table .col-qty   { width: 80px; }
-        .checkout-table .col-notes { min-width: 140px; }
-        .checkout-table .col-del   { width: 42px; text-align: center; }
+        /* ── PN / Name search ── */
+        .lookup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+        @media (max-width: 560px) { .lookup-grid { grid-template-columns: 1fr; } }
 
-        /* ── Autocomplete ── */
+        .pn-row { display: flex; gap: 10px; align-items: flex-end; }
+        .pn-row input { flex: 1; }
+
+        .pn-status { margin-top: 8px; font-size: 0.88em; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
+        .pn-status.found    { background: #1a3a1a; color: #6abf6a; }
+        .pn-status.notfound { background: #1a2a3a; color: #60a5fa; }
+        .pn-status.loading  { color: #888; background: #222; }
+        .pn-status.error    { background: #3a1a1a; color: #f87171; }
+
+        /* ── Generic autocomplete (shared by name search AND item rows) ── */
         .ac-wrap { position: relative; }
         .ac-input {
             background: #1a1a1a; border: 2px solid #444; border-radius: 8px;
-            color: #fff; padding: 8px 12px; font-size: 0.9em; outline: none;
+            color: #fff; padding: 10px 14px; font-size: 0.95em; outline: none;
             width: 100%; transition: border-color 0.2s;
         }
         .ac-input:focus { border-color: #4a8f4a; }
+        .ac-input.invalid { border-color: #f87171 !important; }
+
+        /* Dropdown — rendered as fixed to escape any overflow:hidden parent */
         .ac-dropdown {
-            position: absolute; top: calc(100% + 2px); right: 0; left: 0;
-            background: #242424; border: 1px solid #4a8f4a; border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.5); z-index: 100;
-            max-height: 220px; overflow-y: auto; display: none;
+            position: fixed; z-index: 9999;
+            background: #1e2a1e; border: 1px solid #4a8f4a; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+            max-height: 240px; overflow-y: auto;
+            display: none;
         }
         .ac-dropdown.open { display: block; }
         .ac-item {
             padding: 9px 14px; cursor: pointer; font-size: 0.9em;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #2e2e2e; transition: background 0.15s;
+            border-bottom: 1px solid #2a3a2a; transition: background 0.12s; color: #ddd;
         }
         .ac-item:last-child { border-bottom: none; }
-        .ac-item:hover { background: #2d5a2d; }
-        .ac-item.selected { background: #1e3a1e; }
-        .ac-unit-tag { color: #888; font-size: 0.82em; }
-        .ac-empty { padding: 10px 14px; color: #555; font-size: 0.88em; }
+        .ac-item:hover, .ac-item:focus { background: #2d5a2d; color: #fff; }
+        .ac-tag { color: #777; font-size: 0.82em; margin-right: 8px; }
+        .ac-empty { padding: 10px 14px; color: #555; font-size: 0.88em; font-style: italic; }
+
+        /* Item input inside table (smaller padding) */
+        .item-ac-input {
+            background: #1a1a1a; border: 2px solid #444; border-radius: 6px;
+            color: #fff; padding: 7px 10px; font-size: 0.9em; outline: none;
+            width: 100%; transition: border-color 0.2s;
+        }
+        .item-ac-input:focus { border-color: #4a8f4a; }
+        .item-ac-input.invalid { border-color: #f87171 !important; }
+
+        /* ── Items table ── */
+        .items-table-wrap { overflow-x: auto; margin-bottom: 14px; }
+        table.checkout-table {
+            width: 100%; border-collapse: collapse; background: #1e1e1e;
+        }
+        .checkout-table th {
+            background: #2d5a2d; color: #fff; padding: 10px 12px;
+            text-align: right; font-size: 0.88em; font-weight: 700;
+        }
+        .checkout-table th:first-child { border-radius: 8px 0 0 0; }
+        .checkout-table th:last-child  { border-radius: 0 8px 0 0; }
+        .checkout-table td { padding: 7px 8px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+        .checkout-table tbody tr:last-child td { border-bottom: none; }
+        .checkout-table .col-item  { min-width: 200px; }
+        .checkout-table .col-unit  { width: 88px; }
+        .checkout-table .col-qty   { width: 76px; }
+        .checkout-table .col-notes { min-width: 130px; }
+        .checkout-table .col-del   { width: 40px; text-align: center; }
 
         /* ── Signature ── */
         .sig-wrap {
             border: 2px solid #444; border-radius: 10px; overflow: hidden;
-            background: #fff; touch-action: none; user-select: none;
+            background: #fff; touch-action: none; user-select: none; max-width: 620px;
         }
         .sig-wrap canvas { display: block; width: 100%; }
 
@@ -165,13 +177,7 @@
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table th { background: #2d5a2d; color: #fff; padding: 10px 12px; text-align: right; font-size: 0.85em; }
         .history-table td { padding: 9px 12px; border-bottom: 1px solid #2e2e2e; font-size: 0.88em; color: #ddd; vertical-align: top; }
-        .history-table tr:hover td { background: #2a2a2a; }
-
-        @media (max-width: 600px) {
-            header h1 { font-size: 1.5em; }
-            .tab-btn { padding: 8px 16px; font-size: 0.9em; }
-            .pn-row .form-group { flex: 1; }
-        }
+        .history-table tr:hover td { background: #282828; }
     </style>
 </head>
 <body>
@@ -187,10 +193,10 @@
         <button class="tab-btn"        onclick="switchTab('history',  this)">📜 היסטוריה</button>
     </div>
 
-    <!-- ══════════════════════════ Tab: Checkout ══════════════════════════ -->
+    <!-- ════════════ Tab: Checkout ════════════ -->
     <div id="tab-checkout" class="tab-panel active">
 
-        <!-- Add Item card (collapsible) -->
+        <!-- Add Item (collapsible) -->
         <div class="card">
             <h2 class="collapsible" onclick="toggleAddItem()">
                 ➕ הוספת פריט חדש
@@ -200,7 +206,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>שם הפריט *</label>
-                        <input type="text" id="newItemName" placeholder='דוגמה: חגורת קרב, גרב נגד פצצות...'>
+                        <input type="text" id="newItemName" placeholder="שם הפריט...">
                     </div>
                     <div class="form-group" style="max-width:180px;">
                         <label>יחידת מידה</label>
@@ -216,51 +222,65 @@
             </div>
         </div>
 
-        <!-- Main checkout card -->
+        <!-- Checkout Form -->
         <div class="card">
             <h2>📋 טופס החתמה</h2>
 
             <!-- ── 1. Personal details (top) ── -->
-            <div style="margin-bottom:6px;">
-
-                <!-- PN lookup row -->
-                <div class="pn-row" style="margin-bottom:10px;">
-                    <div class="form-group" style="flex:0;min-width:180px;">
-                        <label>מספר אישי *</label>
-                        <input type="text" id="personalNumber" placeholder="7 ספרות" maxlength="8"
-                               onkeydown="if(event.key==='Enter'){checkPN();}">
-                    </div>
-                    <div style="align-self:flex-end;">
-                        <button class="btn btn-secondary" id="pnCheckBtn" onclick="checkPN()">בדוק</button>
+            <div class="lookup-grid">
+                <!-- Name search -->
+                <div class="form-group">
+                    <label>חיפוש לפי שם</label>
+                    <div class="ac-wrap">
+                        <input type="text" id="nameSearch" class="ac-input"
+                               placeholder="הקלד שם לחיפוש..."
+                               autocomplete="off"
+                               oninput="nameSearchFilter()"
+                               onfocus="nameSearchOpen()"
+                               onblur="nameSearchBlur()"
+                               onkeydown="nameSearchKeydown(event)">
+                        <div id="nameSearchDrop" class="ac-dropdown"></div>
                     </div>
                 </div>
-                <div id="pnStatus" class="pn-status hidden"></div>
 
-                <div class="form-row" style="margin-top:12px;">
-                    <div class="form-group">
-                        <label>שם מלא *</label>
-                        <input type="text" id="fullName" placeholder="שם מלא">
-                    </div>
-                    <div class="form-group" style="max-width:200px;">
-                        <label>פלוגה *</label>
-                        <select id="unitSelect">
-                            <option value="">בחר פלוגה</option>
-                            <option>פלוגה א</option>
-                            <option>פלוגה ב</option>
-                            <option>פלוגה ג</option>
-                            <option>צמה</option>
-                            <option>ניוד</option>
-                            <option>מחסר</option>
-                            <option>חפק</option>
-                        </select>
+                <!-- PN + check button -->
+                <div class="form-group">
+                    <label>מספר אישי *</label>
+                    <div class="pn-row">
+                        <input type="text" id="personalNumber" placeholder="מ&quot;א"
+                               maxlength="8"
+                               onkeydown="if(event.key==='Enter'){checkPN();}">
+                        <button class="btn btn-secondary" id="pnCheckBtn" onclick="checkPN()">בדוק</button>
                     </div>
                 </div>
             </div>
 
-            <!-- ── 2. Items table ── -->
+            <!-- Status + filled fields -->
+            <div id="pnStatus" class="pn-status hidden"></div>
+            <div class="form-row" style="margin-top:12px;">
+                <div class="form-group">
+                    <label>שם מלא *</label>
+                    <input type="text" id="fullName" placeholder="שם מלא">
+                </div>
+                <div class="form-group" style="max-width:200px;">
+                    <label>פלוגה *</label>
+                    <select id="unitSelect">
+                        <option value="">בחר פלוגה</option>
+                        <option>פלוגה א</option>
+                        <option>פלוגה ב</option>
+                        <option>פלוגה ג</option>
+                        <option>צמה</option>
+                        <option>ניוד</option>
+                        <option>מחסר</option>
+                        <option>חפק</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ── 2. Items ── -->
             <div class="section-divider">📦 פריטים לקבלה</div>
             <div class="items-table-wrap">
-                <table class="checkout-table" id="checkoutTable">
+                <table class="checkout-table">
                     <thead>
                         <tr>
                             <th class="col-item">פריט</th>
@@ -280,7 +300,7 @@
 
             <!-- ── 3. Signature ── -->
             <div class="section-divider">✍️ חתימה</div>
-            <div class="sig-wrap" style="max-width:620px;">
+            <div class="sig-wrap">
                 <canvas id="signatureCanvas" width="600" height="180"></canvas>
             </div>
             <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
@@ -299,7 +319,7 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════ Tab: History ══════════════════════════ -->
+    <!-- ════════════ Tab: History ════════════ -->
     <div id="tab-history" class="tab-panel">
         <div class="card">
             <h2>📜 היסטוריית חתימות</h2>
@@ -308,49 +328,49 @@
                     <label>סנן לפי פלוגה</label>
                     <select id="historyFilter" onchange="filterHistory()">
                         <option value="">כל הפלוגות</option>
-                        <option>פלוגה א</option>
-                        <option>פלוגה ב</option>
-                        <option>פלוגה ג</option>
-                        <option>צמה</option>
-                        <option>ניוד</option>
-                        <option>מחסר</option>
-                        <option>חפק</option>
+                        <option>פלוגה א</option><option>פלוגה ב</option><option>פלוגה ג</option>
+                        <option>צמה</option><option>ניוד</option><option>מחסר</option><option>חפק</option>
                     </select>
                 </div>
-                <div>
-                    <button class="btn btn-secondary" onclick="exportHistoryCSV()">📥 ייצוא CSV</button>
-                </div>
+                <div><button class="btn btn-secondary" onclick="exportHistoryCSV()">📥 ייצוא CSV</button></div>
             </div>
             <div id="historyMsg" class="msg msg-info hidden"></div>
             <div id="historyTableWrap" style="overflow-x:auto;"></div>
         </div>
     </div>
+</div>
 
-</div><!-- /container -->
+<!-- Global dropdown (outside table, avoids overflow clipping) -->
+<div id="globalDrop" class="ac-dropdown" style="min-width:200px;"></div>
 
 <script src="config.js"></script>
 <script src="auth-client.js"></script>
 <script>
 // ============================================================
-// Auth
+// State
 // ============================================================
 const authClient = new SecureAuthClient(API_URL);
 const authGuard  = new AuthGuard(authClient);
 
-let apsnautItems    = [];
+let apsnautItems    = [];   // [{name, unit, important}]
+let soldiersList    = [];   // [{pn, name, unit}] from weapons sheet
 let historyRows     = [];
 let historyFiltered = [];
 let historyLoaded   = false;
 let sigHasMark      = false;
-let sigCtx;
-let sigDrawing      = false;
+let sigCtx, sigDrawing = false;
+
+// Active autocomplete state (item rows)
+let activeRowId     = null;  // currently open item row dropdown
 
 window.addEventListener('DOMContentLoaded', async () => {
     const ok = await authGuard.checkAuth();
     if (!ok) return;
-    await loadItems();
+    await Promise.all([ loadItems(), loadSoldiers() ]);
     addItemRow();
     initSignature();
+    // Close any open dropdown on outside click
+    document.addEventListener('mousedown', onGlobalMousedown);
 });
 
 // ============================================================
@@ -387,16 +407,20 @@ function switchTab(name, btn) {
 }
 
 // ============================================================
-// Items loading
+// Load items + soldiers
 // ============================================================
 async function loadItems() {
     try {
         const json = await apiPost('apsnaut_get_items', {});
-        if (json.statusCode === 200) {
-            apsnautItems = json.data || [];
-            refreshAllAutocompletes();
-        }
+        if (json.statusCode === 200) apsnautItems = json.data || [];
     } catch(e) { console.error('loadItems:', e); }
+}
+
+async function loadSoldiers() {
+    try {
+        const json = await apiPost('weapons_search_soldiers', {});
+        if (json.statusCode === 200) soldiersList = json.data || [];
+    } catch(e) { console.error('loadSoldiers:', e); }
 }
 
 // ============================================================
@@ -413,10 +437,8 @@ async function addItem() {
     const name      = document.getElementById('newItemName').value.trim();
     const unit      = document.getElementById('newItemUnit').value.trim();
     const important = document.getElementById('newItemImportant').checked;
-
     if (!name) { showMsg('addItemMsg', 'יש להזין שם פריט', 'error'); return; }
     hideMsg('addItemMsg');
-
     try {
         const json = await apiPost('apsnaut_add_item', { name, unit, important });
         if (json.statusCode === 200) {
@@ -428,14 +450,84 @@ async function addItem() {
         } else {
             showMsg('addItemMsg', '❌ ' + json.message, 'error');
         }
-    } catch(e) { showMsg('addItemMsg', '❌ שגיאת רשת: ' + e.message, 'error'); }
+    } catch(e) { showMsg('addItemMsg', '❌ ' + e.message, 'error'); }
 }
 
 // ============================================================
-// Personal Number Lookup (JSONP → weapons sheet)
+// Name search autocomplete
 // ============================================================
-function checkPN() {
-    const pn = document.getElementById('personalNumber').value.trim();
+let nameSearchActive = false;
+let nameSearchIdx    = -1;
+let nameMatches      = [];
+
+function nameSearchFilter() {
+    const val = document.getElementById('nameSearch').value.trim();
+    if (!val) { nameMatches = soldiersList.slice(0, 40); }
+    else {
+        const lv = val.toLowerCase();
+        nameMatches = soldiersList.filter(s => s.name.includes(val) || s.name.toLowerCase().includes(lv)).slice(0, 40);
+    }
+    renderNameDropdown();
+    positionDrop('nameSearch', 'nameSearchDrop');
+    document.getElementById('nameSearchDrop').classList.add('open');
+    nameSearchActive = true;
+    nameSearchIdx    = -1;
+}
+
+function nameSearchOpen() {
+    nameSearchFilter();
+}
+
+function nameSearchBlur() {
+    setTimeout(() => {
+        document.getElementById('nameSearchDrop').classList.remove('open');
+        nameSearchActive = false;
+    }, 180);
+}
+
+function nameSearchKeydown(e) {
+    const items = document.querySelectorAll('#nameSearchDrop .ac-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); nameSearchIdx = Math.min(nameSearchIdx + 1, items.length - 1); highlightNameItem(items); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); nameSearchIdx = Math.max(nameSearchIdx - 1, 0); highlightNameItem(items); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (nameSearchIdx >= 0 && items[nameSearchIdx]) items[nameSearchIdx].dispatchEvent(new Event('mousedown')); }
+    else if (e.key === 'Escape') { document.getElementById('nameSearchDrop').classList.remove('open'); }
+}
+
+function highlightNameItem(items) {
+    items.forEach((el, i) => el.style.background = i === nameSearchIdx ? '#2d5a2d' : '');
+    if (items[nameSearchIdx]) items[nameSearchIdx].scrollIntoView({ block: 'nearest' });
+}
+
+function renderNameDropdown() {
+    const drop = document.getElementById('nameSearchDrop');
+    if (!nameMatches.length) {
+        drop.innerHTML = '<div class="ac-empty">לא נמצאו חיילים</div>';
+        return;
+    }
+    drop.innerHTML = nameMatches.map((s, i) =>
+        `<div class="ac-item" data-pn="${escHtml(s.pn)}" data-name="${escHtml(s.name)}" data-unit="${escHtml(s.unit)}"
+              onmousedown="selectSoldier(event)">
+            <span>${escHtml(s.name)}</span>
+            <span class="ac-tag">${escHtml(s.unit)}</span>
+        </div>`
+    ).join('');
+}
+
+function selectSoldier(event) {
+    event.preventDefault();
+    const el = event.currentTarget;
+    document.getElementById('nameSearch').value     = el.dataset.name;
+    document.getElementById('personalNumber').value = el.dataset.pn;
+    document.getElementById('nameSearchDrop').classList.remove('open');
+    // Trigger full PN lookup (fills name/unit + previous items)
+    checkPN();
+}
+
+// ============================================================
+// Personal Number Lookup (JSONP) + previous items
+// ============================================================
+async function checkPN() {
+    const pn     = document.getElementById('personalNumber').value.trim();
     if (!pn) return;
 
     const btn    = document.getElementById('pnCheckBtn');
@@ -446,180 +538,266 @@ function checkPN() {
     status.textContent = 'מחפש...';
     status.classList.remove('hidden');
 
-    // Clean up old script
+    // JSONP for name/unit (weapons sheet)
     const old = document.getElementById('_apsnaut_pn_script');
     if (old) old.remove();
-
     const cbName = '_apsnautPNCallback';
-    window[cbName] = function(result) {
-        btn.disabled = false;
-        btn.textContent = 'בדוק';
-        const old2 = document.getElementById('_apsnaut_pn_script');
-        if (old2) old2.remove();
 
-        if (result && result.exists && result.data) {
-            document.getElementById('fullName').value = result.data.fullName || '';
-            const u = document.getElementById('unitSelect');
-            if (result.data.unit) {
-                u.value = result.data.unit;
-                // Try to match known option values
-                if (!u.value) u.value = '';
-            }
-            status.className  = 'pn-status found';
-            status.textContent = '✅ נמצא: ' + (result.data.fullName || pn);
-        } else {
-            status.className  = 'pn-status notfound';
-            status.textContent = '➕ חייל לא נמצא במערכת — מלא ידנית';
-        }
-    };
+    const pnPromise = new Promise(resolve => {
+        window[cbName] = function(result) {
+            document.getElementById('_apsnaut_pn_script')?.remove();
+            resolve(result);
+        };
+        const script = document.createElement('script');
+        script.id    = '_apsnaut_pn_script';
+        script.onerror = () => resolve(null);
+        script.src = API_URL + '?action=checkPersonalNumber&personalNumber='
+                     + encodeURIComponent(pn) + '&formType=weapons&callback=' + cbName;
+        document.head.appendChild(script);
+    });
 
-    const script = document.createElement('script');
-    script.id  = '_apsnaut_pn_script';
-    script.onerror = () => {
-        btn.disabled = false;
-        btn.textContent = 'בדוק';
+    // Parallel: fetch previous checkout items
+    const itemsPromise = apiPost('apsnaut_get_soldier_items', { personalNumber: pn }).catch(() => null);
+
+    const [pnResult, itemsJson] = await Promise.all([pnPromise, itemsPromise]);
+
+    btn.disabled = false;
+    btn.textContent = 'בדוק';
+
+    // Fill name / unit
+    if (pnResult && pnResult.exists && pnResult.data) {
+        document.getElementById('fullName').value = pnResult.data.fullName || '';
+        trySetUnit(pnResult.data.unit || '');
+        status.className  = 'pn-status found';
+        status.textContent = '✅ נמצא: ' + (pnResult.data.fullName || pn);
+    } else {
         status.className  = 'pn-status notfound';
-        status.textContent = '⚠️ שגיאה בחיפוש — מלא ידנית';
-    };
-    script.src = API_URL + '?action=checkPersonalNumber&personalNumber='
-                 + encodeURIComponent(pn) + '&formType=weapons&callback=' + cbName;
-    document.head.appendChild(script);
+        status.textContent = '➕ חייל לא נמצא במערכת — מלא ידנית';
+    }
+
+    // Pre-fill previous items if found
+    if (itemsJson && itemsJson.statusCode === 200 && itemsJson.data && itemsJson.data.length) {
+        fillPreviousItems(itemsJson.data);
+        status.textContent += ' | 📦 ' + itemsJson.data.length + ' פריטים קודמים נטענו';
+    }
+}
+
+function trySetUnit(unit) {
+    const sel = document.getElementById('unitSelect');
+    sel.value = unit;
+    if (!sel.value && unit) {
+        // Try to find partial match
+        Array.from(sel.options).forEach(opt => {
+            if (opt.value && unit.includes(opt.value.replace('פלוגה ', ''))) sel.value = opt.value;
+        });
+    }
+}
+
+function fillPreviousItems(items) {
+    document.getElementById('checkoutBody').innerHTML = '';
+    rowCounter = 0;
+    items.forEach(item => addItemRow(item));
+    if (!items.length) addItemRow();
 }
 
 // ============================================================
-// Checkout Table (with autocomplete)
+// Checkout Table + item autocomplete
 // ============================================================
 let rowCounter = 0;
 
-function addItemRow() {
+function addItemRow(prefill) {
     const id = ++rowCounter;
     const tr = document.createElement('tr');
     tr.id = 'row-' + id;
     tr.innerHTML = `
         <td class="col-item">
             <div class="ac-wrap">
-                <input type="text" class="ac-input item-input"
+                <input type="text" id="item-inp-${id}" class="item-ac-input"
                        placeholder="הקלד לחיפוש..."
                        autocomplete="off"
-                       oninput="acFilter(${id})"
-                       onfocus="acOpen(${id})"
-                       onblur="acBlurDelay(${id})">
-                <div class="ac-dropdown" id="ac-drop-${id}"></div>
+                       oninput="itemAcFilter(${id})"
+                       onfocus="itemAcOpen(${id})"
+                       onblur="itemAcBlur(${id})"
+                       onkeydown="itemAcKeydown(event,${id})">
             </div>
-            <input type="hidden" class="item-name-val">
         </td>
         <td class="col-unit">
-            <input type="text" class="item-unit" readonly placeholder='יח"מ'>
+            <input type="text" id="item-unit-${id}" class="item-unit" readonly>
         </td>
         <td class="col-qty">
-            <input type="number" class="item-qty" min="1" value="1">
+            <input type="number" id="item-qty-${id}" min="1" value="1">
         </td>
         <td class="col-notes">
-            <input type="text" class="item-notes" placeholder="הערות...">
+            <input type="text" id="item-notes-${id}" placeholder="הערות...">
         </td>
         <td class="col-del">
-            <button class="btn btn-danger btn-sm" onclick="removeRow(${id})" title="הסר">✕</button>
+            <button class="btn btn-danger btn-sm" onclick="removeRow(${id})">✕</button>
         </td>`;
     document.getElementById('checkoutBody').appendChild(tr);
+
+    if (prefill) {
+        document.getElementById('item-inp-'  + id).value = prefill.name  || '';
+        document.getElementById('item-unit-' + id).value = prefill.unit  || '';
+        document.getElementById('item-qty-'  + id).value = prefill.qty   || 1;
+        document.getElementById('item-notes-'+ id).value = prefill.notes || '';
+    }
     hideMsg('tableMsg');
 }
 
 function removeRow(id) {
     const el = document.getElementById('row-' + id);
     if (el) el.remove();
+    if (activeRowId === id) closeGlobalDrop();
 }
 
-// ── Autocomplete logic ──
-function acFilter(id) {
-    const row  = document.getElementById('row-' + id);
-    const inp  = row.querySelector('.ac-input');
-    const drop = document.getElementById('ac-drop-' + id);
-    const val  = inp.value.trim();
-
-    if (!val) { acRenderAll(id); return; }
-
-    const matches = apsnautItems.filter(item =>
-        item.name.includes(val) || item.name.toLowerCase().includes(val.toLowerCase())
-    );
-    renderDropdown(id, matches);
+// ── Item autocomplete ──
+function itemAcFilter(id) {
+    activeRowId = id;
+    const inp = document.getElementById('item-inp-' + id);
+    const val = inp.value.trim();
+    const matches = val
+        ? apsnautItems.filter(item => item.name.includes(val) || item.name.toLowerCase().includes(val.toLowerCase()))
+        : apsnautItems;
+    renderGlobalDrop(id, matches);
 }
 
-function acOpen(id) {
-    const row  = document.getElementById('row-' + id);
-    const inp  = row.querySelector('.ac-input');
-    const val  = inp.value.trim();
-    if (val) acFilter(id);
-    else     acRenderAll(id);
+function itemAcOpen(id) {
+    activeRowId = id;
+    renderGlobalDrop(id, apsnautItems);
 }
 
-function acRenderAll(id) {
-    renderDropdown(id, apsnautItems);
+function itemAcBlur(id) {
+    setTimeout(() => {
+        if (activeRowId === id) closeGlobalDrop();
+        // Validate: only existing items allowed
+        const inp = document.getElementById('item-inp-' + id);
+        if (!inp) return;
+        const val = inp.value.trim();
+        if (!val) return;
+        const found = apsnautItems.find(i => i.name === val);
+        if (!found) {
+            inp.classList.add('invalid');
+            inp.value = '';
+            inp.placeholder = '⚠️ פריט לא קיים — בחר מהרשימה';
+            setTimeout(() => { inp.classList.remove('invalid'); inp.placeholder = 'הקלד לחיפוש...'; }, 2500);
+            const unitEl = document.getElementById('item-unit-' + id);
+            if (unitEl) unitEl.value = '';
+        }
+    }, 160);
 }
 
-function renderDropdown(id, items) {
-    const drop = document.getElementById('ac-drop-' + id);
+function itemAcKeydown(e, id) {
+    const drop  = document.getElementById('globalDrop');
+    const items = drop.querySelectorAll('.ac-item');
+    const cur   = Array.from(items).findIndex(el => el.classList.contains('ac-hover'));
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(cur + 1, items.length - 1);
+        items.forEach((el, i) => el.classList.toggle('ac-hover', i === next));
+        items[next]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(cur - 1, 0);
+        items.forEach((el, i) => el.classList.toggle('ac-hover', i === prev));
+        items[prev]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const hovered = drop.querySelector('.ac-item.ac-hover') || drop.querySelector('.ac-item');
+        if (hovered) selectItem(hovered, id);
+    } else if (e.key === 'Escape') {
+        closeGlobalDrop();
+    } else if (e.key === 'Tab') {
+        closeGlobalDrop();
+    }
+}
+
+function renderGlobalDrop(id, items) {
+    const inp  = document.getElementById('item-inp-' + id);
+    const drop = document.getElementById('globalDrop');
+
     if (!items.length) {
         drop.innerHTML = '<div class="ac-empty">אין פריטים תואמים</div>';
-        drop.classList.add('open');
-        return;
+    } else {
+        drop.innerHTML = items.map(item =>
+            `<div class="ac-item" data-name="${escHtml(item.name)}" data-unit="${escHtml(item.unit||'')}"
+                  onmousedown="selectItemById(event, ${id})">
+                <span>${item.important ? '⚠️ ' : ''}${escHtml(item.name)}</span>
+                ${item.unit ? `<span class="ac-tag">${escHtml(item.unit)}</span>` : ''}
+             </div>`
+        ).join('');
     }
-    drop.innerHTML = items.map(item =>
-        `<div class="ac-item"
-              data-name="${escHtml(item.name)}"
-              data-unit="${escHtml(item.unit || '')}"
-              onmousedown="acSelect(event, ${id})">
-            <span>${item.important ? '⚠️ ' : ''}${escHtml(item.name)}</span>
-            ${item.unit ? `<span class="ac-unit-tag">${escHtml(item.unit)}</span>` : ''}
-         </div>`
-    ).join('');
+
+    positionDrop('item-inp-' + id, 'globalDrop');
     drop.classList.add('open');
 }
 
-function acSelect(event, id) {
+function selectItemById(event, id) {
     event.preventDefault();
-    const el   = event.currentTarget;
-    const row  = document.getElementById('row-' + id);
-    const inp  = row.querySelector('.ac-input');
-    const nameHidden = row.querySelector('.item-name-val');
-    const unitEl = row.querySelector('.item-unit');
-
-    inp.value       = el.getAttribute('data-name');
-    nameHidden.value = el.getAttribute('data-name');
-    unitEl.value    = el.getAttribute('data-unit');
-
-    document.getElementById('ac-drop-' + id).classList.remove('open');
+    selectItem(event.currentTarget, id);
 }
 
-function acBlurDelay(id) {
-    // Delay so mousedown on dropdown items fires first
-    setTimeout(() => {
-        const drop = document.getElementById('ac-drop-' + id);
-        if (drop) drop.classList.remove('open');
-    }, 180);
+function selectItem(el, id) {
+    document.getElementById('item-inp-'  + id).value = el.dataset.name;
+    document.getElementById('item-unit-' + id).value = el.dataset.unit;
+    document.getElementById('item-inp-'  + id).classList.remove('invalid');
+    closeGlobalDrop();
 }
 
-function refreshAllAutocompletes() {
-    // No persistent state per-row needed — dropdown renders dynamically on open
+function closeGlobalDrop() {
+    document.getElementById('globalDrop').classList.remove('open');
+    activeRowId = null;
 }
 
-function escHtml(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// Position a dropdown below a given input using fixed coordinates
+function positionDrop(inputId, dropId) {
+    const inp  = document.getElementById(inputId);
+    const drop = document.getElementById(dropId);
+    if (!inp || !drop) return;
+    const rect = inp.getBoundingClientRect();
+    drop.style.top   = (rect.bottom + 2) + 'px';
+    drop.style.left  = rect.left + 'px';
+    drop.style.width = Math.max(rect.width, 220) + 'px';
 }
 
-// ── Collect items from table ──
+function onGlobalMousedown(e) {
+    // Close item drop if click is outside
+    const drop = document.getElementById('globalDrop');
+    if (drop && drop.classList.contains('open')) {
+        if (!drop.contains(e.target) && e.target.id !== 'globalDrop') {
+            if (!e.target.classList.contains('item-ac-input')) {
+                closeGlobalDrop();
+            }
+        }
+    }
+    // Close name search drop
+    const nsDrop = document.getElementById('nameSearchDrop');
+    const nsInp  = document.getElementById('nameSearch');
+    if (nsDrop && !nsDrop.contains(e.target) && e.target !== nsInp) {
+        nsDrop.classList.remove('open');
+    }
+}
+
+// ============================================================
+// Collect items
+// ============================================================
 function collectItems() {
     const rows  = document.querySelectorAll('#checkoutBody tr');
     const items = [];
-    let valid   = true;
+    let   valid = true;
 
     rows.forEach(row => {
-        const inp   = row.querySelector('.ac-input');
-        const name  = (inp ? inp.value : '').trim();
-        const unit  = row.querySelector('.item-unit').value.trim();
-        const qty   = Number(row.querySelector('.item-qty').value) || 0;
-        const notes = row.querySelector('.item-notes').value.trim();
+        const id    = row.id.replace('row-', '');
+        const name  = (document.getElementById('item-inp-'  + id)?.value || '').trim();
+        const unit  = (document.getElementById('item-unit-' + id)?.value || '').trim();
+        const qty   = Number(document.getElementById('item-qty-'   + id)?.value) || 0;
+        const notes = (document.getElementById('item-notes-'+ id)?.value || '').trim();
 
-        if (!name) return; // skip empty rows
+        if (!name) return;
+
+        // Enforce only existing items
+        if (!apsnautItems.find(i => i.name === name)) {
+            valid = false; return;
+        }
         if (qty <= 0) { valid = false; return; }
         items.push({ name, unit, qty, notes });
     });
@@ -628,7 +806,7 @@ function collectItems() {
 }
 
 // ============================================================
-// Signature Canvas
+// Signature
 // ============================================================
 function initSignature() {
     const canvas = document.getElementById('signatureCanvas');
@@ -636,32 +814,21 @@ function initSignature() {
     sigCtx.fillStyle = '#ffffff';
     sigCtx.fillRect(0, 0, canvas.width, canvas.height);
     sigCtx.strokeStyle = '#111';
-    sigCtx.lineWidth   = 2.5;
-    sigCtx.lineCap     = 'round';
-    sigCtx.lineJoin    = 'round';
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
 
-    const pos = (e) => {
-        const rect   = canvas.getBoundingClientRect();
-        const scaleX = canvas.width  / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const src    = e.touches ? e.touches[0] : e;
-        return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    const pos = e => {
+        const rect = canvas.getBoundingClientRect();
+        const src  = e.touches ? e.touches[0] : e;
+        return {
+            x: (src.clientX - rect.left) * (canvas.width  / rect.width),
+            y: (src.clientY - rect.top)  * (canvas.height / rect.height)
+        };
     };
-
-    const start = (e) => {
-        e.preventDefault();
-        sigDrawing = true; sigHasMark = true;
-        const p = pos(e);
-        sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y);
-        document.getElementById('sigError').classList.add('hidden');
-    };
-    const draw  = (e) => {
-        e.preventDefault();
-        if (!sigDrawing) return;
-        const p = pos(e);
-        sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
-    };
-    const stop  = (e) => { e.preventDefault(); sigDrawing = false; };
+    const start = e => { e.preventDefault(); sigDrawing = true; sigHasMark = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); document.getElementById('sigError').classList.add('hidden'); };
+    const draw  = e => { e.preventDefault(); if (!sigDrawing) return; const p = pos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+    const stop  = e => { e.preventDefault(); sigDrawing = false; };
 
     canvas.addEventListener('mousedown',  start);
     canvas.addEventListener('mousemove',  draw);
@@ -673,21 +840,25 @@ function initSignature() {
 }
 
 function clearSignature() {
-    const canvas = document.getElementById('signatureCanvas');
+    const c = document.getElementById('signatureCanvas');
     sigCtx.fillStyle = '#ffffff';
-    sigCtx.fillRect(0, 0, canvas.width, canvas.height);
+    sigCtx.fillRect(0, 0, c.width, c.height);
     sigHasMark = false;
 }
 
 // ============================================================
-// Submit Checkout
+// Submit
 // ============================================================
 async function submitCheckout() {
     hideMsg('submitMsg');
 
     const items = collectItems();
-    if (!items || !items.length) {
-        showMsg('tableMsg', 'יש לבחור לפחות פריט אחד עם כמות תקינה', 'error');
+    if (!items) {
+        showMsg('tableMsg', 'שגיאה בפריטים — ייתכן שיש פריט לא קיים במערכת או כמות לא תקינה', 'error');
+        return;
+    }
+    if (!items.length) {
+        showMsg('tableMsg', 'יש לבחור לפחות פריט אחד', 'error');
         return;
     }
 
@@ -707,19 +878,13 @@ async function submitCheckout() {
     }
 
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ שומר...';
+    btn.disabled = true; btn.textContent = '⏳ שומר...';
 
     try {
         const signature = document.getElementById('signatureCanvas').toDataURL('image/png');
-        const json = await apiPost('apsnaut_checkout', {
-            fullName, personalNumber, unit, items, signature
-        });
-
+        const json = await apiPost('apsnaut_checkout', { fullName, personalNumber, unit, items, signature });
         if (json.statusCode === 200) {
-            showMsg('submitMsg',
-                '✅ החתימה נשמרה בהצלחה! מזהה: ' + json.data.id + ' — PDF נשמר ב-Drive',
-                'success');
+            showMsg('submitMsg', '✅ נשמר! מזהה: ' + json.data.id + ' | PDF עודכן ב-Drive', 'success');
             resetForm();
         } else {
             showMsg('submitMsg', '❌ ' + json.message, 'error');
@@ -727,8 +892,7 @@ async function submitCheckout() {
     } catch(e) {
         showMsg('submitMsg', '❌ שגיאת רשת: ' + e.message, 'error');
     } finally {
-        btn.disabled = false;
-        btn.textContent = '✅ שמור ויצור PDF';
+        btn.disabled = false; btn.textContent = '✅ שמור ויצור PDF';
     }
 }
 
@@ -736,6 +900,7 @@ function resetForm() {
     document.getElementById('personalNumber').value = '';
     document.getElementById('fullName').value       = '';
     document.getElementById('unitSelect').value     = '';
+    document.getElementById('nameSearch').value     = '';
     document.getElementById('pnStatus').classList.add('hidden');
     document.getElementById('checkoutBody').innerHTML = '';
     rowCounter = 0;
@@ -749,25 +914,19 @@ function resetForm() {
 // ============================================================
 async function loadHistory() {
     if (historyLoaded) { filterHistory(); return; }
-
     const msg = document.getElementById('historyMsg');
     msg.className = 'msg msg-info';
-    msg.textContent = 'טוען היסטוריה...';
+    msg.textContent = 'טוען...';
     msg.classList.remove('hidden');
-
     try {
         const json = await apiPost('apsnaut_get_checkouts', {});
         if (json.statusCode === 200) {
-            historyRows   = json.data || [];
+            historyRows = json.data || [];
             historyLoaded = true;
             msg.classList.add('hidden');
             filterHistory();
-        } else {
-            showMsg('historyMsg', '❌ ' + json.message, 'error');
-        }
-    } catch(e) {
-        showMsg('historyMsg', '❌ שגיאת רשת: ' + e.message, 'error');
-    }
+        } else { showMsg('historyMsg', '❌ ' + json.message, 'error'); }
+    } catch(e) { showMsg('historyMsg', '❌ ' + e.message, 'error'); }
 }
 
 function filterHistory() {
@@ -779,53 +938,42 @@ function filterHistory() {
 function renderHistory() {
     const wrap = document.getElementById('historyTableWrap');
     if (!historyFiltered.length) {
-        wrap.innerHTML = '<div style="color:#555;padding:20px;text-align:center;">אין נתונים להצגה</div>';
+        wrap.innerHTML = '<div style="color:#555;padding:20px;text-align:center;">אין נתונים</div>';
         return;
     }
-
-    // Group rows by checkout id
     const grouped = {};
     historyFiltered.forEach(r => {
         if (!grouped[r.id]) grouped[r.id] = { ...r, items: [] };
         grouped[r.id].items.push({ name: r.itemName, unit: r.itemUnit, qty: r.qty, notes: r.notes });
     });
-
-    let html = '<table class="history-table"><thead><tr>' +
-        '<th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>פלוגה</th><th>פריטים</th><th>על ידי</th>' +
-        '</tr></thead><tbody>';
-
+    let html = '<table class="history-table"><thead><tr><th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>פלוגה</th><th>פריטים</th><th>על ידי</th></tr></thead><tbody>';
     Object.values(grouped).forEach(g => {
         const itemsList = g.items.map(i =>
             `<div style="margin-bottom:3px;">${i.name}${i.unit ? ' (' + i.unit + ')' : ''} × <strong>${i.qty}</strong>${i.notes ? ' — ' + i.notes : ''}</div>`
         ).join('');
-        html += `<tr>
-            <td style="white-space:nowrap;">${g.date}</td>
-            <td>${g.fullName}</td>
-            <td>${g.personalNumber}</td>
-            <td>${g.unit}</td>
-            <td>${itemsList}</td>
-            <td style="color:#666;font-size:0.82em;">${g.by || ''}</td>
-        </tr>`;
+        html += `<tr><td style="white-space:nowrap">${g.date}</td><td>${g.fullName}</td><td>${g.personalNumber}</td><td>${g.unit}</td><td>${itemsList}</td><td style="color:#666;font-size:0.82em;">${g.by||''}</td></tr>`;
     });
-
-    html += '</tbody></table>';
-    wrap.innerHTML = html;
+    wrap.innerHTML = html + '</tbody></table>';
 }
 
 function exportHistoryCSV() {
-    if (!historyFiltered.length) { alert('אין נתונים לייצוא'); return; }
-    const headers = ['מזהה', 'תאריך', 'שם מלא', 'מספר אישי', 'פלוגה', 'פריט', 'יח"מ', 'כמות', 'הערות', 'על ידי'];
-    const csvRows = [headers.join(',')];
-    historyFiltered.forEach(r => {
-        csvRows.push([r.id, r.date, r.fullName, r.personalNumber, r.unit,
-                      r.itemName, r.itemUnit, r.qty, r.notes, r.by]
-            .map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(','));
-    });
-    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(blob);
-    a.download = 'אפסנאות_' + (document.getElementById('historyFilter').value || 'הכל') + '_' + new Date().toLocaleDateString('he-IL') + '.csv';
+    if (!historyFiltered.length) { alert('אין נתונים'); return; }
+    const h = ['מזהה','תאריך','שם מלא','מספר אישי','פלוגה','פריט','יח"מ','כמות','הערות','על ידי'];
+    const rows = [h.join(','), ...historyFiltered.map(r =>
+        [r.id,r.date,r.fullName,r.personalNumber,r.unit,r.itemName,r.itemUnit,r.qty,r.notes,r.by]
+        .map(v => '"' + String(v??'').replace(/"/g,'""') + '"').join(',')
+    )];
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'אפסנאות_' + (document.getElementById('historyFilter').value||'הכל') + '_' + new Date().toLocaleDateString('he-IL') + '.csv';
     a.click();
+}
+
+// ============================================================
+// Util
+// ============================================================
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

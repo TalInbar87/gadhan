@@ -131,7 +131,45 @@ function apsnaut_checkout(data) {
 }
 
 // ================================================================
-// 4. שליפת היסטוריית חתימות
+// 4. שליפת פריטי החתימה האחרונה לחייל לפי מ"א
+// ================================================================
+function apsnaut_getSoldierItems(personalNumber) {
+  var pn = String(personalNumber || '').trim();
+  if (!pn) return { success: true, data: [] };
+
+  var ss = apsnaut_ss();
+  var sh = ss.getSheetByName(APSNAUT_CHECKOUT_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
+
+  var rows = sh.getRange(2, 1, sh.getLastRow()-1,
+                         APSNAUT_CHECKOUT_HEADERS.length).getValues();
+
+  // מצא את מזהה החתימה האחרונה לפי תאריך
+  var latestId   = null;
+  var latestDate = new Date(0);
+  rows.forEach(function(r) {
+    if (String(r[3] || '').trim() !== pn) return;
+    var d = r[1] instanceof Date ? r[1] : new Date(String(r[1]));
+    if (d > latestDate) { latestDate = d; latestId = String(r[0] || '').trim(); }
+  });
+
+  if (!latestId) return { success: true, data: [] };
+
+  var items = rows
+    .filter(function(r) { return String(r[0] || '').trim() === latestId; })
+    .map(function(r) {
+      return {
+        name:  String(r[5] || '').trim(),
+        unit:  String(r[6] || '').trim(),
+        qty:   Number(r[7]) || 0,
+        notes: String(r[8] || '').trim()
+      };
+    });
+  return { success: true, data: items };
+}
+
+// ================================================================
+// 5. שליפת היסטוריית חתימות
 // ================================================================
 function apsnaut_getCheckouts() {
   var ss = apsnaut_ss();

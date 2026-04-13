@@ -118,10 +118,11 @@ function doPost(e) {
       case 'bunker_rebuild_schema':    return handleBunkerRebuildSchema(data, e);
       case 'bunker_fix_shatsal_dates': return handleBunkerFixShatsalDates(data, e);
       // ── Apsnaut ──
-      case 'apsnaut_get_items':     return handleApsnautGetItems(data, e);
-      case 'apsnaut_add_item':      return handleApsnautAddItem(data, e);
-      case 'apsnaut_checkout':      return handleApsnautCheckout(data, e);
-      case 'apsnaut_get_checkouts': return handleApsnautGetCheckouts(data, e);
+      case 'apsnaut_get_items':         return handleApsnautGetItems(data, e);
+      case 'apsnaut_add_item':          return handleApsnautAddItem(data, e);
+      case 'apsnaut_checkout':          return handleApsnautCheckout(data, e);
+      case 'apsnaut_get_checkouts':     return handleApsnautGetCheckouts(data, e);
+      case 'apsnaut_get_soldier_items': return handleApsnautGetSoldierItems(data, e);
       default:                      return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -857,6 +858,16 @@ function handleApsnautGetCheckouts(data, request) {
     return createResponse(403, 'Insufficient permissions', null);
   try {
     var result = apsnaut_getCheckouts();
+    return result.success ? createResponse(200, 'ok', result.data)
+                          : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleApsnautGetSoldierItems(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = apsnaut_getSoldierItems(data.personalNumber);
     return result.success ? createResponse(200, 'ok', result.data)
                           : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
