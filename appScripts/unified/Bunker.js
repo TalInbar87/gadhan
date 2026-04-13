@@ -492,6 +492,36 @@ function bunker_shatsalReport(data) {
   return { success: true };
 }
 
+// תקן תאריכי ביצוע שנשמרו עם DD/MM הפוך (Sheets US-locale bug)
+// הלוגיקה: תאריך ביצוע שצ״ל אמור תמיד להיות בעבר. אם הוא בעתיד → כנראה DD/MM הוחלפו.
+function bunker_fixShatsalDates() {
+  var ss = bunker_ss();
+  var sh = ss.getSheetByName(SHATSAL_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { success: true, fixed: 0 };
+
+  var numCols = Math.max(sh.getLastColumn(), SHATSAL_HEADERS.length);
+  var rows    = sh.getRange(2, 1, sh.getLastRow() - 1, numCols).getValues();
+  var today   = new Date(); today.setHours(23, 59, 59, 999); // סוף היום
+  var fixed   = 0;
+
+  rows.forEach(function(r, i) {
+    var execVal = r[1];
+    if (!(execVal instanceof Date)) return; // כבר מחרוזת — לא מושפע
+    if (execVal <= today) return;           // בעבר/היום — סביר, לא נוגעים
+
+    // תאריך ביצוע בעתיד → כנראה MM/DD שנשמר במקום DD/MM
+    var storedMonth = execVal.getMonth() + 1; // 1–12
+    var storedDay   = execVal.getDate();       // 1–31
+    if (storedDay < 1 || storedDay > 12) return; // החלפה תייצר חודש לא-חוקי
+
+    var corrected = new Date(execVal.getFullYear(), storedDay - 1, storedMonth);
+    sh.getRange(i + 2, 2).setValue(corrected);
+    fixed++;
+  });
+
+  return { success: true, fixed: fixed };
+}
+
 function bunker_getShatsal() {
   var ss = bunker_ss();
   var sh = ss.getSheetByName(SHATSAL_SHEET);

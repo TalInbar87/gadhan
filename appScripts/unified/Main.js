@@ -115,7 +115,8 @@ function doPost(e) {
       case 'bunker_shatsal_report':   return handleBunkerShatsalReport(data, e);
       case 'bunker_get_shatsal':      return handleBunkerGetShatsal(data, e);
       case 'bunker_dispense_summary': return handleBunkerDispenseSummary(data, e);
-      case 'bunker_rebuild_schema':   return handleBunkerRebuildSchema(data, e);
+      case 'bunker_rebuild_schema':    return handleBunkerRebuildSchema(data, e);
+      case 'bunker_fix_shatsal_dates': return handleBunkerFixShatsalDates(data, e);
       default:                        return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -790,6 +791,16 @@ function handleBunkerRebuildSchema(data, request) {
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   try {
     var result = bunker_rebuildSchema();
+    return result.success ? createResponse(200, 'ok', result)
+                          : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerFixShatsalDates(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_fixShatsalDates();
     return result.success ? createResponse(200, 'ok', result)
                           : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }

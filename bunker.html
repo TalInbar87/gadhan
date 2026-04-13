@@ -365,6 +365,9 @@
                     <button class="btn btn-secondary" onclick="rebuildSchema()" style="min-width:150px; width:auto; background:#2a2a2a;" title="בנה מחדש גליון סכימה מהנתונים הגולמיים">
                         🔄 בנה סכימה
                     </button>
+                    <button class="btn btn-secondary" onclick="fixShatsalDates()" style="min-width:150px; width:auto; background:#2a2a2a;" title="תקן תאריכי שצ״ל שנשמרו עם DD/MM הפוך">
+                        🛠️ תקן תאריכי שצ״ל
+                    </button>
                 </div>
             </div>
         </div>
@@ -1888,6 +1891,24 @@
         // ============================================================
         // כלי אדמין — בנה מחדש גליון סכימה
         // ============================================================
+        async function fixShatsalDates() {
+            if (!confirm('תקן תאריכי ביצוע בגליון שצ״ל שנשמרו עם DD/MM הפוך?\n(יתוקנו רק תאריכים שמופיעים בעתיד — סימן ברור לתקלת locale)')) return;
+            const btn = event.currentTarget;
+            btn.disabled = true; btn.textContent = 'מתקן...';
+            try {
+                const json = await apiPost('bunker_fix_shatsal_dates', {});
+                if (json.statusCode === 200) {
+                    const n = json.data?.fixed || 0;
+                    alert(n > 0 ? `✅ תוקנו ${n} תאריכים. טען מחדש את הנתונים.` : 'אין תאריכים הדורשים תיקון.');
+                    if (n > 0) loadShatsalHistory();
+                } else { alert('❌ שגיאה: ' + json.message); }
+            } catch (e) {
+                alert('❌ שגיאה: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '🛠️ תקן תאריכי שצ״ל';
+            }
+        }
+
         async function rebuildSchema() {
             if (!confirm('בנה מחדש את גליון הסכימה מהנתונים הגולמיים?\n(פעולה קריאה בלבד — לא תשנה נתוני מקור)')) return;
             const btn = event.currentTarget;
