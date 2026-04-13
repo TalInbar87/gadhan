@@ -1418,11 +1418,11 @@
 
             const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;border-bottom:2px solid #333;">${s}</th>`;
             const bodyRows = sorted.map((r, idx) => {
-                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                const bg    = idx % 2 === 0 ? '#1a1a1a' : '#161616';
+                const label    = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                const bg       = idx % 2 === 0 ? '#1a1a1a' : '#161616';
+                const execDate = String(r.date || '').substring(0, 10); // DD/MM/YYYY ללא שעה
                 return `<tr style="background:${bg};border-bottom:1px solid #222;">
-                    <td style="padding:7px 8px;color:#facc15;white-space:nowrap;">${r.date       || ''}</td>
-                    <td style="padding:7px 8px;color:#888; white-space:nowrap;">${r.reportDate || r.date || ''}</td>
+                    <td style="padding:7px 8px;color:#facc15;white-space:nowrap;">${execDate}</td>
                     <td style="padding:7px 8px;color:#a78bfa;">${r.unit}</td>
                     <td style="padding:7px 8px;color:#aaa;">${r.responsible}</td>
                     <td style="padding:7px 8px;color:#fff;font-weight:600;">${label}</td>
@@ -1432,7 +1432,7 @@
 
             el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead><tr style="background:#1e1e1e;">
-                    ${th('תאריך ביצוע')}${th('תאריך דיווח')}${th('מסגרת')}${th('אחראי')}${th('פריט')}${th('כמות')}
+                    ${th('תאריך ביצוע')}${th('מסגרת')}${th('אחראי')}${th('פריט')}${th('כמות')}
                 </tr></thead>
                 <tbody>${bodyRows}</tbody>
             </table>`;
@@ -1456,8 +1456,9 @@
             const headers = ['תאריך ביצוע','תאריך דיווח','מסגרת','אחראי','פריט','כמות'];
             const lines = sorted.map(r => {
                 const label          = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                const execDateOnly   = String(r.date       || '').substring(0, 10); // DD/MM/YYYY ללא שעה
                 const reportDateOnly = String(r.reportDate || r.date || '').substring(0, 10); // DD/MM/YYYY ללא שעה
-                return [r.date, reportDateOnly, r.unit, r.responsible, label, r.qty].map(esc).join(',');
+                return [execDateOnly, reportDateOnly, r.unit, r.responsible, label, r.qty].map(esc).join(',');
             });
             const csv  = '\uFEFF' + [headers.map(esc).join(','), ...lines].join('\r\n');
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
