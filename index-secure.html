@@ -337,6 +337,18 @@
             </a>
         </div>
 
+        <!-- ══ אפסנאות ══ -->
+        <div class="section-title" id="apsnautSection" style="display:none;" onclick="toggleSection('apsnautCards')">
+            אפסנאות <span class="acc-arrow">▼</span>
+        </div>
+        <div class="nav-grid" id="apsnautCards" style="display:none;">
+            <a href="#" id="apsnautLink" class="nav-card weapons" onclick="navigateTo('apsnaut.html', event)">
+                <div class="icon">🎒</div>
+                <h2>אפסנאות</h2>
+                <p>ניהול ציוד, החתמה על פריטים ויצירת PDF לכל חייל</p>
+            </a>
+        </div>
+
         <!-- ══ בונקר ══ -->
         <div class="section-title" id="bunkerSection" style="display:none;" onclick="toggleSection('bunkerCards')">
             בונקר <span class="acc-arrow">▼</span>
@@ -475,6 +487,9 @@
             if (!isAdmin)                    hideCard('armoryLink');    // ספירת מלאי — מנהל בלבד
             if (!isAdmin && !hasReports)     hideCard('inventoryLink'); // סיכום מלאי — מנהל + סמל
             if (!isAdmin && !hasTransfer)    hideCard('transferLink');  // העברה — מנהל + transfer
+
+            // ── אפסנאות — מנהל + סמל ──
+            if (hasReports || isAdmin) show('apsnautSection', 'apsnautCards');
 
             // ── בונקר — מנהל + סמל ──
             if (hasReports || isAdmin) show('bunkerSection', 'bunkerCards');
