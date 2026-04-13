@@ -691,6 +691,21 @@
 
             <div class="card" style="margin-top:16px;">
                 <h2>📊 סיכום שצ״ל לפי מסגרת</h2>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                    <span style="color:#888;font-size:13px;">מיון:</span>
+                    <button id="sortByReportDateBtn" onclick="sortShatsalTable('reportDate')"
+                            style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#facc15;cursor:pointer;font-size:13px;">
+                        📅 תאריך דיווח
+                    </button>
+                    <button id="sortByUnitBtn" onclick="sortShatsalTable('unit')"
+                            style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#aaa;cursor:pointer;font-size:13px;">
+                        👥 מסגרת
+                    </button>
+                    <button onclick="exportShatsalCSV()"
+                            style="padding:5px 12px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#4ade80;cursor:pointer;font-size:13px;margin-right:auto;">
+                        📤 ייצוא CSV
+                    </button>
+                </div>
                 <div id="shatsalSummaryTable" style="overflow-x:auto;"></div>
             </div>
 
@@ -1333,12 +1348,104 @@
             } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
         }
 
+        let shatsalAllRows  = [];
+        let shatsalSortBy   = 'reportDate'; // ברירת מחדל
+
         async function loadShatsalHistory() {
             const json = await apiPost('bunker_get_shatsal', {});
             if (json.statusCode !== 200 || !json.data) return;
-            const rows = json.data;
-            renderShatsalHierarchical(rows, 'shatsalSummaryTable');
-            renderShatsalHierarchical(rows, 'shatsalTable');
+            shatsalAllRows = json.data;
+            renderShatsalFlatTable(shatsalAllRows, shatsalSortBy);
+            renderShatsalHierarchical(shatsalAllRows, 'shatsalTable');
+        }
+
+        function sortShatsalTable(by) {
+            shatsalSortBy = by;
+            // עדכן כפתורים
+            ['sortByReportDateBtn','sortByUnitBtn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.style.color = '#aaa';
+            });
+            const activeId = by === 'reportDate' ? 'sortByReportDateBtn' : 'sortByUnitBtn';
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) activeBtn.style.color = '#facc15';
+            renderShatsalFlatTable(shatsalAllRows, by);
+        }
+
+        function renderShatsalFlatTable(rows, sortBy) {
+            const el = document.getElementById('shatsalSummaryTable');
+            if (!rows.length) {
+                el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">אין דיווחי שצ״ל עדיין</p>';
+                return;
+            }
+            const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+
+            const parseDt = s => {
+                if (!s) return new Date(0);
+                const [datePart, timePart] = String(s).trim().split(' ');
+                const [d, m, y] = (datePart || '').split('/');
+                if (timePart) { const [h, mn] = timePart.split(':'); return new Date(y, m-1, d, h, mn); }
+                return new Date(y, m-1, d);
+            };
+
+            const sorted = [...rows].sort((a, b) => {
+                if (sortBy === 'unit') {
+                    const ui = u => { const i = UNIT_ORDER.indexOf(u); return i === -1 ? 99 : i; };
+                    if (ui(a.unit) !== ui(b.unit)) return ui(a.unit) - ui(b.unit);
+                    return parseDt(b.reportDate) - parseDt(a.reportDate);
+                }
+                // ברירת מחדל: לפי תאריך דיווח, חדש ראשון
+                return parseDt(b.reportDate) - parseDt(a.reportDate);
+            });
+
+            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;border-bottom:2px solid #333;">${s}</th>`;
+            const bodyRows = sorted.map((r, idx) => {
+                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                const bg    = idx % 2 === 0 ? '#1a1a1a' : '#161616';
+                return `<tr style="background:${bg};border-bottom:1px solid #222;">
+                    <td style="padding:7px 8px;color:#facc15;white-space:nowrap;">${r.date       || ''}</td>
+                    <td style="padding:7px 8px;color:#888; white-space:nowrap;">${r.reportDate || r.date || ''}</td>
+                    <td style="padding:7px 8px;color:#a78bfa;">${r.unit}</td>
+                    <td style="padding:7px 8px;color:#aaa;">${r.responsible}</td>
+                    <td style="padding:7px 8px;color:#fff;font-weight:600;">${label}</td>
+                    <td style="padding:7px 8px;color:#f87171;font-weight:700;text-align:center;">${r.qty}</td>
+                </tr>`;
+            }).join('');
+
+            el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#1e1e1e;">
+                    ${th('תאריך ביצוע')}${th('תאריך דיווח')}${th('מסגרת')}${th('אחראי')}${th('פריט')}${th('כמות')}
+                </tr></thead>
+                <tbody>${bodyRows}</tbody>
+            </table>`;
+        }
+
+        function exportShatsalCSV() {
+            if (!shatsalAllRows.length) { alert('אין נתונים לייצוא'); return; }
+            const UNIT_ORDER = ['פלוגה א','פלוגה ב','פלוגה ג','צמה','ניוד','מחסר','חפק'];
+            const parseDt = s => {
+                const [datePart, timePart] = String(s || '').trim().split(' ');
+                const [d, m, y] = (datePart || '').split('/');
+                if (timePart) { const [h, mn] = timePart.split(':'); return new Date(y, m-1, d, h, mn); }
+                return new Date(y, m-1, d);
+            };
+            const sorted = [...shatsalAllRows].sort((a, b) => {
+                const ui = u => { const i = UNIT_ORDER.indexOf(u); return i === -1 ? 99 : i; };
+                if (ui(a.unit) !== ui(b.unit)) return ui(a.unit) - ui(b.unit);
+                return parseDt(b.reportDate) - parseDt(a.reportDate);
+            });
+            const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const headers = ['תאריך ביצוע','תאריך דיווח','מסגרת','אחראי','פריט','כמות'];
+            const lines = sorted.map(r => {
+                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                return [r.date, r.reportDate || r.date, r.unit, r.responsible, label, r.qty].map(esc).join(',');
+            });
+            const csv  = '\uFEFF' + [headers.map(esc).join(','), ...lines].join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const a    = document.createElement('a');
+            a.href     = URL.createObjectURL(blob);
+            a.download = `שצל_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
         }
 
         // ============================================================
