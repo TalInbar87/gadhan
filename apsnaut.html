@@ -228,12 +228,12 @@
 
             <!-- ── 1. Personal details (top) ── -->
             <div class="lookup-grid">
-                <!-- Name search -->
+                <!-- Name (search + free text) -->
                 <div class="form-group">
-                    <label>חיפוש לפי שם</label>
+                    <label>שם מלא *</label>
                     <div class="ac-wrap">
                         <input type="text" id="nameSearch" class="ac-input"
-                               placeholder="הקלד שם לחיפוש..."
+                               placeholder="הקלד שם..."
                                autocomplete="off"
                                oninput="nameSearchFilter()"
                                onfocus="nameSearchOpen()"
@@ -255,13 +255,11 @@
                 </div>
             </div>
 
-            <!-- Status + filled fields -->
+            <!-- Status -->
             <div id="pnStatus" class="pn-status hidden"></div>
+
+            <!-- Unit row -->
             <div class="form-row" style="margin-top:12px;">
-                <div class="form-group">
-                    <label>שם מלא *</label>
-                    <input type="text" id="fullName" placeholder="שם מלא">
-                </div>
                 <div class="form-group" style="max-width:200px;">
                     <label>מסגרת *</label>
                     <select id="unitSelect" onchange="onUnitChange()">
@@ -594,7 +592,7 @@ async function checkPN() {
 
     // Fill name / unit
     if (pnResult && pnResult.exists && pnResult.data) {
-        document.getElementById('fullName').value = pnResult.data.fullName || '';
+        document.getElementById('nameSearch').value = pnResult.data.fullName || '';
         trySetUnit(pnResult.data.unit || '');
         status.className  = 'pn-status found';
         status.textContent = '✅ נמצא: ' + (pnResult.data.fullName || pn);
@@ -917,7 +915,7 @@ async function submitCheckout() {
         return;
     }
 
-    const fullName       = document.getElementById('fullName').value.trim();
+    const fullName       = document.getElementById('nameSearch').value.trim();
     const personalNumber = document.getElementById('personalNumber').value.trim();
     const unit           = getSelectedUnit();
 
@@ -960,7 +958,7 @@ async function submitCheckout() {
 
 function resetForm() {
     document.getElementById('personalNumber').value = '';
-    document.getElementById('fullName').value       = '';
+    document.getElementById('nameSearch').value     = '';
     document.getElementById('unitSelect').value     = '';
     document.getElementById('machlakaSelect').value = '';
     document.getElementById('machlakaWrap').style.display = 'none';
