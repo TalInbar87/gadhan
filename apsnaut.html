@@ -11,40 +11,32 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #fff;
+            min-height: 100vh; padding: 20px; color: #fff;
         }
-
         .container { max-width: 900px; margin: 0 auto; }
 
         /* ── Header ── */
         header {
             background: linear-gradient(135deg, #2d5a2d 0%, #4a8f4a 100%);
-            padding: 25px 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(74,143,74,0.35);
-            margin-bottom: 30px;
-            position: relative;
+            padding: 25px 30px; border-radius: 15px; text-align: center;
+            box-shadow: 0 10px 30px rgba(74,143,74,0.3); margin-bottom: 30px; position: relative;
         }
         header h1 { color: #fff; font-size: 2em; font-weight: bold; margin-bottom: 5px; }
-        header .subtitle { color: rgba(255,255,255,0.85); font-size: 1em; }
+        header .subtitle { color: rgba(255,255,255,0.82); font-size: 1em; }
 
         .back-btn {
             position: absolute; top: 20px; left: 20px;
-            background: rgba(0,0,0,0.25); color: #fff;
-            border: none; padding: 8px 18px; border-radius: 8px;
-            cursor: pointer; font-size: 0.9em; font-weight: 600;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(0,0,0,0.22); color: #fff; border: none;
+            padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9em;
+            font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: background 0.2s;
         }
-        .back-btn:hover { background: rgba(0,0,0,0.4); }
+        .back-btn:hover { background: rgba(0,0,0,0.38); }
 
         /* ── Tabs ── */
         .tabs {
             display: flex; gap: 8px; margin-bottom: 24px;
-            border-bottom: 2px solid #4a8f4a; padding-bottom: 0;
+            border-bottom: 2px solid #4a8f4a;
         }
         .tab-btn {
             padding: 10px 28px; border: none; border-radius: 10px 10px 0 0;
@@ -53,97 +45,114 @@
         }
         .tab-btn.active { background: #4a8f4a; color: #fff; }
         .tab-btn:hover:not(.active) { background: #3a3a3a; color: #ddd; }
-
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 
         /* ── Cards ── */
-        .card {
-            background: #242424; border-radius: 14px; padding: 24px;
-            margin-bottom: 20px; border: 1px solid #333;
-        }
-        .card h2 {
-            color: #6abf6a; font-size: 1.1em; margin-bottom: 16px;
-            border-bottom: 1px solid #333; padding-bottom: 10px;
-        }
+        .card { background: #242424; border-radius: 14px; padding: 24px; margin-bottom: 20px; border: 1px solid #333; }
+        .card h2 { color: #6abf6a; font-size: 1.1em; margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .card h2.collapsible { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
         .card h2.collapsible:hover { color: #82d082; }
 
         /* ── Form ── */
-        .form-row {
-            display: flex; gap: 12px; align-items: flex-end;
-            flex-wrap: wrap; margin-bottom: 14px;
-        }
+        .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
         .form-group label { color: #aaa; font-size: 0.85em; font-weight: 600; }
 
-        input[type="text"],
-        input[type="number"],
-        select {
+        input[type="text"], input[type="number"], select {
             background: #1a1a1a; border: 2px solid #444; border-radius: 8px;
             color: #fff; padding: 10px 14px; font-size: 0.95em; outline: none;
             transition: border-color 0.2s; width: 100%;
         }
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus { border-color: #4a8f4a; }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: #4a8f4a; }
+        input[readonly] { color: #777; background: #141414; }
         select option { background: #1a1a1a; }
 
-        .checkbox-row {
-            display: flex; align-items: center; gap: 10px;
-            margin-top: 6px;
-        }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 16px; }
         .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a8f4a; cursor: pointer; }
         .checkbox-row label { color: #ccc; font-size: 0.9em; cursor: pointer; }
 
         /* ── Buttons ── */
         .btn {
             padding: 10px 22px; border: none; border-radius: 9px; cursor: pointer;
-            font-size: 0.95em; font-weight: 700; transition: all 0.2s; display: inline-flex;
-            align-items: center; gap: 6px;
+            font-size: 0.95em; font-weight: 700; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-        .btn-primary { background: #4a8f4a; color: #fff; }
-        .btn-primary:hover { background: #5ba75b; }
+        .btn-primary  { background: #4a8f4a; color: #fff; }
+        .btn-primary:hover  { background: #5ba75b; }
         .btn-secondary { background: #3a3a3a; color: #ccc; border: 1px solid #555; }
         .btn-secondary:hover { background: #444; color: #fff; }
-        .btn-danger { background: #8b2020; color: #fff; }
-        .btn-danger:hover { background: #a32828; }
-        .btn-lg { padding: 14px 30px; font-size: 1.05em; width: 100%; justify-content: center; }
-        .btn-sm { padding: 6px 14px; font-size: 0.85em; }
+        .btn-danger   { background: #7a1c1c; color: #fff; }
+        .btn-danger:hover   { background: #9a2525; }
+        .btn-lg  { padding: 14px 30px; font-size: 1.05em; width: 100%; justify-content: center; }
+        .btn-sm  { padding: 6px 14px; font-size: 0.85em; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ── Items Table ── */
-        .items-table-wrap { overflow-x: auto; margin-bottom: 16px; }
+        /* ── PN section ── */
+        .pn-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .pn-row .form-group { flex: 0; min-width: 160px; }
+        .pn-status { margin-top: 8px; font-size: 0.88em; font-weight: 600; }
+        .pn-status.found { color: #6abf6a; }
+        .pn-status.notfound { color: #60a5fa; }
+        .pn-status.loading { color: #888; }
+
+        /* ── Section divider ── */
+        .section-divider {
+            color: #6abf6a; font-size: 0.9em; font-weight: 700;
+            margin: 22px 0 14px; border-top: 1px solid #333; padding-top: 18px;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+
+        /* ── Checkout items table ── */
+        .items-table-wrap { overflow-x: auto; margin-bottom: 14px; }
         table.checkout-table {
             width: 100%; border-collapse: collapse;
             background: #1e1e1e; border-radius: 10px; overflow: hidden;
         }
         .checkout-table th {
-            background: #2d5a2d; color: #fff; padding: 10px 14px;
+            background: #2d5a2d; color: #fff; padding: 10px 12px;
             text-align: right; font-size: 0.88em; font-weight: 700;
         }
-        .checkout-table td { padding: 8px 10px; border-bottom: 1px solid #2e2e2e; }
+        .checkout-table td { padding: 7px 8px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
         .checkout-table tbody tr:last-child td { border-bottom: none; }
-        .checkout-table select,
-        .checkout-table input { padding: 7px 10px; font-size: 0.9em; }
-        .checkout-table .col-item  { min-width: 180px; }
-        .checkout-table .col-unit  { width: 100px; }
-        .checkout-table .col-qty   { width: 90px; }
-        .checkout-table .col-notes { min-width: 160px; }
-        .checkout-table .col-del   { width: 44px; text-align: center; }
+        .checkout-table .col-item  { min-width: 200px; }
+        .checkout-table .col-unit  { width: 90px; }
+        .checkout-table .col-qty   { width: 80px; }
+        .checkout-table .col-notes { min-width: 140px; }
+        .checkout-table .col-del   { width: 42px; text-align: center; }
 
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+        /* ── Autocomplete ── */
+        .ac-wrap { position: relative; }
+        .ac-input {
+            background: #1a1a1a; border: 2px solid #444; border-radius: 8px;
+            color: #fff; padding: 8px 12px; font-size: 0.9em; outline: none;
+            width: 100%; transition: border-color 0.2s;
+        }
+        .ac-input:focus { border-color: #4a8f4a; }
+        .ac-dropdown {
+            position: absolute; top: calc(100% + 2px); right: 0; left: 0;
+            background: #242424; border: 1px solid #4a8f4a; border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5); z-index: 100;
+            max-height: 220px; overflow-y: auto; display: none;
+        }
+        .ac-dropdown.open { display: block; }
+        .ac-item {
+            padding: 9px 14px; cursor: pointer; font-size: 0.9em;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #2e2e2e; transition: background 0.15s;
+        }
+        .ac-item:last-child { border-bottom: none; }
+        .ac-item:hover { background: #2d5a2d; }
+        .ac-item.selected { background: #1e3a1e; }
+        .ac-unit-tag { color: #888; font-size: 0.82em; }
+        .ac-empty { padding: 10px 14px; color: #555; font-size: 0.88em; }
 
         /* ── Signature ── */
         .sig-wrap {
             border: 2px solid #444; border-radius: 10px; overflow: hidden;
-            background: #fff; cursor: crosshair; touch-action: none;
+            background: #fff; touch-action: none; user-select: none;
         }
         .sig-wrap canvas { display: block; width: 100%; }
-
-        /* ── Personal section ── */
-        .personal-section { margin-top: 24px; border-top: 1px solid #333; padding-top: 20px; }
 
         /* ── Messages ── */
         .msg { padding: 10px 14px; border-radius: 8px; font-size: 0.9em; margin-top: 10px; }
@@ -152,175 +161,90 @@
         .msg-info    { background: #1a2a3a; color: #60a5fa; border: 1px solid #1e3a5f; }
         .hidden { display: none !important; }
 
-        /* ── History Table ── */
+        /* ── History ── */
         .history-table { width: 100%; border-collapse: collapse; }
-        .history-table th {
-            background: #2d5a2d; color: #fff; padding: 10px 12px;
-            text-align: right; font-size: 0.85em;
-        }
-        .history-table td {
-            padding: 9px 12px; border-bottom: 1px solid #2e2e2e;
-            font-size: 0.88em; color: #ddd; vertical-align: top;
-        }
+        .history-table th { background: #2d5a2d; color: #fff; padding: 10px 12px; text-align: right; font-size: 0.85em; }
+        .history-table td { padding: 9px 12px; border-bottom: 1px solid #2e2e2e; font-size: 0.88em; color: #ddd; vertical-align: top; }
         .history-table tr:hover td { background: #2a2a2a; }
-        .badge-important {
-            display: inline-block; background: #8b4a00; color: #ffd280;
-            padding: 2px 8px; border-radius: 12px; font-size: 0.78em; font-weight: 700;
-        }
-
-        /* ── Items catalog card ── */
-        .items-catalog { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-        .item-chip {
-            background: #1e3a1e; border: 1px solid #2d5a2d; border-radius: 20px;
-            padding: 4px 14px; font-size: 0.85em; color: #9ed49e;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .item-chip.important { background: #3a2a00; border-color: #6b4c00; color: #ffc966; }
 
         @media (max-width: 600px) {
             header h1 { font-size: 1.5em; }
             .tab-btn { padding: 8px 16px; font-size: 0.9em; }
-            .checkout-table .col-notes { min-width: 100px; }
+            .pn-row .form-group { flex: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <a href="index-secure.html" class="back-btn">← חזרה</a>
-            <h1>🎒 אפסנאות</h1>
-            <div class="subtitle">ניהול ציוד וחתימות — גדחה"ו קומנדו 8219</div>
-        </header>
+<div class="container">
+    <header>
+        <a href="index-secure.html" class="back-btn">← חזרה</a>
+        <h1>🎒 אפסנאות</h1>
+        <div class="subtitle">ניהול ציוד וחתימות — גדחה"ו קומנדו 8219</div>
+    </header>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('checkout')">📋 טופס החתמה</button>
-            <button class="tab-btn" onclick="switchTab('history')">📜 היסטוריה</button>
-        </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('checkout', this)">📋 טופס החתמה</button>
+        <button class="tab-btn"        onclick="switchTab('history',  this)">📜 היסטוריה</button>
+    </div>
 
-        <!-- ════════════════════════════════ Tab: Checkout ════════════════════════════════ -->
-        <div id="tab-checkout" class="tab-panel active">
+    <!-- ══════════════════════════ Tab: Checkout ══════════════════════════ -->
+    <div id="tab-checkout" class="tab-panel active">
 
-            <!-- Add Item Card -->
-            <div class="card">
-                <h2 class="collapsible" onclick="toggleAddItem()">
-                    ➕ הוספת פריט חדש
-                    <span id="addItemArrow" style="font-size:0.9em;transition:transform 0.3s;display:inline-block;">▼</span>
-                </h2>
-                <div id="addItemBody">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>שם הפריט *</label>
-                            <input type="text" id="newItemName" placeholder='דוגמה: חגורת קרב, גרב נגד פצצות...'>
-                        </div>
-                        <div class="form-group" style="max-width:180px;">
-                            <label>יחידת מידה</label>
-                            <input type="text" id="newItemUnit" placeholder='יח׳, זוג, ק"ג...'>
-                        </div>
+        <!-- Add Item card (collapsible) -->
+        <div class="card">
+            <h2 class="collapsible" onclick="toggleAddItem()">
+                ➕ הוספת פריט חדש
+                <span id="addItemArrow" style="font-size:0.85em;transition:transform 0.3s;display:inline-block;">▼</span>
+            </h2>
+            <div id="addItemBody">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>שם הפריט *</label>
+                        <input type="text" id="newItemName" placeholder='דוגמה: חגורת קרב, גרב נגד פצצות...'>
                     </div>
-                    <div class="checkbox-row" style="margin-bottom:16px;">
-                        <input type="checkbox" id="newItemImportant">
-                        <label for="newItemImportant">⚠️ פריט חשוב (יסומן בדוח)</label>
-                    </div>
-                    <button class="btn btn-primary" onclick="addItem()">הוסף פריט</button>
-                    <div id="addItemMsg"></div>
-
-                    <!-- Existing items chips -->
-                    <div id="itemsCatalogWrap" style="margin-top:16px;">
-                        <div style="color:#888;font-size:0.82em;margin-bottom:6px;">פריטים קיימים במערכת:</div>
-                        <div id="itemsCatalog" class="items-catalog">
-                            <span style="color:#555;font-size:0.85em;">טוען...</span>
-                        </div>
+                    <div class="form-group" style="max-width:180px;">
+                        <label>יחידת מידה</label>
+                        <input type="text" id="newItemUnit" placeholder='יח׳, זוג, ק"ג...'>
                     </div>
                 </div>
-            </div>
-
-            <!-- Checkout Form Card -->
-            <div class="card">
-                <h2>📋 טופס החתמה</h2>
-
-                <!-- Items Table -->
-                <div class="items-table-wrap">
-                    <table class="checkout-table" id="checkoutTable">
-                        <thead>
-                            <tr>
-                                <th class="col-item">פריט</th>
-                                <th class="col-unit">יח"מ</th>
-                                <th class="col-qty">כמות</th>
-                                <th class="col-notes">הערות</th>
-                                <th class="col-del"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="checkoutBody">
-                            <!-- rows added dynamically -->
-                        </tbody>
-                    </table>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="newItemImportant">
+                    <label for="newItemImportant">⚠️ פריט חשוב (יסומן בדוח)</label>
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="addItemRow()" style="margin-bottom:8px;">
-                    + הוסף שורה
-                </button>
-                <div id="tableMsg"></div>
-
-                <!-- Personal Info -->
-                <div class="personal-section">
-                    <div style="color:#6abf6a;font-size:0.95em;font-weight:700;margin-bottom:14px;">פרטי החותם</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>שם מלא *</label>
-                            <input type="text" id="fullName" placeholder="שם מלא">
-                        </div>
-                        <div class="form-group" style="max-width:180px;">
-                            <label>מספר אישי *</label>
-                            <input type="text" id="personalNumber" placeholder="7 ספרות" maxlength="8">
-                        </div>
-                        <div class="form-group" style="max-width:200px;">
-                            <label>פלוגה *</label>
-                            <select id="unitSelect">
-                                <option value="">בחר פלוגה</option>
-                                <option>פלוגה א</option>
-                                <option>פלוגה ב</option>
-                                <option>פלוגה ג</option>
-                                <option>צמה</option>
-                                <option>ניוד</option>
-                                <option>מחסר</option>
-                                <option>חפק</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Signature -->
-                    <div class="form-group" style="margin-top:18px;">
-                        <label>חתימה *</label>
-                        <div class="sig-wrap" style="max-width:620px;">
-                            <canvas id="signatureCanvas" width="600" height="180"></canvas>
-                        </div>
-                        <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearSignature()">נקה חתימה</button>
-                            <span style="color:#666;font-size:0.82em;">חתום באצבע או בעכבר</span>
-                        </div>
-                        <div id="sigError" class="msg msg-error hidden" style="margin-top:6px;">יש לחתום לפני שליחה</div>
-                    </div>
-                </div>
-
-                <!-- Submit -->
-                <div style="margin-top:24px;">
-                    <button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitCheckout()">
-                        ✅ שמור ויצור PDF
-                    </button>
-                    <div id="submitMsg"></div>
-                </div>
+                <button class="btn btn-primary btn-sm" onclick="addItem()">הוסף פריט</button>
+                <div id="addItemMsg"></div>
             </div>
         </div>
 
-        <!-- ════════════════════════════════ Tab: History ════════════════════════════════ -->
-        <div id="tab-history" class="tab-panel">
-            <div class="card">
-                <h2>📜 היסטוריית חתימות</h2>
-                <div class="form-row" style="margin-bottom:16px;align-items:flex-end;">
+        <!-- Main checkout card -->
+        <div class="card">
+            <h2>📋 טופס החתמה</h2>
+
+            <!-- ── 1. Personal details (top) ── -->
+            <div style="margin-bottom:6px;">
+
+                <!-- PN lookup row -->
+                <div class="pn-row" style="margin-bottom:10px;">
+                    <div class="form-group" style="flex:0;min-width:180px;">
+                        <label>מספר אישי *</label>
+                        <input type="text" id="personalNumber" placeholder="7 ספרות" maxlength="8"
+                               onkeydown="if(event.key==='Enter'){checkPN();}">
+                    </div>
+                    <div style="align-self:flex-end;">
+                        <button class="btn btn-secondary" id="pnCheckBtn" onclick="checkPN()">בדוק</button>
+                    </div>
+                </div>
+                <div id="pnStatus" class="pn-status hidden"></div>
+
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label>שם מלא *</label>
+                        <input type="text" id="fullName" placeholder="שם מלא">
+                    </div>
                     <div class="form-group" style="max-width:200px;">
-                        <label>סנן לפי פלוגה</label>
-                        <select id="historyFilter" onchange="filterHistory()">
-                            <option value="">כל הפלוגות</option>
+                        <label>פלוגה *</label>
+                        <select id="unitSelect">
+                            <option value="">בחר פלוגה</option>
                             <option>פלוגה א</option>
                             <option>פלוגה ב</option>
                             <option>פלוגה ג</option>
@@ -330,406 +254,579 @@
                             <option>חפק</option>
                         </select>
                     </div>
-                    <div>
-                        <button class="btn btn-secondary" onclick="exportHistoryCSV()">📥 ייצוא CSV</button>
-                    </div>
                 </div>
-                <div id="historyMsg" class="msg msg-info hidden">טוען היסטוריה...</div>
-                <div id="historyTableWrap" style="overflow-x:auto;"></div>
+            </div>
+
+            <!-- ── 2. Items table ── -->
+            <div class="section-divider">📦 פריטים לקבלה</div>
+            <div class="items-table-wrap">
+                <table class="checkout-table" id="checkoutTable">
+                    <thead>
+                        <tr>
+                            <th class="col-item">פריט</th>
+                            <th class="col-unit">יח"מ</th>
+                            <th class="col-qty">כמות</th>
+                            <th class="col-notes">הערות</th>
+                            <th class="col-del"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="checkoutBody"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addItemRow()" style="margin-bottom:6px;">
+                + הוסף שורה
+            </button>
+            <div id="tableMsg"></div>
+
+            <!-- ── 3. Signature ── -->
+            <div class="section-divider">✍️ חתימה</div>
+            <div class="sig-wrap" style="max-width:620px;">
+                <canvas id="signatureCanvas" width="600" height="180"></canvas>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSignature()">נקה חתימה</button>
+                <span style="color:#666;font-size:0.82em;">חתום באצבע או בעכבר</span>
+            </div>
+            <div id="sigError" class="msg msg-error hidden" style="margin-top:6px;">יש לחתום לפני שליחה</div>
+
+            <!-- ── Submit ── -->
+            <div style="margin-top:24px;">
+                <button class="btn btn-primary btn-lg" id="submitBtn" onclick="submitCheckout()">
+                    ✅ שמור ויצור PDF
+                </button>
+                <div id="submitMsg"></div>
             </div>
         </div>
+    </div>
 
-    </div><!-- /container -->
+    <!-- ══════════════════════════ Tab: History ══════════════════════════ -->
+    <div id="tab-history" class="tab-panel">
+        <div class="card">
+            <h2>📜 היסטוריית חתימות</h2>
+            <div class="form-row" style="margin-bottom:16px;align-items:flex-end;">
+                <div class="form-group" style="max-width:200px;">
+                    <label>סנן לפי פלוגה</label>
+                    <select id="historyFilter" onchange="filterHistory()">
+                        <option value="">כל הפלוגות</option>
+                        <option>פלוגה א</option>
+                        <option>פלוגה ב</option>
+                        <option>פלוגה ג</option>
+                        <option>צמה</option>
+                        <option>ניוד</option>
+                        <option>מחסר</option>
+                        <option>חפק</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="exportHistoryCSV()">📥 ייצוא CSV</button>
+                </div>
+            </div>
+            <div id="historyMsg" class="msg msg-info hidden"></div>
+            <div id="historyTableWrap" style="overflow-x:auto;"></div>
+        </div>
+    </div>
 
-    <!-- Auth + Config -->
-    <script src="config.js"></script>
-    <script src="auth-client.js"></script>
+</div><!-- /container -->
 
-    <script>
-    // ============================================================
-    // Auth
-    // ============================================================
-    const authClient = new SecureAuthClient(API_URL);
-    const authGuard  = new AuthGuard(authClient);
+<script src="config.js"></script>
+<script src="auth-client.js"></script>
+<script>
+// ============================================================
+// Auth
+// ============================================================
+const authClient = new SecureAuthClient(API_URL);
+const authGuard  = new AuthGuard(authClient);
 
-    let apsnautItems    = [];  // {name, unit, important}
-    let historyRows     = [];  // raw checkout rows
-    let historyFiltered = [];
+let apsnautItems    = [];
+let historyRows     = [];
+let historyFiltered = [];
+let historyLoaded   = false;
+let sigHasMark      = false;
+let sigCtx;
+let sigDrawing      = false;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-        const ok = await authGuard.checkAuth();
-        if (!ok) return;
-        await loadItems();
-        addItemRow(); // start with one empty row
-        initSignature();
+window.addEventListener('DOMContentLoaded', async () => {
+    const ok = await authGuard.checkAuth();
+    if (!ok) return;
+    await loadItems();
+    addItemRow();
+    initSignature();
+});
+
+// ============================================================
+// API
+// ============================================================
+async function apiPost(action, data) {
+    const p = new URLSearchParams();
+    p.append('data', JSON.stringify({ action, token: authClient.token, ...data }));
+    const res = await fetch(API_URL, { method: 'POST', body: p });
+    return res.json();
+}
+
+function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'msg msg-' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+}
+function hideMsg(id) {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+
+// ============================================================
+// Tabs
+// ============================================================
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'history') loadHistory();
+}
+
+// ============================================================
+// Items loading
+// ============================================================
+async function loadItems() {
+    try {
+        const json = await apiPost('apsnaut_get_items', {});
+        if (json.statusCode === 200) {
+            apsnautItems = json.data || [];
+            refreshAllAutocompletes();
+        }
+    } catch(e) { console.error('loadItems:', e); }
+}
+
+// ============================================================
+// Add item (collapsible)
+// ============================================================
+let addItemOpen = true;
+function toggleAddItem() {
+    addItemOpen = !addItemOpen;
+    document.getElementById('addItemBody').style.display = addItemOpen ? 'block' : 'none';
+    document.getElementById('addItemArrow').style.transform = addItemOpen ? '' : 'rotate(-90deg)';
+}
+
+async function addItem() {
+    const name      = document.getElementById('newItemName').value.trim();
+    const unit      = document.getElementById('newItemUnit').value.trim();
+    const important = document.getElementById('newItemImportant').checked;
+
+    if (!name) { showMsg('addItemMsg', 'יש להזין שם פריט', 'error'); return; }
+    hideMsg('addItemMsg');
+
+    try {
+        const json = await apiPost('apsnaut_add_item', { name, unit, important });
+        if (json.statusCode === 200) {
+            showMsg('addItemMsg', '✅ פריט "' + name + '" נוסף בהצלחה', 'success');
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemUnit').value = '';
+            document.getElementById('newItemImportant').checked = false;
+            await loadItems();
+        } else {
+            showMsg('addItemMsg', '❌ ' + json.message, 'error');
+        }
+    } catch(e) { showMsg('addItemMsg', '❌ שגיאת רשת: ' + e.message, 'error'); }
+}
+
+// ============================================================
+// Personal Number Lookup (JSONP → weapons sheet)
+// ============================================================
+function checkPN() {
+    const pn = document.getElementById('personalNumber').value.trim();
+    if (!pn) return;
+
+    const btn    = document.getElementById('pnCheckBtn');
+    const status = document.getElementById('pnStatus');
+    btn.disabled = true;
+    btn.textContent = '⏳...';
+    status.className  = 'pn-status loading';
+    status.textContent = 'מחפש...';
+    status.classList.remove('hidden');
+
+    // Clean up old script
+    const old = document.getElementById('_apsnaut_pn_script');
+    if (old) old.remove();
+
+    const cbName = '_apsnautPNCallback';
+    window[cbName] = function(result) {
+        btn.disabled = false;
+        btn.textContent = 'בדוק';
+        const old2 = document.getElementById('_apsnaut_pn_script');
+        if (old2) old2.remove();
+
+        if (result && result.exists && result.data) {
+            document.getElementById('fullName').value = result.data.fullName || '';
+            const u = document.getElementById('unitSelect');
+            if (result.data.unit) {
+                u.value = result.data.unit;
+                // Try to match known option values
+                if (!u.value) u.value = '';
+            }
+            status.className  = 'pn-status found';
+            status.textContent = '✅ נמצא: ' + (result.data.fullName || pn);
+        } else {
+            status.className  = 'pn-status notfound';
+            status.textContent = '➕ חייל לא נמצא במערכת — מלא ידנית';
+        }
+    };
+
+    const script = document.createElement('script');
+    script.id  = '_apsnaut_pn_script';
+    script.onerror = () => {
+        btn.disabled = false;
+        btn.textContent = 'בדוק';
+        status.className  = 'pn-status notfound';
+        status.textContent = '⚠️ שגיאה בחיפוש — מלא ידנית';
+    };
+    script.src = API_URL + '?action=checkPersonalNumber&personalNumber='
+                 + encodeURIComponent(pn) + '&formType=weapons&callback=' + cbName;
+    document.head.appendChild(script);
+}
+
+// ============================================================
+// Checkout Table (with autocomplete)
+// ============================================================
+let rowCounter = 0;
+
+function addItemRow() {
+    const id = ++rowCounter;
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + id;
+    tr.innerHTML = `
+        <td class="col-item">
+            <div class="ac-wrap">
+                <input type="text" class="ac-input item-input"
+                       placeholder="הקלד לחיפוש..."
+                       autocomplete="off"
+                       oninput="acFilter(${id})"
+                       onfocus="acOpen(${id})"
+                       onblur="acBlurDelay(${id})">
+                <div class="ac-dropdown" id="ac-drop-${id}"></div>
+            </div>
+            <input type="hidden" class="item-name-val">
+        </td>
+        <td class="col-unit">
+            <input type="text" class="item-unit" readonly placeholder='יח"מ'>
+        </td>
+        <td class="col-qty">
+            <input type="number" class="item-qty" min="1" value="1">
+        </td>
+        <td class="col-notes">
+            <input type="text" class="item-notes" placeholder="הערות...">
+        </td>
+        <td class="col-del">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(${id})" title="הסר">✕</button>
+        </td>`;
+    document.getElementById('checkoutBody').appendChild(tr);
+    hideMsg('tableMsg');
+}
+
+function removeRow(id) {
+    const el = document.getElementById('row-' + id);
+    if (el) el.remove();
+}
+
+// ── Autocomplete logic ──
+function acFilter(id) {
+    const row  = document.getElementById('row-' + id);
+    const inp  = row.querySelector('.ac-input');
+    const drop = document.getElementById('ac-drop-' + id);
+    const val  = inp.value.trim();
+
+    if (!val) { acRenderAll(id); return; }
+
+    const matches = apsnautItems.filter(item =>
+        item.name.includes(val) || item.name.toLowerCase().includes(val.toLowerCase())
+    );
+    renderDropdown(id, matches);
+}
+
+function acOpen(id) {
+    const row  = document.getElementById('row-' + id);
+    const inp  = row.querySelector('.ac-input');
+    const val  = inp.value.trim();
+    if (val) acFilter(id);
+    else     acRenderAll(id);
+}
+
+function acRenderAll(id) {
+    renderDropdown(id, apsnautItems);
+}
+
+function renderDropdown(id, items) {
+    const drop = document.getElementById('ac-drop-' + id);
+    if (!items.length) {
+        drop.innerHTML = '<div class="ac-empty">אין פריטים תואמים</div>';
+        drop.classList.add('open');
+        return;
+    }
+    drop.innerHTML = items.map(item =>
+        `<div class="ac-item"
+              data-name="${escHtml(item.name)}"
+              data-unit="${escHtml(item.unit || '')}"
+              onmousedown="acSelect(event, ${id})">
+            <span>${item.important ? '⚠️ ' : ''}${escHtml(item.name)}</span>
+            ${item.unit ? `<span class="ac-unit-tag">${escHtml(item.unit)}</span>` : ''}
+         </div>`
+    ).join('');
+    drop.classList.add('open');
+}
+
+function acSelect(event, id) {
+    event.preventDefault();
+    const el   = event.currentTarget;
+    const row  = document.getElementById('row-' + id);
+    const inp  = row.querySelector('.ac-input');
+    const nameHidden = row.querySelector('.item-name-val');
+    const unitEl = row.querySelector('.item-unit');
+
+    inp.value       = el.getAttribute('data-name');
+    nameHidden.value = el.getAttribute('data-name');
+    unitEl.value    = el.getAttribute('data-unit');
+
+    document.getElementById('ac-drop-' + id).classList.remove('open');
+}
+
+function acBlurDelay(id) {
+    // Delay so mousedown on dropdown items fires first
+    setTimeout(() => {
+        const drop = document.getElementById('ac-drop-' + id);
+        if (drop) drop.classList.remove('open');
+    }, 180);
+}
+
+function refreshAllAutocompletes() {
+    // No persistent state per-row needed — dropdown renders dynamically on open
+}
+
+function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Collect items from table ──
+function collectItems() {
+    const rows  = document.querySelectorAll('#checkoutBody tr');
+    const items = [];
+    let valid   = true;
+
+    rows.forEach(row => {
+        const inp   = row.querySelector('.ac-input');
+        const name  = (inp ? inp.value : '').trim();
+        const unit  = row.querySelector('.item-unit').value.trim();
+        const qty   = Number(row.querySelector('.item-qty').value) || 0;
+        const notes = row.querySelector('.item-notes').value.trim();
+
+        if (!name) return; // skip empty rows
+        if (qty <= 0) { valid = false; return; }
+        items.push({ name, unit, qty, notes });
     });
 
-    // ============================================================
-    // API
-    // ============================================================
-    async function apiPost(action, data) {
-        const p = new URLSearchParams();
-        p.append('data', JSON.stringify({ action, token: authClient.token, ...data }));
-        const res = await fetch(API_URL, { method: 'POST', body: p });
-        return res.json();
+    return valid ? items : null;
+}
+
+// ============================================================
+// Signature Canvas
+// ============================================================
+function initSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    sigCtx = canvas.getContext('2d');
+    sigCtx.fillStyle = '#ffffff';
+    sigCtx.fillRect(0, 0, canvas.width, canvas.height);
+    sigCtx.strokeStyle = '#111';
+    sigCtx.lineWidth   = 2.5;
+    sigCtx.lineCap     = 'round';
+    sigCtx.lineJoin    = 'round';
+
+    const pos = (e) => {
+        const rect   = canvas.getBoundingClientRect();
+        const scaleX = canvas.width  / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const src    = e.touches ? e.touches[0] : e;
+        return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    };
+
+    const start = (e) => {
+        e.preventDefault();
+        sigDrawing = true; sigHasMark = true;
+        const p = pos(e);
+        sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y);
+        document.getElementById('sigError').classList.add('hidden');
+    };
+    const draw  = (e) => {
+        e.preventDefault();
+        if (!sigDrawing) return;
+        const p = pos(e);
+        sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
+    };
+    const stop  = (e) => { e.preventDefault(); sigDrawing = false; };
+
+    canvas.addEventListener('mousedown',  start);
+    canvas.addEventListener('mousemove',  draw);
+    canvas.addEventListener('mouseup',    stop);
+    canvas.addEventListener('mouseleave', stop);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove',  draw,  { passive: false });
+    canvas.addEventListener('touchend',   stop,  { passive: false });
+}
+
+function clearSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    sigCtx.fillStyle = '#ffffff';
+    sigCtx.fillRect(0, 0, canvas.width, canvas.height);
+    sigHasMark = false;
+}
+
+// ============================================================
+// Submit Checkout
+// ============================================================
+async function submitCheckout() {
+    hideMsg('submitMsg');
+
+    const items = collectItems();
+    if (!items || !items.length) {
+        showMsg('tableMsg', 'יש לבחור לפחות פריט אחד עם כמות תקינה', 'error');
+        return;
     }
 
-    function showMsg(containerId, text, type) {
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        el.className = 'msg msg-' + type;
-        el.textContent = text;
-        el.style.display = 'block';
-    }
-    function hideMsg(containerId) {
-        const el = document.getElementById(containerId);
-        if (el) { el.style.display = 'none'; el.textContent = ''; }
+    const fullName       = document.getElementById('fullName').value.trim();
+    const personalNumber = document.getElementById('personalNumber').value.trim();
+    const unit           = document.getElementById('unitSelect').value;
+
+    if (!fullName || !personalNumber || !unit) {
+        showMsg('submitMsg', 'יש למלא שם מלא, מספר אישי ופלוגה', 'error');
+        return;
     }
 
-    // ============================================================
-    // Tabs
-    // ============================================================
-    function switchTab(name) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if (name === 'history') loadHistory();
+    if (!sigHasMark) {
+        document.getElementById('sigError').classList.remove('hidden');
+        document.getElementById('signatureCanvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
     }
 
-    // ============================================================
-    // Items Management
-    // ============================================================
-    async function loadItems() {
-        try {
-            const json = await apiPost('apsnaut_get_items', {});
-            if (json.statusCode === 200) {
-                apsnautItems = json.data || [];
-                renderCatalog();
-                refreshAllItemDropdowns();
-            }
-        } catch(e) { console.error('loadItems:', e); }
-    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ שומר...';
 
-    function renderCatalog() {
-        const el = document.getElementById('itemsCatalog');
-        if (!apsnautItems.length) {
-            el.innerHTML = '<span style="color:#555;font-size:0.85em;">אין פריטים — הוסף פריט ראשון למעלה</span>';
-            return;
+    try {
+        const signature = document.getElementById('signatureCanvas').toDataURL('image/png');
+        const json = await apiPost('apsnaut_checkout', {
+            fullName, personalNumber, unit, items, signature
+        });
+
+        if (json.statusCode === 200) {
+            showMsg('submitMsg',
+                '✅ החתימה נשמרה בהצלחה! מזהה: ' + json.data.id + ' — PDF נשמר ב-Drive',
+                'success');
+            resetForm();
+        } else {
+            showMsg('submitMsg', '❌ ' + json.message, 'error');
         }
-        el.innerHTML = apsnautItems.map(item =>
-            `<span class="item-chip ${item.important ? 'important' : ''}">${item.important ? '⚠️ ' : ''}${item.name}<span style="color:#666;margin-right:4px;">${item.unit ? '(' + item.unit + ')' : ''}</span></span>`
+    } catch(e) {
+        showMsg('submitMsg', '❌ שגיאת רשת: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ שמור ויצור PDF';
+    }
+}
+
+function resetForm() {
+    document.getElementById('personalNumber').value = '';
+    document.getElementById('fullName').value       = '';
+    document.getElementById('unitSelect').value     = '';
+    document.getElementById('pnStatus').classList.add('hidden');
+    document.getElementById('checkoutBody').innerHTML = '';
+    rowCounter = 0;
+    addItemRow();
+    clearSignature();
+    hideMsg('tableMsg');
+}
+
+// ============================================================
+// History
+// ============================================================
+async function loadHistory() {
+    if (historyLoaded) { filterHistory(); return; }
+
+    const msg = document.getElementById('historyMsg');
+    msg.className = 'msg msg-info';
+    msg.textContent = 'טוען היסטוריה...';
+    msg.classList.remove('hidden');
+
+    try {
+        const json = await apiPost('apsnaut_get_checkouts', {});
+        if (json.statusCode === 200) {
+            historyRows   = json.data || [];
+            historyLoaded = true;
+            msg.classList.add('hidden');
+            filterHistory();
+        } else {
+            showMsg('historyMsg', '❌ ' + json.message, 'error');
+        }
+    } catch(e) {
+        showMsg('historyMsg', '❌ שגיאת רשת: ' + e.message, 'error');
+    }
+}
+
+function filterHistory() {
+    const f = document.getElementById('historyFilter').value;
+    historyFiltered = f ? historyRows.filter(r => r.unit === f) : historyRows;
+    renderHistory();
+}
+
+function renderHistory() {
+    const wrap = document.getElementById('historyTableWrap');
+    if (!historyFiltered.length) {
+        wrap.innerHTML = '<div style="color:#555;padding:20px;text-align:center;">אין נתונים להצגה</div>';
+        return;
+    }
+
+    // Group rows by checkout id
+    const grouped = {};
+    historyFiltered.forEach(r => {
+        if (!grouped[r.id]) grouped[r.id] = { ...r, items: [] };
+        grouped[r.id].items.push({ name: r.itemName, unit: r.itemUnit, qty: r.qty, notes: r.notes });
+    });
+
+    let html = '<table class="history-table"><thead><tr>' +
+        '<th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>פלוגה</th><th>פריטים</th><th>על ידי</th>' +
+        '</tr></thead><tbody>';
+
+    Object.values(grouped).forEach(g => {
+        const itemsList = g.items.map(i =>
+            `<div style="margin-bottom:3px;">${i.name}${i.unit ? ' (' + i.unit + ')' : ''} × <strong>${i.qty}</strong>${i.notes ? ' — ' + i.notes : ''}</div>`
         ).join('');
-    }
+        html += `<tr>
+            <td style="white-space:nowrap;">${g.date}</td>
+            <td>${g.fullName}</td>
+            <td>${g.personalNumber}</td>
+            <td>${g.unit}</td>
+            <td>${itemsList}</td>
+            <td style="color:#666;font-size:0.82em;">${g.by || ''}</td>
+        </tr>`;
+    });
 
-    // Add item collapse toggle
-    let addItemOpen = true;
-    function toggleAddItem() {
-        addItemOpen = !addItemOpen;
-        const body  = document.getElementById('addItemBody');
-        const arrow = document.getElementById('addItemArrow');
-        body.style.display  = addItemOpen ? 'block' : 'none';
-        arrow.style.transform = addItemOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
-    }
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+}
 
-    async function addItem() {
-        const name      = document.getElementById('newItemName').value.trim();
-        const unit      = document.getElementById('newItemUnit').value.trim();
-        const important = document.getElementById('newItemImportant').checked;
-
-        if (!name) { showMsg('addItemMsg', 'יש להזין שם פריט', 'error'); return; }
-        hideMsg('addItemMsg');
-
-        try {
-            const json = await apiPost('apsnaut_add_item', { name, unit, important });
-            if (json.statusCode === 200) {
-                showMsg('addItemMsg', '✅ פריט "' + name + '" נוסף בהצלחה', 'success');
-                document.getElementById('newItemName').value  = '';
-                document.getElementById('newItemUnit').value  = '';
-                document.getElementById('newItemImportant').checked = false;
-                await loadItems();
-            } else {
-                showMsg('addItemMsg', '❌ ' + json.message, 'error');
-            }
-        } catch(e) { showMsg('addItemMsg', '❌ שגיאת רשת: ' + e.message, 'error'); }
-    }
-
-    // ============================================================
-    // Checkout Table
-    // ============================================================
-    let rowCounter = 0;
-
-    function addItemRow() {
-        const id   = ++rowCounter;
-        const opts = apsnautItems.map(item =>
-            `<option value="${item.name}" data-unit="${item.unit}">${item.important ? '⚠️ ' : ''}${item.name}</option>`
-        ).join('');
-
-        const tr = document.createElement('tr');
-        tr.id = 'row-' + id;
-        tr.innerHTML = `
-            <td class="col-item">
-                <select class="item-select" onchange="onItemSelect(${id})">
-                    <option value="">— בחר פריט —</option>
-                    ${opts}
-                </select>
-            </td>
-            <td class="col-unit">
-                <input type="text" class="item-unit" readonly style="background:#111;color:#888;" placeholder="יח&quot;מ">
-            </td>
-            <td class="col-qty">
-                <input type="number" class="item-qty" min="1" value="1" placeholder="כמות">
-            </td>
-            <td class="col-notes">
-                <input type="text" class="item-notes" placeholder="הערות...">
-            </td>
-            <td class="col-del">
-                <button class="btn btn-danger btn-sm" onclick="removeRow(${id})" title="הסר שורה">✕</button>
-            </td>`;
-        document.getElementById('checkoutBody').appendChild(tr);
-        hideMsg('tableMsg');
-    }
-
-    function removeRow(id) {
-        const el = document.getElementById('row-' + id);
-        if (el) el.remove();
-    }
-
-    function onItemSelect(id) {
-        const row    = document.getElementById('row-' + id);
-        const sel    = row.querySelector('.item-select');
-        const unitEl = row.querySelector('.item-unit');
-        const opt    = sel.options[sel.selectedIndex];
-        unitEl.value = opt ? (opt.getAttribute('data-unit') || '') : '';
-    }
-
-    function refreshAllItemDropdowns() {
-        // Update existing rows' dropdowns with fresh item list
-        document.querySelectorAll('.item-select').forEach(sel => {
-            const curVal = sel.value;
-            const opts   = apsnautItems.map(item =>
-                `<option value="${item.name}" data-unit="${item.unit}">${item.important ? '⚠️ ' : ''}${item.name}</option>`
-            ).join('');
-            sel.innerHTML = '<option value="">— בחר פריט —</option>' + opts;
-            sel.value = curVal; // restore selection
-        });
-    }
-
-    function collectItems() {
-        const rows  = document.querySelectorAll('#checkoutBody tr');
-        const items = [];
-        let valid   = true;
-
-        rows.forEach(row => {
-            const name  = row.querySelector('.item-select').value.trim();
-            const unit  = row.querySelector('.item-unit').value.trim();
-            const qty   = Number(row.querySelector('.item-qty').value) || 0;
-            const notes = row.querySelector('.item-notes').value.trim();
-            if (!name) return; // skip empty rows
-            if (qty <= 0) { valid = false; return; }
-            items.push({ name, unit, qty, notes });
-        });
-
-        return valid ? items : null;
-    }
-
-    // ============================================================
-    // Signature Canvas
-    // ============================================================
-    let sigCtx, sigDrawing = false, sigHasMark = false;
-
-    function initSignature() {
-        const canvas = document.getElementById('signatureCanvas');
-        sigCtx = canvas.getContext('2d');
-        sigCtx.fillStyle = '#ffffff';
-        sigCtx.fillRect(0, 0, canvas.width, canvas.height);
-        sigCtx.strokeStyle = '#000';
-        sigCtx.lineWidth   = 2.5;
-        sigCtx.lineCap     = 'round';
-        sigCtx.lineJoin    = 'round';
-
-        const pos = (e) => {
-            const rect  = canvas.getBoundingClientRect();
-            const scaleX = canvas.width  / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const src = e.touches ? e.touches[0] : e;
-            return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
-        };
-        const start = (e) => { e.preventDefault(); sigDrawing = true; sigHasMark = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); document.getElementById('sigError').classList.add('hidden'); };
-        const draw  = (e) => { e.preventDefault(); if (!sigDrawing) return; const p = pos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
-        const stop  = (e) => { e.preventDefault(); sigDrawing = false; };
-
-        canvas.addEventListener('mousedown',  start);
-        canvas.addEventListener('mousemove',  draw);
-        canvas.addEventListener('mouseup',    stop);
-        canvas.addEventListener('mouseleave', stop);
-        canvas.addEventListener('touchstart', start, { passive: false });
-        canvas.addEventListener('touchmove',  draw,  { passive: false });
-        canvas.addEventListener('touchend',   stop,  { passive: false });
-    }
-
-    function clearSignature() {
-        const canvas = document.getElementById('signatureCanvas');
-        sigCtx.fillStyle = '#ffffff';
-        sigCtx.fillRect(0, 0, canvas.width, canvas.height);
-        sigHasMark = false;
-    }
-
-    function getSignatureDataUrl() {
-        return document.getElementById('signatureCanvas').toDataURL('image/png');
-    }
-
-    // ============================================================
-    // Submit Checkout
-    // ============================================================
-    async function submitCheckout() {
-        hideMsg('submitMsg');
-
-        // Validate items
-        const items = collectItems();
-        if (!items || !items.length) {
-            showMsg('tableMsg', 'יש לבחור לפחות פריט אחד עם כמות תקינה', 'error');
-            return;
-        }
-
-        // Validate personal info
-        const fullName       = document.getElementById('fullName').value.trim();
-        const personalNumber = document.getElementById('personalNumber').value.trim();
-        const unit           = document.getElementById('unitSelect').value;
-
-        if (!fullName || !personalNumber || !unit) {
-            showMsg('submitMsg', 'יש למלא שם מלא, מספר אישי ופלוגה', 'error');
-            return;
-        }
-
-        // Validate signature
-        if (!sigHasMark) {
-            document.getElementById('sigError').classList.remove('hidden');
-            return;
-        }
-
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.textContent = '⏳ שומר...';
-
-        try {
-            const signature = getSignatureDataUrl();
-            const json = await apiPost('apsnaut_checkout', {
-                fullName, personalNumber, unit, items, signature
-            });
-
-            if (json.statusCode === 200) {
-                showMsg('submitMsg',
-                    '✅ החתימה נשמרה בהצלחה! מזהה: ' + json.data.id + ' | PDF נשמר ב-Drive',
-                    'success');
-                resetForm();
-            } else {
-                showMsg('submitMsg', '❌ ' + json.message, 'error');
-            }
-        } catch(e) {
-            showMsg('submitMsg', '❌ שגיאת רשת: ' + e.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '✅ שמור ויצור PDF';
-        }
-    }
-
-    function resetForm() {
-        document.getElementById('checkoutBody').innerHTML = '';
-        rowCounter = 0;
-        addItemRow();
-        document.getElementById('fullName').value       = '';
-        document.getElementById('personalNumber').value = '';
-        document.getElementById('unitSelect').value     = '';
-        clearSignature();
-        hideMsg('tableMsg');
-    }
-
-    // ============================================================
-    // History
-    // ============================================================
-    let historyLoaded = false;
-
-    async function loadHistory() {
-        if (historyLoaded) { filterHistory(); return; }
-        showMsg('historyMsg', 'טוען היסטוריה...', 'info');
-        document.getElementById('historyMsg').classList.remove('hidden');
-
-        try {
-            const json = await apiPost('apsnaut_get_checkouts', {});
-            if (json.statusCode === 200) {
-                historyRows   = json.data || [];
-                historyLoaded = true;
-                document.getElementById('historyMsg').classList.add('hidden');
-                filterHistory();
-            } else {
-                showMsg('historyMsg', '❌ ' + json.message, 'error');
-            }
-        } catch(e) {
-            showMsg('historyMsg', '❌ שגיאת רשת: ' + e.message, 'error');
-        }
-    }
-
-    function filterHistory() {
-        const filter = document.getElementById('historyFilter').value;
-        historyFiltered = filter
-            ? historyRows.filter(r => r.unit === filter)
-            : historyRows;
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const wrap = document.getElementById('historyTableWrap');
-        if (!historyFiltered.length) {
-            wrap.innerHTML = '<div style="color:#555;padding:20px;text-align:center;">אין נתונים להצגה</div>';
-            return;
-        }
-
-        // Group by checkout id
-        const grouped = {};
-        historyFiltered.forEach(r => {
-            if (!grouped[r.id]) grouped[r.id] = { ...r, items: [] };
-            grouped[r.id].items.push({ name: r.itemName, unit: r.itemUnit, qty: r.qty, notes: r.notes });
-        });
-
-        let html = '<table class="history-table"><thead><tr>' +
-            '<th>תאריך</th><th>שם מלא</th><th>מ"א</th><th>פלוגה</th><th>פריטים</th><th>על ידי</th>' +
-            '</tr></thead><tbody>';
-
-        Object.values(grouped).forEach(g => {
-            const itemsList = g.items.map(i =>
-                `<div style="margin-bottom:3px;">${i.name}${i.unit ? ' (' + i.unit + ')' : ''} × <strong>${i.qty}</strong>${i.notes ? ' — ' + i.notes : ''}</div>`
-            ).join('');
-            html += `<tr>
-                <td style="white-space:nowrap;">${g.date}</td>
-                <td>${g.fullName}</td>
-                <td>${g.personalNumber}</td>
-                <td>${g.unit}</td>
-                <td>${itemsList}</td>
-                <td style="color:#777;font-size:0.82em;">${g.by || ''}</td>
-            </tr>`;
-        });
-
-        html += '</tbody></table>';
-        wrap.innerHTML = html;
-    }
-
-    function exportHistoryCSV() {
-        if (!historyFiltered.length) { alert('אין נתונים לייצוא'); return; }
-        const headers = ['מזהה', 'תאריך', 'שם מלא', 'מספר אישי', 'פלוגה', 'פריט', 'יח"מ', 'כמות', 'הערות', 'על ידי'];
-        const csvRows = [headers.join(',')];
-        historyFiltered.forEach(r => {
-            csvRows.push([
-                r.id, r.date, r.fullName, r.personalNumber, r.unit,
-                r.itemName, r.itemUnit, r.qty, r.notes, r.by
-            ].map(v => '"' + String(v || '').replace(/"/g, '""') + '"').join(','));
-        });
-        const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8' });
-        const a    = document.createElement('a');
-        a.href     = URL.createObjectURL(blob);
-        a.download = 'אפסנאות_' + (document.getElementById('historyFilter').value || 'הכל') + '_' + new Date().toLocaleDateString('he-IL') + '.csv';
-        a.click();
-    }
-    </script>
+function exportHistoryCSV() {
+    if (!historyFiltered.length) { alert('אין נתונים לייצוא'); return; }
+    const headers = ['מזהה', 'תאריך', 'שם מלא', 'מספר אישי', 'פלוגה', 'פריט', 'יח"מ', 'כמות', 'הערות', 'על ידי'];
+    const csvRows = [headers.join(',')];
+    historyFiltered.forEach(r => {
+        csvRows.push([r.id, r.date, r.fullName, r.personalNumber, r.unit,
+                      r.itemName, r.itemUnit, r.qty, r.notes, r.by]
+            .map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(','));
+    });
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = 'אפסנאות_' + (document.getElementById('historyFilter').value || 'הכל') + '_' + new Date().toLocaleDateString('he-IL') + '.csv';
+    a.click();
+}
+</script>
 </body>
 </html>
