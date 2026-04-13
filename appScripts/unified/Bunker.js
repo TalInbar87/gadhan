@@ -71,6 +71,13 @@ function bunker_formatDate(val) {
   return String(val).trim();
 }
 
+// ── עזר: parse "DD/MM/YYYY [HH:mm]" → Date object (ימנע פרשנות US locale של Sheets) ──
+function bunker_parseLocalDate(str) {
+  var m = String(str || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return null;
+  return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+}
+
 // ── עזר: מצא שורה לפי שם פריט בגליון מלאים ──
 function bunker_findItemRow(sheet, itemName) {
   var rows = sheet.getDataRange().getValues();
@@ -466,7 +473,10 @@ function bunker_shatsalReport(data) {
   var ss        = bunker_ss();
   var sh        = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
   var reportTs  = bunker_ts(); // תאריך דיווח — תמיד עכשיו
-  var execDate  = (data.date && data.date.trim()) ? data.date.trim() : reportTs; // תאריך ביצוע
+  // תאריך ביצוע: מאחסן כ-Date object כדי למנוע פרשנות US-locale של Google Sheets
+  var execDate  = (data.date && data.date.trim())
+    ? (bunker_parseLocalDate(data.date.trim()) || new Date())
+    : new Date();
   var reportId  = bunker_uid(); // מזהה משותף לכל הפריטים בדיווח זה
 
   // מיגרציה: עדכן כותרות אם הגליון הישן עדיין עם 6 עמודות
