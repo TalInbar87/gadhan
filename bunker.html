@@ -1067,6 +1067,7 @@
                         const toCredit    = item.totalQty - shatsal;
                         const creditColor = toCredit > 0 ? '#4ade80' : toCredit < 0 ? '#f87171' : '#666';
                         const safeKey     = key.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+                        const defaultQty = Math.max(0, toCredit);
                         return `
                         <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
                             <input type="checkbox" class="credit-cb" data-key="${safeKey}"
@@ -1074,13 +1075,11 @@
                                    style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
                             <span style="flex:1;color:#fff;font-weight:600;min-width:130px;">${item.label}</span>
                             <span style="font-size:0.85em;white-space:nowrap;color:#888;">
-                                ניפוק:
+                                סה״כ:
                                 <input type="number" class="credit-qty" data-key="${safeKey}"
-                                       value="${item.totalQty}" min="1" max="${item.totalQty}" disabled
+                                       value="${defaultQty}" min="1" max="${item.totalQty}" disabled
                                        style="width:60px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
                             </span>
-                            <span style="font-size:0.85em;white-space:nowrap;color:#f87171;">שצ״ל: <b>${shatsal}</b></span>
-                            <span style="font-size:0.85em;white-space:nowrap;color:${creditColor};font-weight:700;">לזיכוי: ${toCredit}</span>
                         </div>`;
                     }).join('');
             } finally { showLoader('creditLoader', false); }
