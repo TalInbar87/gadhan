@@ -45,9 +45,9 @@ function doGet(e) {
     const callback     = e.parameter.callback || 'callback';
 
     if (action === 'checkPersonalNumber') {
-      return formType === 'radio'
-        ? radio_checkPersonalNumber(personalNumber, callback)
-        : weapons_checkPersonalNumber(personalNumber, callback);
+      if (formType === 'radio')   return radio_checkPersonalNumber(personalNumber, callback);
+      if (formType === 'apsnaut') return apsnaut_checkPersonalNumber(personalNumber, callback);
+      return weapons_checkPersonalNumber(personalNumber, callback);
     }
 
     return createJsonpResponse({ error: 'Unknown action: ' + action }, callback);

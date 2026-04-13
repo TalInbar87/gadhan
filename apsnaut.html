@@ -578,7 +578,7 @@ async function checkPN() {
         script.id    = '_apsnaut_pn_script';
         script.onerror = () => resolve(null);
         script.src = API_URL + '?action=checkPersonalNumber&personalNumber='
-                     + encodeURIComponent(pn) + '&formType=weapons&callback=' + cbName;
+                     + encodeURIComponent(pn) + '&formType=apsnaut&callback=' + cbName;
         document.head.appendChild(script);
     });
 

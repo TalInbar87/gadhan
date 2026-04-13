@@ -131,7 +131,38 @@ function apsnaut_checkout(data) {
 }
 
 // ================================================================
-// 4. שליפת רשימת חיילים ייחודיים מגליון חתימות (לחיפוש לפי שם)
+// 4. בדיקת מספר אישי מגליון חתימות (JSONP — נקרא מ-doGet)
+// ================================================================
+function apsnaut_checkPersonalNumber(personalNumber, callback) {
+  var pn = String(personalNumber || '').trim();
+  if (!pn) return createJsonpResponse({ exists: false }, callback);
+
+  var ss = apsnaut_ss();
+  var sh = ss.getSheetByName(APSNAUT_CHECKOUT_SHEET);
+  if (!sh || sh.getLastRow() < 2)
+    return createJsonpResponse({ exists: false }, callback);
+
+  var rows = sh.getRange(2, 1, sh.getLastRow()-1, 5).getValues();
+  // מצא את הרשומה האחרונה לפי מ"א (עמודה D = index 3)
+  var found = null;
+  rows.forEach(function(r) {
+    if (String(r[3] || '').trim() === pn) found = r;
+  });
+
+  if (!found) return createJsonpResponse({ exists: false }, callback);
+
+  return createJsonpResponse({
+    exists: true,
+    data: {
+      personalNumber: String(found[3] || '').trim(),
+      fullName:       String(found[2] || '').trim(),
+      unit:           String(found[4] || '').trim()
+    }
+  }, callback);
+}
+
+// ================================================================
+// 4b. שליפת רשימת חיילים ייחודיים מגליון חתימות (לחיפוש לפי שם)
 // ================================================================
 function apsnaut_getSoldiers() {
   var ss = apsnaut_ss();
