@@ -1889,24 +1889,34 @@
             }
 
             const multiUnit = units.length > 1;
-            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;">${s}</th>`;
+            const unit      = multiUnit ? null : units[0];
+            const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;border-bottom:2px solid #333;">${s}</th>`;
 
-            // ניפוק + שצ״ל לכל מסגרת בזוגות
+            // כותרות: 4 עמודות — פריט | ניפוק | שצ״ל | נשאר
             const headerCells = [
                 th('פריט'),
-                ...units.flatMap(u => [th('ניפוק ' + u), th('שצ״ל ' + u)]),
+                th(multiUnit ? 'סה״כ ניפוק'  : 'ניפוק ' + unit),
+                th(multiUnit ? 'סה״כ שצ״ל'   : 'שצ״ל '  + unit),
+                th('נשאר'),
             ].join('');
 
-            const bodyRows = rows.map(row => {
-                const tdBase = 'padding:8px;';
-                const cells = [
-                    `<td style="${tdBase}font-weight:600;color:#fff;">${row.item}</td>`,
-                    ...units.flatMap(u => [
-                        `<td style="${tdBase}color:#a78bfa;">${row.dispenses[u] || 0}</td>`,
-                        `<td style="${tdBase}color:#f87171;">${(row.shatsalPerUnit && row.shatsalPerUnit[u]) || 0}</td>`,
-                    ]),
-                ].join('');
-                return `<tr style="border-bottom:1px solid #2a2a2a;">${cells}</tr>`;
+            const bodyRows = rows.map((row, idx) => {
+                const label = bunkerItems.find(i => i.key === row.item)?.label || row.item;
+                const bg    = idx % 2 === 0 ? '#1a1a1a' : '#161616';
+
+                const disp    = multiUnit ? (row.totalDisp || 0)
+                                          : (row.dispenses?.[unit] || 0);
+                const shatsal = multiUnit ? (row.shatsal || 0)
+                                          : ((row.shatsalPerUnit?.[unit]) || 0);
+                const rem     = disp - shatsal;
+                const remColor = rem > 0 ? '#4ade80' : rem < 0 ? '#f87171' : '#666';
+
+                return `<tr style="background:${bg};border-bottom:1px solid #222;">
+                    <td style="padding:8px;color:#fff;font-weight:600;">${label}</td>
+                    <td style="padding:8px;color:#a78bfa;text-align:center;">${disp}</td>
+                    <td style="padding:8px;color:#f87171;text-align:center;">${shatsal}</td>
+                    <td style="padding:8px;color:${remColor};font-weight:700;text-align:center;">${rem}</td>
+                </tr>`;
             }).join('');
 
             document.getElementById('summaryTableWrap').innerHTML =
