@@ -1475,9 +1475,14 @@
             // unit → dateKey → { responsible, items[] }
             const byUnit = {};
             rows.forEach(r => {
-                const dk = String(r.date || '').substring(0, 10);
+                const dk = String(r.date || '').substring(0, 10); // קיבוץ לפי תאריך ביצוע
                 if (!byUnit[r.unit]) byUnit[r.unit] = {};
-                if (!byUnit[r.unit][dk]) byUnit[r.unit][dk] = { displayDate: String(r.date || '').trim(), responsible: r.responsible, items: [] };
+                if (!byUnit[r.unit][dk]) byUnit[r.unit][dk] = {
+                    displayDate: String(r.date       || '').trim(),
+                    reportDate:  String(r.reportDate || '').trim(),
+                    responsible: r.responsible,
+                    items: []
+                };
                 const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
                 byUnit[r.unit][dk].items.push({ label, qty: Number(r.qty) });
             });
@@ -1503,8 +1508,11 @@
                     const dayTotal = items.reduce((s, i) => s + i.qty, 0);
 
                     // date sub-header
+                    const { displayDate, reportDate } = byUnit[unit][dk];
+                    const reportStr = (reportDate && reportDate !== displayDate)
+                        ? `<br><span style="color:#555;font-size:11px;">דווח: ${reportDate}</span>` : '';
                     body += `<tr style="background:#161616;">
-                        <td style="padding:5px 8px 5px 16px;color:#facc15;white-space:nowrap;">📅 ${byUnit[unit][dk].displayDate}</td>
+                        <td style="padding:5px 8px 5px 16px;color:#facc15;white-space:nowrap;">📅 ${displayDate}${reportStr}</td>
                         <td style="padding:5px 8px;color:#888;font-size:12px;">${responsible}</td>
                         <td style="padding:5px 8px;color:#888;text-align:center;font-size:12px;white-space:nowrap;">סה״כ: ${dayTotal}</td>
                     </tr>`;

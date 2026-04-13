@@ -446,19 +446,27 @@ function bunker_getRegulations() {
 // 10. שצ״ל — דיווח שימוש בתחמושת בשטח
 // ================================================================
 var SHATSAL_SHEET   = 'שצ״ל';
-var SHATSAL_HEADERS = ['מזהה', 'תאריך', 'מסגרת', 'אחראי', 'פריט', 'כמות'];
+// עמודות: מזהה | תאריך ביצוע | מסגרת | אחראי | פריט | כמות | תאריך דיווח
+// תאריך דיווח נוסף בסוף (עמודה G) — תואם לאחור עם נתונים ישנים (6 עמודות)
+var SHATSAL_HEADERS = ['מזהה', 'תאריך ביצוע', 'מסגרת', 'אחראי', 'פריט', 'כמות', 'תאריך דיווח'];
 
 function bunker_shatsalReport(data) {
   if (!data.unit || !data.responsible || !data.items || !data.items.length)
     return { success: false, error: 'חסרים נתונים לשצ״ל' };
 
-  var ss       = bunker_ss();
-  var sh       = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
-  var ts       = (data.date && data.date.trim()) ? data.date.trim() : bunker_ts();
-  var reportId = bunker_uid(); // מזהה משותף לכל הפריטים בדיווח זה
+  var ss        = bunker_ss();
+  var sh        = bunker_ensureSheet(ss, SHATSAL_SHEET, SHATSAL_HEADERS);
+  var reportTs  = bunker_ts(); // תאריך דיווח — תמיד עכשיו
+  var execDate  = (data.date && data.date.trim()) ? data.date.trim() : reportTs; // תאריך ביצוע
+  var reportId  = bunker_uid(); // מזהה משותף לכל הפריטים בדיווח זה
+
+  // מיגרציה: עדכן כותרות אם הגליון הישן עדיין עם 6 עמודות
+  if (sh.getLastColumn() < SHATSAL_HEADERS.length) {
+    sh.getRange(1, 1, 1, SHATSAL_HEADERS.length).setValues([SHATSAL_HEADERS]);
+  }
 
   data.items.forEach(function(item) {
-    sh.appendRow([reportId, ts, data.unit, data.responsible, item.key, Number(item.qty) || 0]);
+    sh.appendRow([reportId, execDate, data.unit, data.responsible, item.key, Number(item.qty) || 0, reportTs]);
     bunker_schemaUpdateShatsal(ss, item.key, data.unit, Number(item.qty) || 0);
   });
 
@@ -469,11 +477,20 @@ function bunker_getShatsal() {
   var ss = bunker_ss();
   var sh = ss.getSheetByName(SHATSAL_SHEET);
   if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
-  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, SHATSAL_HEADERS.length).getValues();
+  var numCols = Math.max(sh.getLastColumn(), SHATSAL_HEADERS.length);
+  var rows    = sh.getRange(2, 1, sh.getLastRow() - 1, numCols).getValues();
   return {
     success: true,
     data: rows.map(function(r) {
-      return { id: r[0], date: r[1], unit: r[2], responsible: r[3], itemKey: r[4], qty: r[5] };
+      return {
+        id:         r[0],
+        date:       r[1], // תאריך ביצוע
+        unit:       r[2],
+        responsible:r[3],
+        itemKey:    r[4],
+        qty:        r[5],
+        reportDate: r[6] || r[1] // תאריך דיווח — fallback לתאריך ביצוע בנתונים ישנים
+      };
     }).reverse()
   };
 }
