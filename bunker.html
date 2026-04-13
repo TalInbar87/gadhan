@@ -1885,6 +1885,14 @@
 
             const multiUnit = units.length > 1;
             const unit      = multiUnit ? null : units[0];
+
+            // מיון לפי שם פריט
+            const sorted = [...rows].sort((a, b) => {
+                const la = bunkerItems.find(i => i.key === a.item)?.label || a.item;
+                const lb = bunkerItems.find(i => i.key === b.item)?.label || b.item;
+                return la.localeCompare(lb, 'he');
+            });
+
             const th = s => `<th style="padding:8px;text-align:right;white-space:nowrap;color:#000;border-bottom:2px solid #333;">${s}</th>`;
 
             // כותרות: 4 עמודות — פריט | ניפוק | שצ״ל | נשאר
@@ -1895,7 +1903,7 @@
                 th('נשאר'),
             ].join('');
 
-            const bodyRows = rows.map((row, idx) => {
+            const bodyRows = sorted.map((row, idx) => {
                 const label = bunkerItems.find(i => i.key === row.item)?.label || row.item;
                 const bg    = idx % 2 === 0 ? '#1a1a1a' : '#161616';
 
