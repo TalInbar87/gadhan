@@ -130,31 +130,45 @@ function apsnaut_checkout(data) {
 
   var ss  = apsnaut_ss();
   var sh  = apsnaut_ensureSheet(ss, APSNAUT_CHECKOUT_SHEET, APSNAUT_CHECKOUT_FIXED);
+  var pn  = String(data.personalNumber).trim();
   var uid = apsnaut_uid();
   var ts  = apsnaut_ts();
 
-  // וודא שלכל פריט יש עמודה
+  // וודא שלכל פריט יש עמודה (אחרי שלב זה אסור לשנות lastColumn)
   var itemNames = data.items.map(function(i) { return (i.name || '').trim(); });
   var colMap    = apsnaut_ensureItemCols(sh, itemNames);
-
-  // בנה שורה: עמודות קבועות + כמויות לפי עמודת פריט
   var totalCols = sh.getLastColumn();
+
+  // בנה שורה: עמודות קבועות + ריק לכל פריט
   var row = new Array(totalCols).fill('');
   row[0] = uid;
   row[1] = ts;
   row[2] = data.fullName;
-  row[3] = data.personalNumber;
+  row[3] = pn;
   row[4] = data.unit;
   row[5] = data.by || '';
 
+  // מלא רק פריטים שנבחרו
   data.items.forEach(function(item) {
-    var name = (item.name || '').trim();
-    var col  = colMap[name];
-    if (!col) return;
-    row[col - 1] = Number(item.qty) || 0;
+    var col = colMap[(item.name || '').trim()];
+    var qty = Number(item.qty) || 0;
+    if (col && qty > 0) row[col - 1] = qty;
   });
 
-  sh.appendRow(row);
+  // חפש שורה קיימת לפי מ"א — עדכן אם נמצאה, הוסף אחרת
+  var targetRow = -1;
+  if (sh.getLastRow() > 1) {
+    var pnVals = sh.getRange(2, 4, sh.getLastRow()-1, 1).getValues();
+    for (var i = 0; i < pnVals.length; i++) {
+      if (String(pnVals[i][0] || '').trim() === pn) { targetRow = i + 2; break; }
+    }
+  }
+
+  if (targetRow > 0) {
+    sh.getRange(targetRow, 1, 1, totalCols).setValues([row]);
+  } else {
+    sh.appendRow(row);
+  }
 
   try { apsnaut_generateAndSavePDF(data, uid, ts); }
   catch(e) { Logger.log('⚠️ [Apsnaut] PDF error: ' + e); }

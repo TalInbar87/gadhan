@@ -173,6 +173,24 @@
         .msg-info    { background: #1a2a3a; color: #60a5fa; border: 1px solid #1e3a5f; }
         .hidden { display: none !important; }
 
+        /* ── Confirmation modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .modal-box {
+            background: #242424; border: 2px solid #4a8f4a; border-radius: 18px;
+            padding: 40px 44px; text-align: center; max-width: 380px; width: 90%;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7); animation: modalPop .22s ease;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.88); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        .modal-icon  { font-size: 3.2em; margin-bottom: 14px; }
+        .modal-title { color: #6abf6a; font-size: 1.25em; font-weight: 700; margin-bottom: 10px; }
+        .modal-sub   { color: #888; font-size: 0.88em; margin-bottom: 28px; line-height: 1.6; }
+
         /* ── History ── */
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table th { background: #2d5a2d; color: #fff; padding: 10px 12px; text-align: right; font-size: 0.85em; }
@@ -354,6 +372,16 @@
 
 <!-- Global dropdown (outside table, avoids overflow clipping) -->
 <div id="globalDrop" class="ac-dropdown" style="min-width:200px;"></div>
+
+<!-- Confirmation modal -->
+<div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-icon">✅</div>
+        <div class="modal-title">החתמה נשמרה בהצלחה</div>
+        <div id="confirmModalSub" class="modal-sub"></div>
+        <button class="btn btn-primary" style="min-width:120px;" onclick="location.reload()">אישור</button>
+    </div>
+</div>
 
 <script src="config.js"></script>
 <script src="auth-client.js"></script>
@@ -949,8 +977,9 @@ async function submitCheckout() {
         const signature = document.getElementById('signatureCanvas').toDataURL('image/png');
         const json = await apiPost('apsnaut_checkout', { fullName, personalNumber, unit, items, signature });
         if (json.statusCode === 200) {
-            showMsg('submitMsg', '✅ נשמר! מזהה: ' + json.data.id + ' | PDF עודכן ב-Drive', 'success');
-            resetForm();
+            document.getElementById('confirmModalSub').textContent =
+                'PDF עודכן ב-Drive | מזהה: ' + json.data.id;
+            document.getElementById('confirmModal').classList.remove('hidden');
         } else {
             showMsg('submitMsg', '❌ ' + json.message, 'error');
         }
