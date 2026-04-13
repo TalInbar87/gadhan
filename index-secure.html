@@ -455,8 +455,10 @@
             const hasInspections = authClient.hasPermission('inspections');
 
             const show = (sectionId, cardsId) => {
-                document.getElementById(sectionId).style.display = 'flex';
-                document.getElementById(cardsId).style.display   = 'grid';
+                const title = document.getElementById(sectionId);
+                title.style.display = 'flex';
+                title.classList.add('collapsed'); // סגור כברירת מחדל
+                // הכרטיסים נשארים מוסתרים עד לחיצה
             };
 
             // ── חימוש — בדיקות בלבד ──
