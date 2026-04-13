@@ -263,9 +263,9 @@
                     <input type="text" id="fullName" placeholder="שם מלא">
                 </div>
                 <div class="form-group" style="max-width:200px;">
-                    <label>פלוגה *</label>
-                    <select id="unitSelect">
-                        <option value="">בחר פלוגה</option>
+                    <label>מסגרת *</label>
+                    <select id="unitSelect" onchange="onUnitChange()">
+                        <option value="">בחר מסגרת</option>
                         <option>פלוגה א</option>
                         <option>פלוגה ב</option>
                         <option>פלוגה ג</option>
@@ -273,6 +273,19 @@
                         <option>ניוד</option>
                         <option>מחסר</option>
                         <option>חפק</option>
+                        <option value="פלס&quot;ם">פלס"ם</option>
+                    </select>
+                </div>
+                <div class="form-group" id="machlakaWrap" style="max-width:180px;display:none;">
+                    <label>מחלקה *</label>
+                    <select id="machlakaSelect">
+                        <option value="">בחר מחלקה</option>
+                        <option>רכב</option>
+                        <option>קשר</option>
+                        <option>טנ"א</option>
+                        <option>הדרכה</option>
+                        <option>תאג"ד</option>
+                        <option>לוגיסטיקה</option>
                     </select>
                 </div>
             </div>
@@ -327,9 +340,10 @@
                 <div class="form-group" style="max-width:200px;">
                     <label>סנן לפי פלוגה</label>
                     <select id="historyFilter" onchange="filterHistory()">
-                        <option value="">כל הפלוגות</option>
+                        <option value="">כל המסגרות</option>
                         <option>פלוגה א</option><option>פלוגה ב</option><option>פלוגה ג</option>
                         <option>צמה</option><option>ניוד</option><option>מחסר</option><option>חפק</option>
+                        <option value='פלס"ם'>פלס"ם</option>
                     </select>
                 </div>
                 <div><button class="btn btn-secondary" onclick="exportHistoryCSV()">📥 ייצוא CSV</button></div>
@@ -596,14 +610,41 @@ async function checkPN() {
     }
 }
 
+// Returns the effective unit string ("פלס"ם - קשר" or just the plain value)
+function getSelectedUnit() {
+    const sel = document.getElementById('unitSelect');
+    const v   = sel.value;
+    if (v === 'פלס"ם') {
+        const m = document.getElementById('machlakaSelect').value;
+        return m ? 'פלס"ם - ' + m : 'פלס"ם';
+    }
+    return v;
+}
+
+// Show/hide machlaka sub-select
+function onUnitChange() {
+    const isPalsam = document.getElementById('unitSelect').value === 'פלס"ם';
+    document.getElementById('machlakaWrap').style.display = isPalsam ? '' : 'none';
+    if (!isPalsam) document.getElementById('machlakaSelect').value = '';
+}
+
 function trySetUnit(unit) {
     const sel = document.getElementById('unitSelect');
+    // Handle "פלס"ם - X" combined values
+    if (unit && unit.startsWith('פלס"ם')) {
+        sel.value = 'פלס"ם';
+        onUnitChange();
+        const parts = unit.split(' - ');
+        if (parts[1]) document.getElementById('machlakaSelect').value = parts[1];
+        return;
+    }
     sel.value = unit;
+    onUnitChange();
     if (!sel.value && unit) {
-        // Try to find partial match
         Array.from(sel.options).forEach(opt => {
-            if (opt.value && unit.includes(opt.value.replace('פלוגה ', ''))) sel.value = opt.value;
+            if (opt.value && unit.includes(opt.value)) sel.value = opt.value;
         });
+        onUnitChange();
     }
 }
 
@@ -878,10 +919,17 @@ async function submitCheckout() {
 
     const fullName       = document.getElementById('fullName').value.trim();
     const personalNumber = document.getElementById('personalNumber').value.trim();
-    const unit           = document.getElementById('unitSelect').value;
+    const unit           = getSelectedUnit();
+
+    // Validate: if פלס"ם selected, machlaka must also be chosen
+    if (document.getElementById('unitSelect').value === 'פלס"ם' &&
+        !document.getElementById('machlakaSelect').value) {
+        showMsg('submitMsg', 'יש לבחור מחלקה עבור פלס"ם', 'error');
+        return;
+    }
 
     if (!fullName || !personalNumber || !unit) {
-        showMsg('submitMsg', 'יש למלא שם מלא, מספר אישי ופלוגה', 'error');
+        showMsg('submitMsg', 'יש למלא שם מלא, מספר אישי ומסגרת', 'error');
         return;
     }
 
@@ -914,6 +962,8 @@ function resetForm() {
     document.getElementById('personalNumber').value = '';
     document.getElementById('fullName').value       = '';
     document.getElementById('unitSelect').value     = '';
+    document.getElementById('machlakaSelect').value = '';
+    document.getElementById('machlakaWrap').style.display = 'none';
     document.getElementById('nameSearch').value     = '';
     document.getElementById('pnStatus').classList.add('hidden');
     document.getElementById('checkoutBody').innerHTML = '';
@@ -945,7 +995,9 @@ async function loadHistory() {
 
 function filterHistory() {
     const f = document.getElementById('historyFilter').value;
-    historyFiltered = f ? historyRows.filter(r => r.unit === f) : historyRows;
+    historyFiltered = !f ? historyRows
+        : f === 'פלס"ם' ? historyRows.filter(r => r.unit === 'פלס"ם' || r.unit.startsWith('פלס"ם - '))
+        : historyRows.filter(r => r.unit === f);
     renderHistory();
 }
 
