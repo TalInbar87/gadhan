@@ -715,6 +715,26 @@
 
             <div class="card" style="margin-top:16px;">
                 <h2>📋 היסטוריית דיווחי שצ״ל</h2>
+
+                <!-- גדוד -->
+                <div style="margin-bottom:20px;">
+                    <h3 style="margin:0 0 10px;color:#f87171;font-size:15px;">🎖️ שצ״ל גדוד — כמות לפי פריט</h3>
+                    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;">
+                        <label style="display:flex;flex-direction:column;gap:2px;">
+                            <span style="font-size:11px;color:#888;">📅 סינון תאריך ביצוע</span>
+                            <input type="date" id="battalionFilterDate" onchange="renderBattalionShatsal()"
+                                   style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#1e1e2e;color:#facc15;font-size:13px;cursor:pointer;" />
+                        </label>
+                        <button onclick="clearBattalionFilter()"
+                                style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#2a2a2a;color:#aaa;cursor:pointer;font-size:13px;">
+                            ✕ נקה
+                        </button>
+                    </div>
+                    <div id="battalionTable" style="overflow-x:auto;"></div>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #333;margin:4px 0 16px;" />
+                <h3 style="margin:0 0 10px;color:#aaa;font-size:14px;">📋 פירוט לפי מסגרת</h3>
                 <div id="shatsalTable" style="overflow-x:auto;"></div>
             </div>
         </div>
@@ -1272,7 +1292,8 @@
         // ============================================================
         // TAB 6 — שצ״ל
         // ============================================================
-        let shatsalValues = {};
+        let shatsalValues   = {};
+        let shatsalRemaining = {}; // itemKey → remaining qty for selected unit
 
         function resetShatsalTab() {
             shatsalValues = {};
@@ -1289,13 +1310,25 @@
         }
 
         function setupShatsalListeners() {
-            function updateShatsalVisibility() {
+            async function updateShatsalVisibility() {
                 const unit = document.getElementById('shatsalUnit').value;
                 const resp = document.getElementById('shatsalResponsible').value.trim();
                 const show = unit && resp;
                 document.getElementById('shatsalPrompt').style.display       = show ? 'none'  : 'block';
                 document.getElementById('shatsalItemsSection').style.display = show ? 'block' : 'none';
-                if (show) renderShatsalGrid();
+                if (show) {
+                    shatsalRemaining = {};
+                    renderShatsalGrid(); // render immediately (no limits yet)
+                    try {
+                        const json = await apiPost('bunker_dispense_summary', { filterUnit: unit });
+                        if (json.statusCode === 200 && json.data?.rows) {
+                            json.data.rows.forEach(r => {
+                                shatsalRemaining[r.item] = Math.max(0, r.remaining || 0);
+                            });
+                        }
+                    } catch(e) {}
+                    renderShatsalGrid(); // re-render with remaining limits
+                }
             }
             ['shatsalUnit', 'shatsalResponsible'].forEach(id => {
                 document.getElementById(id).addEventListener('change', updateShatsalVisibility);
@@ -1304,16 +1337,34 @@
         }
 
         function renderShatsalGrid() {
-            const query   = (document.getElementById('shatsalSearch')?.value || '').toLowerCase();
-            const visible = bunkerItems.filter(item => !query || item.label.includes(query));
-            document.getElementById('shatsalGrid').innerHTML = visible.map(item => {
-                const val     = shatsalValues[item.key] || 0;
-                const safeKey = item.key.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+            const query      = (document.getElementById('shatsalSearch')?.value || '').toLowerCase();
+            const hasLimits  = Object.keys(shatsalRemaining).length > 0;
+            const visible    = bunkerItems.filter(item => {
+                if (query && !item.label.includes(query)) return false;
+                if (hasLimits && (shatsalRemaining[item.key] || 0) <= 0) return false;
+                return true;
+            });
+            const grid = document.getElementById('shatsalGrid');
+            if (!visible.length) {
+                grid.innerHTML = hasLimits
+                    ? '<p style="color:#666;text-align:center;padding:20px;">אין פריטים עם יתרה למסגרת זו</p>'
+                    : '';
+                return;
+            }
+            grid.innerHTML = visible.map(item => {
+                const remaining = shatsalRemaining[item.key];
+                const val       = Math.min(shatsalValues[item.key] || 0, remaining !== undefined ? remaining : Infinity);
+                const safeKey   = item.key.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                const maxAttr   = remaining !== undefined ? `max="${remaining}"` : '';
+                const remLabel  = remaining !== undefined
+                    ? `<div style="font-size:0.72em;color:#4ade80;margin:2px 0 4px;">נותר: ${remaining}</div>`
+                    : '';
                 return `<div class="item-card">
                     <div class="item-name">${item.label}</div>
-                    <input type="number" min="0" value="${val}"
+                    ${remLabel}
+                    <input type="number" min="0" ${maxAttr} value="${val}"
                            data-skey="${safeKey}"
-                           oninput="shatsalValues[this.dataset.skey]=+this.value"
+                           oninput="shatsalValues[this.dataset.skey]=Math.min(+this.value,${remaining !== undefined ? remaining : 9999})"
                            style="text-align:center;font-size:1.2em;font-weight:700;color:#f87171;" />
                 </div>`;
             }).join('');
@@ -1351,14 +1402,94 @@
             } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
         }
 
-        let shatsalAllRows = [];
+        let shatsalAllRows    = [];
+        let shatsalSummaryData = null; // totals from schema for battalion view
 
         async function loadShatsalHistory() {
-            const json = await apiPost('bunker_get_shatsal', {});
-            if (json.statusCode !== 200 || !json.data) return;
-            shatsalAllRows = json.data;
-            filterShatsalTable();
-            renderShatsalHierarchical(shatsalAllRows, 'shatsalTable');
+            const [histJson, summJson] = await Promise.all([
+                apiPost('bunker_get_shatsal',      {}),
+                apiPost('bunker_dispense_summary', {})
+            ]);
+            if (histJson.statusCode === 200 && histJson.data) {
+                shatsalAllRows = histJson.data;
+                filterShatsalTable();
+                renderShatsalHierarchical(shatsalAllRows, 'shatsalTable');
+            }
+            if (summJson.statusCode === 200 && summJson.data) {
+                shatsalSummaryData = summJson.data;
+            }
+            renderBattalionShatsal();
+        }
+
+        function renderBattalionShatsal() {
+            const el = document.getElementById('battalionTable');
+            if (!el) return;
+            const dateInput = document.getElementById('battalionFilterDate')?.value || '';
+
+            let rows = [];
+
+            if (dateInput) {
+                // סינון לפי תאריך ביצוע → אגד לפי פריט
+                const [fy, fm, fd] = dateInput.split('-');
+                const filterDay    = `${fd}/${fm}/${fy}`;
+                const filtered     = shatsalAllRows.filter(r =>
+                    String(r.date || '').substring(0, 10) === filterDay);
+                const agg = {};
+                filtered.forEach(r => {
+                    agg[r.itemKey] = (agg[r.itemKey] || 0) + (Number(r.qty) || 0);
+                });
+                rows = Object.entries(agg)
+                    .filter(([, qty]) => qty > 0)
+                    .map(([key, qty]) => ({
+                        label: bunkerItems.find(i => i.key === key)?.label || key,
+                        qty
+                    }));
+            } else {
+                // ללא סינון: סה״כ שצ״ל מגליון הסכימה (כל המסגרות)
+                if (shatsalSummaryData && shatsalSummaryData.rows) {
+                    rows = shatsalSummaryData.rows
+                        .filter(r => r.shatsal > 0)
+                        .map(r => ({
+                            label: bunkerItems.find(i => i.key === r.item)?.label || r.item,
+                            qty:   r.shatsal
+                        }));
+                }
+            }
+
+            rows.sort((a, b) => String(a.label).localeCompare(String(b.label), 'he'));
+
+            if (!rows.length) {
+                el.innerHTML = `<p style="color:#666;text-align:center;padding:16px;">אין נתונים${dateInput ? ' לתאריך זה' : ''}</p>`;
+                return;
+            }
+
+            const total  = rows.reduce((s, r) => s + r.qty, 0);
+            const thS    = 'padding:8px 10px;text-align:right;color:#000;border-bottom:2px solid #333;white-space:nowrap;';
+            const bRows  = rows.map((r, idx) => {
+                const bg = idx % 2 === 0 ? '#1a1a1a' : '#161616';
+                return `<tr style="background:${bg};border-bottom:1px solid #222;">
+                    <td style="padding:7px 10px;color:#fff;font-weight:600;">${r.label}</td>
+                    <td style="padding:7px 10px;color:#f87171;font-weight:700;text-align:center;">${r.qty}</td>
+                </tr>`;
+            }).join('');
+
+            el.innerHTML = `<table style="width:100%;max-width:420px;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#1e1e1e;">
+                    <th style="${thS}">פריט</th>
+                    <th style="${thS}text-align:center;">כמות</th>
+                </tr></thead>
+                <tbody>${bRows}</tbody>
+                <tfoot><tr style="background:#1a1a1a;border-top:2px solid #333;">
+                    <td style="padding:7px 10px;color:#888;font-weight:600;">סה״כ</td>
+                    <td style="padding:7px 10px;color:#f87171;font-weight:700;text-align:center;">${total}</td>
+                </tr></tfoot>
+            </table>`;
+        }
+
+        function clearBattalionFilter() {
+            const d = document.getElementById('battalionFilterDate');
+            if (d) d.value = '';
+            renderBattalionShatsal();
         }
 
         function filterShatsalTable() {
