@@ -131,7 +131,30 @@ function apsnaut_checkout(data) {
 }
 
 // ================================================================
-// 4. שליפת פריטי החתימה האחרונה לחייל לפי מ"א
+// 4. שליפת רשימת חיילים ייחודיים מגליון חתימות (לחיפוש לפי שם)
+// ================================================================
+function apsnaut_getSoldiers() {
+  var ss = apsnaut_ss();
+  var sh = ss.getSheetByName(APSNAUT_CHECKOUT_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
+
+  var rows = sh.getRange(2, 1, sh.getLastRow()-1, 5).getValues();
+  var seen   = {};
+  var result = [];
+  rows.forEach(function(r) {
+    var pn   = String(r[3] || '').trim();
+    var name = String(r[2] || '').trim();
+    var unit = String(r[4] || '').trim();
+    if (!pn || seen[pn]) return;
+    seen[pn] = true;
+    result.push({ pn: pn, name: name, unit: unit });
+  });
+  result.sort(function(a, b) { return a.name.localeCompare(b.name, 'he'); });
+  return { success: true, data: result };
+}
+
+// ================================================================
+// 5b. שליפת פריטי החתימה האחרונה לחייל לפי מ"א
 // ================================================================
 function apsnaut_getSoldierItems(personalNumber) {
   var pn = String(personalNumber || '').trim();
@@ -207,20 +230,20 @@ function apsnaut_generateAndSavePDF(data, uid, ts) {
   var html = apsnaut_createPdfHtml(data, uid, ts);
   var blob = Utilities.newBlob(html, 'text/html', 'apsnaut.html');
   var pdf  = blob.getAs('application/pdf');
-  apsnaut_saveCurrentPdf(pdf, data.personalNumber, data.unit);
+  apsnaut_saveCurrentPdf(pdf, data.fullName, data.unit);
 }
 
 /**
  * שומר PDF אחד בלבד לכל חייל (העדכני ביותר).
- * שם קובץ: apsnaut_{pn}.pdf
+ * שם קובץ: {fullName}.pdf
  * מחיקה גלובלית של כל קובץ בשם זה לפני שמירה.
- * מיקום: Root / אפסנאות / {unit} / apsnaut_{pn}.pdf
+ * מיקום: Root / אפסנאות / {unit} / {fullName}.pdf
  */
-function apsnaut_saveCurrentPdf(pdfBlob, personalNumber, unit) {
+function apsnaut_saveCurrentPdf(pdfBlob, fullName, unit) {
   var rootId = (CONFIG.DRIVE || {}).ROOT_FOLDER_ID || '';
   if (!rootId) { Logger.log('⚠️ [Apsnaut] No ROOT_FOLDER_ID — skipping Drive save'); return; }
 
-  var filename = 'apsnaut_' + String(personalNumber) + '.pdf';
+  var filename = String(fullName || '').trim() + '.pdf';
   try {
     // מחק את כל הקבצים הישנים בשם זה (בכל מיקום ב-Drive)
     var old = DriveApp.searchFiles('title = "' + filename + '" and trashed = false');
@@ -236,7 +259,7 @@ function apsnaut_saveCurrentPdf(pdfBlob, personalNumber, unit) {
 
     pdfBlob.setName(filename);
     unitFolder.createFile(pdfBlob);
-    Logger.log('✅ [Apsnaut] Current PDF saved: אפסנאות/' + unitName + '/' + filename);
+    Logger.log('✅ [Apsnaut] PDF saved: אפסנאות/' + unitName + '/' + filename);
   } catch(e) {
     Logger.log('⚠️ [Apsnaut] saveCurrentPdf failed: ' + e);
   }

@@ -123,6 +123,7 @@ function doPost(e) {
       case 'apsnaut_checkout':          return handleApsnautCheckout(data, e);
       case 'apsnaut_get_checkouts':     return handleApsnautGetCheckouts(data, e);
       case 'apsnaut_get_soldier_items': return handleApsnautGetSoldierItems(data, e);
+      case 'apsnaut_get_soldiers':      return handleApsnautGetSoldiers(data, e);
       default:                      return createResponse(400, 'Unknown action: ' + data.action, null);
     }
 
@@ -868,6 +869,16 @@ function handleApsnautGetSoldierItems(data, request) {
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   try {
     var result = apsnaut_getSoldierItems(data.personalNumber);
+    return result.success ? createResponse(200, 'ok', result.data)
+                          : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleApsnautGetSoldiers(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = apsnaut_getSoldiers();
     return result.success ? createResponse(200, 'ok', result.data)
                           : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }

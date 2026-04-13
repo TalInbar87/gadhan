@@ -373,6 +373,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('mousedown', onGlobalMousedown);
 });
 
+// Reposition open dropdowns while scrolling (capture = true catches nested scrollers)
+function repositionOpenDrops() {
+    const gd = document.getElementById('globalDrop');
+    const nd = document.getElementById('nameSearchDrop');
+    if (gd && gd.classList.contains('open') && activeRowId !== null) {
+        positionDrop('item-inp-' + activeRowId, 'globalDrop');
+    }
+    if (nd && nd.classList.contains('open')) {
+        positionDrop('nameSearch', 'nameSearchDrop');
+    }
+}
+window.addEventListener('scroll', repositionOpenDrops, true);
+window.addEventListener('resize', repositionOpenDrops);
+
 // ============================================================
 // API
 // ============================================================
@@ -418,7 +432,7 @@ async function loadItems() {
 
 async function loadSoldiers() {
     try {
-        const json = await apiPost('weapons_search_soldiers', {});
+        const json = await apiPost('apsnaut_get_soldiers', {});
         if (json.statusCode === 200) soldiersList = json.data || [];
     } catch(e) { console.error('loadSoldiers:', e); }
 }
