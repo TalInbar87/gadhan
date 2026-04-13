@@ -697,7 +697,7 @@
                         <option value="">כל המסגרות</option>
                     </select>
                     <label style="display:flex;flex-direction:column;gap:2px;">
-                        <span style="font-size:11px;color:#888;padding-right:2px;">📅 תאריך דיווח</span>
+                        <span style="font-size:11px;color:#888;padding-right:2px;">📅 תאריך ביצוע</span>
                         <input type="date" id="shatsalFilterDate" onchange="filterShatsalTable()"
                                style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#1e1e2e;color:#facc15;font-size:13px;cursor:pointer;outline:none;" />
                     </label>
@@ -1371,7 +1371,7 @@
                 if (dateInput) {
                     const [fy, fm, fd] = dateInput.split('-');
                     const filterDay = `${fd}/${fm}/${fy}`;
-                    const rowDay    = String(r.reportDate || r.date || '').substring(0, 10);
+                    const rowDay    = String(r.date || '').substring(0, 10);
                     if (rowDay !== filterDay) return false;
                 }
                 return true;
