@@ -62,6 +62,15 @@ function bunker_ts() {
   return Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'dd/MM/yyyy HH:mm');
 }
 
+// ── עזר: פורמט תאריך — מטפל גם ב-Date object וגם במחרוזת ──
+function bunker_formatDate(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, CONFIG.TIMEZONE, 'dd/MM/yyyy HH:mm');
+  }
+  return String(val).trim();
+}
+
 // ── עזר: מצא שורה לפי שם פריט בגליון מלאים ──
 function bunker_findItemRow(sheet, itemName) {
   var rows = sheet.getDataRange().getValues();
@@ -484,12 +493,12 @@ function bunker_getShatsal() {
     data: rows.map(function(r) {
       return {
         id:         r[0],
-        date:       r[1], // תאריך ביצוע
+        date:       bunker_formatDate(r[1]), // תאריך ביצוע
         unit:       r[2],
         responsible:r[3],
         itemKey:    r[4],
         qty:        r[5],
-        reportDate: r[6] || r[1] // תאריך דיווח — fallback לתאריך ביצוע בנתונים ישנים
+        reportDate: bunker_formatDate(r[6] || r[1]) // תאריך דיווח — fallback לתאריך ביצוע בנתונים ישנים
       };
     }).reverse()
   };

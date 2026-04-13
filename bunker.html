@@ -691,14 +691,16 @@
 
             <div class="card" style="margin-top:16px;">
                 <h2>📊 סיכום שצ״ל לפי מסגרת</h2>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
                     <select id="shatsalFilterUnit" onchange="filterShatsalTable()"
                             style="padding:5px 10px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#fff;font-size:13px;">
                         <option value="">כל המסגרות</option>
                     </select>
-                    <input type="date" id="shatsalFilterDate" onchange="filterShatsalTable()"
-                           style="padding:5px 10px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#facc15;font-size:13px;"
-                           title="סינון לפי תאריך דיווח" />
+                    <label style="display:flex;flex-direction:column;gap:2px;">
+                        <span style="font-size:11px;color:#888;padding-right:2px;">📅 תאריך דיווח</span>
+                        <input type="date" id="shatsalFilterDate" onchange="filterShatsalTable()"
+                               style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#1e1e2e;color:#facc15;font-size:13px;cursor:pointer;outline:none;" />
+                    </label>
                     <button onclick="clearShatsalFilter()"
                             style="padding:5px 10px;border:1px solid #555;border-radius:6px;background:#2a2a2a;color:#aaa;cursor:pointer;font-size:13px;">
                         ✕ נקה
@@ -1453,8 +1455,9 @@
             const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
             const headers = ['תאריך ביצוע','תאריך דיווח','מסגרת','אחראי','פריט','כמות'];
             const lines = sorted.map(r => {
-                const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                return [r.date, r.reportDate || r.date, r.unit, r.responsible, label, r.qty].map(esc).join(',');
+                const label          = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
+                const reportDateOnly = String(r.reportDate || r.date || '').substring(0, 10); // DD/MM/YYYY ללא שעה
+                return [r.date, reportDateOnly, r.unit, r.responsible, label, r.qty].map(esc).join(',');
             });
             const csv  = '\uFEFF' + [headers.map(esc).join(','), ...lines].join('\r\n');
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
