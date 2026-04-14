@@ -128,8 +128,22 @@ PYEOF
 
   echo "🚀 Deploying new version..."
   DEPLOY_OUTPUT=$(clasp deploy -i "$GAS_DEPLOYMENT_ID" -d "auto-deploy $(date '+%Y-%m-%d %H:%M')" 2>&1)
-  echo "$DEPLOY_OUTPUT"
 
+  # ── טיפול בגבול 200 גרסאות ──
+  if echo "$DEPLOY_OUTPUT" | grep -q "limit of 200 versions"; then
+    echo "⚠️  הגענו לגבול 200 גרסאות GAS."
+    echo "   → יש למחוק גרסאות ישנות ידנית:"
+    echo "   https://script.google.com/d/1juxID_NoxXr_VxOPnzYL8LgUQDRBcLM5h4MoU4_LujuxDcWvEz1h3zGb/edit"
+    echo "   (File > Project History → מחק גרסאות ישנות)"
+    # נסה לפרוס מהגרסה האחרונה הקיימת (קוד כבר נדחף ל-HEAD)
+    LATEST_VER=$(cd "$GAS_DIR" && clasp versions 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1)
+    if [ -n "$LATEST_VER" ]; then
+      echo "   ↩️  מפרס מגרסה ${LATEST_VER} (זמני — מחק גרסאות ישן לעדכון מלא)..."
+      DEPLOY_OUTPUT=$(clasp deploy -i "$GAS_DEPLOYMENT_ID" -V "$LATEST_VER" -d "re-deploy v${LATEST_VER}" 2>&1)
+    fi
+  fi
+
+  echo "$DEPLOY_OUTPUT"
   NEW_DEPLOYMENT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE 'AKfycb[A-Za-z0-9_\-]+' | head -1)
 
   # ────────────────────────────────────────────────
