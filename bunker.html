@@ -466,10 +466,16 @@
             <!-- ניפוקים פעילים -->
             <div class="card">
                 <h2>📋 ניפוקים פעילים</h2>
-                <div class="form-row" style="margin-bottom:12px;">
-                    <select id="filterDispenseUnit" onchange="loadActiveDispenses()">
+                <div class="form-row" style="margin-bottom:12px;align-items:flex-end;gap:10px;">
+                    <select id="filterDispenseUnit" onchange="renderActiveDispenses()">
                         <option value="">כל המסגרות</option>
                     </select>
+                    <input type="date" id="filterDispenseDate" onchange="renderActiveDispenses()"
+                           style="background:#1a1a1a;color:#eee;border:1px solid #333;border-radius:6px;padding:8px 10px;font-size:14px;" />
+                    <button onclick="document.getElementById('filterDispenseDate').value='';renderActiveDispenses();"
+                            style="background:#2a2a2a;color:#aaa;border:1px solid #333;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px;">
+                        ✕ נקה תאריך
+                    </button>
                 </div>
                 <div id="dispensesLoader" style="display:none; justify-content:center; padding:20px;">
                     <div class="spinner"></div>
@@ -1041,8 +1047,16 @@
 
         function renderActiveDispenses() {
             const filterUnit = document.getElementById('filterDispenseUnit').value;
+            const filterDate = document.getElementById('filterDispenseDate').value; // YYYY-MM-DD
             const tbody = document.getElementById('activeDispensesBody');
-            const rows = filterUnit ? activeDispenses.filter(r => r.unit === filterUnit) : activeDispenses;
+            let rows = activeDispenses;
+            if (filterUnit) rows = rows.filter(r => r.unit === filterUnit);
+            if (filterDate) {
+                // timestamp בפורמט DD/MM/YYYY HH:mm — נשווה רק את חלק התאריך
+                const [fy, fm, fd] = filterDate.split('-');
+                const filterDay = `${fd}/${fm}/${fy}`;
+                rows = rows.filter(r => String(r.timestamp || '').startsWith(filterDay));
+            }
             if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:#666;">אין ניפוקים פעילים</td></tr>'; return; }
             tbody.innerHTML = rows.map(r => `
                 <tr>
