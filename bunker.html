@@ -941,8 +941,12 @@
             try {
                 const json = await apiPost('bunker_save_inventory', { nafatli, bilo, by: authClient.user.username });
                 showMsg('inventory', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                await loadInventory();
-            } finally { btn.disabled = false; btn.textContent = '💾 שמור ספירה'; }
+            } catch(e) {
+                showMsg('inventory', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '💾 שמור ספירה';
+                await loadInventory().catch(() => {});
+            }
         }
 
         // ============================================================
@@ -1016,8 +1020,12 @@
                 const json = await apiPost('bunker_dispense', { warehouse, unit, by, items });
                 showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { resetDispenseTab(); }
-                await Promise.all([loadInventory(), loadActiveDispenses()]);
-            } finally { setPageDisabled(false); }
+            } catch(e) {
+                showMsg('dispense', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                await Promise.all([loadInventory(), loadActiveDispenses()]).catch(() => {});
+                setPageDisabled(false);
+            }
         }
 
         async function loadActiveDispenses() {
@@ -1148,8 +1156,12 @@
                 const json = await apiPost('bunker_credit', { unit, by, warehouse, credits });
                 showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${credits.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { resetCreditTab(); }
-                await Promise.all([loadInventory(), loadActiveDispenses()]);
-            } finally { setPageDisabled(false); }
+            } catch(e) {
+                showMsg('credit', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                await Promise.all([loadInventory(), loadActiveDispenses()]).catch(() => {});
+                setPageDisabled(false);
+            }
         }
 
         // ============================================================
@@ -1197,9 +1209,13 @@
                 showMsg('receive', json.statusCode === 200,
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { receiveValues = {}; }
-                await loadInventory();
+            } catch(e) {
+                showMsg('receive', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '📥 אשר קבלה';
+                await loadInventory().catch(() => {});
                 renderReceiveGrid();
-            } finally { btn.disabled = false; btn.textContent = '📥 אשר קבלה'; }
+            }
         }
 
         // ============================================================
@@ -1217,8 +1233,12 @@
                 if (json.statusCode === 200) {
                     document.getElementById('newItemName').value = '';
                 }
-                await Promise.all([loadItems(), loadInventory()]);
-            } finally { btn.disabled = false; }
+            } catch(e) {
+                showMsg('addItem', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                await Promise.all([loadItems(), loadInventory()]).catch(() => {});
+            }
         }
 
         function exportInventoryCSV() {
@@ -1288,9 +1308,13 @@
                 const json = await apiPost('bunker_transfer', { from, to, by, items });
                 showMsg('transfer', json.statusCode === 200,
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                await loadInventory();
+            } catch(e) {
+                showMsg('transfer', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '🔄 בצע העברה';
+                await loadInventory().catch(() => {});
                 renderTransferGrid(from);
-            } finally { btn.disabled = false; btn.textContent = '🔄 בצע העברה'; }
+            }
         }
 
         function setPageDisabled(disabled) {
@@ -1406,9 +1430,13 @@
                 const json = await apiPost('bunker_shatsal_report', { unit, responsible, items, date });
                 showMsg('shatsal', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { shatsalValues = {}; }
+            } catch(e) {
+                showMsg('shatsal', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל';
                 renderShatsalGrid();
-                await loadShatsalHistory();
-            } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
+                await loadShatsalHistory().catch(() => {});
+            }
         }
 
         let shatsalAllRows     = [];
@@ -1741,10 +1769,14 @@
                 const json = await apiPost('bunker_regulate', { warehouse, target, responsible, items });
                 showMsg('regulate', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { regulateValues = {}; }
-                await loadInventory();
+            } catch(e) {
+                showMsg('regulate', false, 'שגיאת תקשורת: ' + e.message);
+            } finally {
+                btn.disabled = false; btn.textContent = '⚖️ בצע וויסות';
+                await loadInventory().catch(() => {});
                 renderRegulateGrid();
-                await loadRegulations();
-            } finally { btn.disabled = false; btn.textContent = '⚖️ בצע וויסות'; }
+                await loadRegulations().catch(() => {});
+            }
         }
 
         async function loadRegulations() {
