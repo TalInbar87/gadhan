@@ -303,8 +303,8 @@
             font-size: 1em;
         }
 
-        /* ── Item autocomplete dropdown ── */
-        .item-ac-wrap { flex: 1; min-width: 220px; position: relative; }
+        /* ── Item autocomplete dropdown (multi-select) ── */
+        .item-ac-wrap { flex: 1; min-width: 260px; position: relative; }
         .item-dropdown {
             display: none;
             position: absolute;
@@ -326,11 +326,47 @@
             color: #ddd;
             font-size: 0.9em;
             border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .item-drop-row:hover { background: rgba(255,102,0,0.2); color: #fff; }
+        .item-drop-row.selected-row { color: #ff8c00; }
+        .item-drop-row.selected-row::before { content: '✓'; font-weight: 700; color: #ff6600; }
         .item-drop-row:last-child { border-bottom: none; }
         .item-drop-row.no-match { color: #666; cursor: default; }
         .item-drop-row.no-match:hover { background: none; }
+
+        /* chips */
+        .chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,102,0,0.18);
+            border: 1px solid #ff6600;
+            color: #ff8c00;
+            border-radius: 20px;
+            padding: 3px 10px 3px 6px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .chip-x {
+            background: none;
+            border: none;
+            color: #ff6600;
+            cursor: pointer;
+            font-size: 1em;
+            line-height: 1;
+            padding: 0;
+        }
+        .chip-x:hover { color: #fff; }
 
         /* ── CSV button ── */
         .btn-csv {
@@ -380,16 +416,13 @@
 
         <div class="toolbar">
             <div class="item-ac-wrap">
-                <div style="position:relative;">
-                    <input type="text" id="searchInput" class="search-box"
-                           style="width:100%;padding-left:36px;"
-                           placeholder="🔍 בחר פריט..."
-                           oninput="onItemSearch()" onfocus="onItemSearch()"
-                           autocomplete="off" />
-                    <button id="searchClear" onclick="clearItemFilter()"
-                            style="display:none;position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#aaa;cursor:pointer;font-size:1.1em;line-height:1;">✕</button>
-                </div>
+                <input type="text" id="searchInput" class="search-box"
+                       style="width:100%;"
+                       placeholder="🔍 הוסף פריט לסינון..."
+                       oninput="onItemSearch()" onfocus="onItemSearch()"
+                       autocomplete="off" />
                 <div id="itemDropdown" class="item-dropdown"></div>
+                <div id="chipsWrap" class="chips-wrap"></div>
             </div>
             <div class="summary-badge" id="summaryBadge">טוען...</div>
             <button class="btn-csv" onclick="exportCsv()">⬇ ייצא CSV</button>
@@ -442,9 +475,9 @@
         const authClient = new SecureAuthClient(API_URL);
         const authGuard  = new AuthGuard(authClient);
 
-        let inventoryData    = null; // { units, items, counts, totals, names }
-        let armoryData       = null; // { counts: { itemKey: number } }
-        let selectedItemKey  = null; // null = כל הפריטים
+        let inventoryData   = null; // { units, items, counts, totals, names }
+        let armoryData      = null; // { counts: { itemKey: number } }
+        let selectedKeys    = new Set(); // מפתחות פריטים שנבחרו
 
         window.addEventListener('DOMContentLoaded', async () => {
             const ok = await authGuard.checkAuth();
@@ -485,8 +518,7 @@
                 renderTable(inventoryData, armoryData);
                 document.getElementById('summaryBadge').textContent =
                     inventoryData.units.length + ' מסגרות | ' + inventoryData.items.length + ' פריטים';
-                // שמור את הסינון הנוכחי אם קיים
-                if (selectedItemKey) applyFilter(); else clearItemFilter();
+                applyFilter();
 
             } catch (err) {
                 showError('שגיאה בטעינת הנתונים: ' + err.message);
@@ -568,59 +600,67 @@
         }
 
         // ============================================================
-        // Item Autocomplete Dropdown
+        // Item Autocomplete Dropdown — Multi-select
         // ============================================================
         function onItemSearch() {
             if (!inventoryData) return;
             const q    = document.getElementById('searchInput').value.trim().toLowerCase();
             const drop = document.getElementById('itemDropdown');
-            selectedItemKey = null; // ביטול בחירה בעת הקלדה
 
+            // סנן פריטים שעדיין לא נבחרו (ושמתאימים לחיפוש)
             const matches = inventoryData.items.filter(item =>
-                !q || item.label.toLowerCase().includes(q) || item.key.toLowerCase().includes(q)
+                (!q || item.label.toLowerCase().includes(q) || item.key.toLowerCase().includes(q))
             );
 
             if (matches.length === 0) {
                 drop.innerHTML = '<div class="item-drop-row no-match">אין תוצאות</div>';
             } else {
-                drop.innerHTML = matches.map(item =>
-                    `<div class="item-drop-row" onmousedown="selectItem(${JSON.stringify(item.key)})">${escHtml(item.label)}</div>`
-                ).join('');
+                drop.innerHTML = matches.map(item => {
+                    const sel = selectedKeys.has(item.key) ? ' selected-row' : '';
+                    return `<div class="item-drop-row${sel}" onmousedown="toggleItem(${JSON.stringify(item.key)})">${escHtml(item.label)}</div>`;
+                }).join('');
             }
             drop.classList.add('open');
-            document.getElementById('searchClear').style.display = q ? 'block' : 'none';
-            applyFilter();
         }
 
-        function selectItem(key) {
+        function toggleItem(key) {
             if (!inventoryData) return;
-            const item = inventoryData.items.find(i => i.key === key);
-            if (!item) return;
-            selectedItemKey = key;
-            document.getElementById('searchInput').value = item.label;
-            document.getElementById('searchClear').style.display = 'block';
-            document.getElementById('itemDropdown').classList.remove('open');
+            if (selectedKeys.has(key)) {
+                selectedKeys.delete(key);
+            } else {
+                selectedKeys.add(key);
+            }
+            document.getElementById('searchInput').value = '';
+            renderChips();
+            applyFilter();
+            // עדכן דרופדאון (סמן/בטל סימון)
+            onItemSearch();
+        }
+
+        function removeChip(key) {
+            selectedKeys.delete(key);
+            renderChips();
             applyFilter();
         }
 
-        function clearItemFilter() {
-            selectedItemKey = null;
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchClear').style.display = 'none';
-            document.getElementById('itemDropdown').classList.remove('open');
-            if (inventoryData) applyFilter();
+        function renderChips() {
+            const wrap = document.getElementById('chipsWrap');
+            if (!inventoryData || selectedKeys.size === 0) { wrap.innerHTML = ''; return; }
+            wrap.innerHTML = [...selectedKeys].map(key => {
+                const item = inventoryData.items.find(i => i.key === key);
+                const label = item ? item.label : key;
+                return `<span class="chip">
+                    <button class="chip-x" onmousedown="removeChip(${JSON.stringify(key)})">✕</button>
+                    ${escHtml(label)}
+                </span>`;
+            }).join('');
         }
 
         function applyFilter() {
             if (!inventoryData) return;
-            const q = document.getElementById('searchInput').value.trim().toLowerCase();
             let filtered;
-            if (selectedItemKey) {
-                filtered = inventoryData.items.filter(i => i.key === selectedItemKey);
-            } else if (q) {
-                filtered = inventoryData.items.filter(i =>
-                    i.label.toLowerCase().includes(q) || i.key.toLowerCase().includes(q)
-                );
+            if (selectedKeys.size > 0) {
+                filtered = inventoryData.items.filter(i => selectedKeys.has(i.key));
             } else {
                 filtered = inventoryData.items;
             }
@@ -643,17 +683,9 @@
             const { units, items, counts, totals } = inventoryData;
 
             // פריטים מסוננים (כמו בטבלה הנוכחית)
-            const q = document.getElementById('searchInput').value.trim().toLowerCase();
-            let filtered;
-            if (selectedItemKey) {
-                filtered = items.filter(i => i.key === selectedItemKey);
-            } else if (q) {
-                filtered = items.filter(i =>
-                    i.label.toLowerCase().includes(q) || i.key.toLowerCase().includes(q)
-                );
-            } else {
-                filtered = items;
-            }
+            const filtered = selectedKeys.size > 0
+                ? items.filter(i => selectedKeys.has(i.key))
+                : items;
 
             const headers = ['פריט', ...units, 'סה"כ נופק', 'נשקייה', 'סה"כ'];
             const rows = filtered.map(item => {
