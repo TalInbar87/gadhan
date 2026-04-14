@@ -229,7 +229,7 @@ function bunker_getDispenses(unit) {
     if (unit && rowUnit !== unit) continue;
     result.push({
       id:        String(rows[i][0] || '').trim(),
-      timestamp: String(rows[i][1] || '').trim(),
+      timestamp: bunker_formatDate(rows[i][1]),
       warehouse: String(rows[i][2] || '').trim(),
       unit:      rowUnit,
       itemKey:   String(rows[i][4] || '').trim(),
@@ -470,7 +470,7 @@ function bunker_getRegulations() {
   if (!reg || reg.getLastRow() < 2) return { success: true, data: [] };
   var rows = reg.getRange(2, 1, reg.getLastRow() - 1, REGULATE_HEADERS.length).getValues();
   var result = rows.map(function(r) {
-    return { id: r[0], date: r[1], warehouse: r[2], target: r[3], responsible: r[4], itemKey: r[5], qty: r[6] };
+    return { id: r[0], date: bunker_formatDate(r[1]), warehouse: r[2], target: r[3], responsible: r[4], itemKey: r[5], qty: r[6] };
   }).reverse();
   return { success: true, data: result };
 }
