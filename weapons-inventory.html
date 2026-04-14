@@ -612,8 +612,8 @@
             if (!inventoryData) return;
             checkedKeys = new Set(inventoryData.items.map(i => i.key));
             document.getElementById('msList').innerHTML = inventoryData.items.map(item => `
-                <label class="ms-item" data-label="${item.label.toLowerCase()}">
-                    <input type="checkbox" checked onchange="onCbChange(this, ${JSON.stringify(item.key)})" />
+                <label class="ms-item" data-key="${escHtml(item.key)}" data-label="${item.label.toLowerCase()}">
+                    <input type="checkbox" checked />
                     ${escHtml(item.label)}
                 </label>
             `).join('');
@@ -621,6 +621,17 @@
             updateFilterCount();
             applyFilter();
         }
+
+        // listener יחיד על הרשימה — מונע בעיות inline-JS עם גרשיים במפתחות
+        document.getElementById('msList').addEventListener('change', e => {
+            if (e.target.type !== 'checkbox') return;
+            const key = e.target.closest('.ms-item').dataset.key;
+            if (e.target.checked) checkedKeys.add(key);
+            else                  checkedKeys.delete(key);
+            updateSelectAll();
+            updateFilterCount();
+            applyFilter();
+        });
 
         function openMsDrop() {
             document.getElementById('msDrop').classList.add('open');
@@ -638,14 +649,6 @@
             document.querySelectorAll('#msList .ms-item').forEach(el => {
                 el.classList.toggle('ms-hidden', !!q && !el.dataset.label.includes(q));
             });
-        }
-
-        function onCbChange(cb, key) {
-            if (cb.checked) checkedKeys.add(key);
-            else            checkedKeys.delete(key);
-            updateSelectAll();
-            updateFilterCount();
-            applyFilter();
         }
 
         function toggleAll(checked) {
