@@ -941,7 +941,7 @@
             try {
                 const json = await apiPost('bunker_save_inventory', { nafatli, bilo, by: authClient.user.username });
                 showMsg('inventory', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) await loadInventory();
+                await loadInventory();
             } finally { btn.disabled = false; btn.textContent = '💾 שמור ספירה'; }
         }
 
@@ -1015,7 +1015,8 @@
             try {
                 const json = await apiPost('bunker_dispense', { warehouse, unit, by, items });
                 showMsg('dispense', json.statusCode === 200, json.statusCode === 200 ? `ניפוק בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { resetDispenseTab(); await loadInventory(); await loadActiveDispenses(); }
+                if (json.statusCode === 200) { resetDispenseTab(); }
+                await Promise.all([loadInventory(), loadActiveDispenses()]);
             } finally { setPageDisabled(false); }
         }
 
@@ -1146,7 +1147,8 @@
             try {
                 const json = await apiPost('bunker_credit', { unit, by, warehouse, credits });
                 showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${credits.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { resetCreditTab(); await loadActiveDispenses(); }
+                if (json.statusCode === 200) { resetCreditTab(); }
+                await Promise.all([loadInventory(), loadActiveDispenses()]);
             } finally { setPageDisabled(false); }
         }
 
@@ -1194,7 +1196,9 @@
                 const json = await apiPost('bunker_receive', { warehouse, by, source, items });
                 showMsg('receive', json.statusCode === 200,
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { receiveValues = {}; await loadInventory(); renderReceiveGrid(); }
+                if (json.statusCode === 200) { receiveValues = {}; }
+                await loadInventory();
+                renderReceiveGrid();
             } finally { btn.disabled = false; btn.textContent = '📥 אשר קבלה'; }
         }
 
@@ -1212,8 +1216,8 @@
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) {
                     document.getElementById('newItemName').value = '';
-                    await Promise.all([loadItems(), loadInventory()]);
                 }
+                await Promise.all([loadItems(), loadInventory()]);
             } finally { btn.disabled = false; }
         }
 
@@ -1284,10 +1288,8 @@
                 const json = await apiPost('bunker_transfer', { from, to, by, items });
                 showMsg('transfer', json.statusCode === 200,
                     json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) {
-                    await loadInventory();
-                    renderTransferGrid(from);
-                }
+                await loadInventory();
+                renderTransferGrid(from);
             } finally { btn.disabled = false; btn.textContent = '🔄 בצע העברה'; }
         }
 
@@ -1403,11 +1405,9 @@
                 }
                 const json = await apiPost('bunker_shatsal_report', { unit, responsible, items, date });
                 showMsg('shatsal', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) {
-                    shatsalValues = {};
-                    renderShatsalGrid();
-                    loadShatsalHistory();
-                }
+                if (json.statusCode === 200) { shatsalValues = {}; }
+                renderShatsalGrid();
+                await loadShatsalHistory();
             } finally { btn.disabled = false; btn.textContent = '🔴 שמור דיווח שצ״ל'; }
         }
 
@@ -1740,12 +1740,10 @@
             try {
                 const json = await apiPost('bunker_regulate', { warehouse, target, responsible, items });
                 showMsg('regulate', json.statusCode === 200, json.statusCode === 200 ? null : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) {
-                    regulateValues = {};
-                    await loadInventory();
-                    renderRegulateGrid();
-                    loadRegulations();
-                }
+                if (json.statusCode === 200) { regulateValues = {}; }
+                await loadInventory();
+                renderRegulateGrid();
+                await loadRegulations();
             } finally { btn.disabled = false; btn.textContent = '⚖️ בצע וויסות'; }
         }
 
