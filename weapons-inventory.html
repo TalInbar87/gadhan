@@ -303,70 +303,65 @@
             font-size: 1em;
         }
 
-        /* ── Item autocomplete dropdown (multi-select) ── */
-        .item-ac-wrap { flex: 1; min-width: 260px; position: relative; }
-        .item-dropdown {
-            display: none;
-            position: absolute;
-            top: calc(100% + 4px);
-            right: 0;
-            left: 0;
+        /* ── Filter panel ── */
+        .filter-panel {
             background: #1e1e1e;
-            border: 2px solid #ff6600;
-            border-radius: 10px;
-            max-height: 280px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
         }
-        .item-dropdown.open { display: block; }
-        .item-drop-row {
-            padding: 10px 14px;
-            cursor: pointer;
-            color: #ddd;
-            font-size: 0.9em;
-            border-bottom: 1px solid #2a2a2a;
+        .filter-panel-header {
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-        .item-drop-row:hover { background: rgba(255,102,0,0.2); color: #fff; }
-        .item-drop-row.selected-row { color: #ff8c00; }
-        .item-drop-row.selected-row::before { content: '✓'; font-weight: 700; color: #ff6600; }
-        .item-drop-row:last-child { border-bottom: none; }
-        .item-drop-row.no-match { color: #666; cursor: default; }
-        .item-drop-row.no-match:hover { background: none; }
-
-        /* chips */
-        .chips-wrap {
-            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
         }
-        .chip {
-            display: inline-flex;
+        .select-all-label {
+            display: flex;
             align-items: center;
-            gap: 5px;
-            background: rgba(255,102,0,0.18);
-            border: 1px solid #ff6600;
+            gap: 7px;
+            cursor: pointer;
             color: #ff8c00;
-            border-radius: 20px;
-            padding: 3px 10px 3px 6px;
-            font-size: 0.82em;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.92em;
             white-space: nowrap;
         }
-        .chip-x {
-            background: none;
-            border: none;
-            color: #ff6600;
-            cursor: pointer;
-            font-size: 1em;
-            line-height: 1;
-            padding: 0;
+        .select-all-label input { accent-color: #ff6600; width: 16px; height: 16px; cursor: pointer; }
+        .filter-count { color: #666; font-size: 0.82em; white-space: nowrap; }
+        .filter-search {
+            flex: 1; min-width: 150px;
+            padding: 6px 12px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.88em;
+            outline: none;
         }
-        .chip-x:hover { color: #fff; }
+        .filter-search:focus { border-color: #ff6600; }
+        .cb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 2px 10px;
+            max-height: 210px;
+            overflow-y: auto;
+        }
+        .cb-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.86em;
+            color: #ddd;
+            user-select: none;
+        }
+        .cb-item:hover { background: #2a2a2a; color: #fff; }
+        .cb-item input[type=checkbox] { accent-color: #ff6600; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+        .cb-item.cb-hidden { display: none; }
 
         /* ── CSV button ── */
         .btn-csv {
@@ -415,18 +410,23 @@
         <div id="errorMsg" class="error-msg"></div>
 
         <div class="toolbar">
-            <div class="item-ac-wrap">
-                <input type="text" id="searchInput" class="search-box"
-                       style="width:100%;"
-                       placeholder="🔍 הוסף פריט לסינון..."
-                       oninput="onItemSearch()" onfocus="onItemSearch()"
-                       autocomplete="off" />
-                <div id="itemDropdown" class="item-dropdown"></div>
-                <div id="chipsWrap" class="chips-wrap"></div>
-            </div>
             <div class="summary-badge" id="summaryBadge">טוען...</div>
             <button class="btn-csv" onclick="exportCsv()">⬇ ייצא CSV</button>
             <button class="btn-refresh" id="refreshBtn" onclick="loadInventory()">↻ רענן</button>
+        </div>
+
+        <div class="filter-panel">
+            <div class="filter-panel-header">
+                <label class="select-all-label">
+                    <input type="checkbox" id="selectAllCb" checked onchange="toggleAll(this.checked)" />
+                    סמן הכל
+                </label>
+                <span class="filter-count" id="filterCount"></span>
+                <input type="text" class="filter-search" id="filterSearch"
+                       placeholder="🔍 חפש בפריטים..."
+                       oninput="filterChecklist()" />
+            </div>
+            <div class="cb-grid" id="cbGrid"></div>
         </div>
 
         <!-- חיפוש לפי מספר מוצר -->
@@ -475,9 +475,9 @@
         const authClient = new SecureAuthClient(API_URL);
         const authGuard  = new AuthGuard(authClient);
 
-        let inventoryData   = null; // { units, items, counts, totals, names }
-        let armoryData      = null; // { counts: { itemKey: number } }
-        let selectedKeys    = new Set(); // מפתחות פריטים שנבחרו
+        let inventoryData = null; // { units, items, counts, totals, names }
+        let armoryData   = null; // { counts: { itemKey: number } }
+        let checkedKeys  = new Set(); // פריטים מסומנים (ברירת מחדל: הכל)
 
         window.addEventListener('DOMContentLoaded', async () => {
             const ok = await authGuard.checkAuth();
@@ -518,7 +518,7 @@
                 renderTable(inventoryData, armoryData);
                 document.getElementById('summaryBadge').textContent =
                     inventoryData.units.length + ' מסגרות | ' + inventoryData.items.length + ' פריטים';
-                applyFilter();
+                renderChecklist();
 
             } catch (err) {
                 showError('שגיאה בטעינת הנתונים: ' + err.message);
@@ -600,80 +600,65 @@
         }
 
         // ============================================================
-        // Item Autocomplete Dropdown — Multi-select
+        // Checklist Filter
         // ============================================================
-        function onItemSearch() {
+        function renderChecklist() {
             if (!inventoryData) return;
-            const q    = document.getElementById('searchInput').value.trim().toLowerCase();
-            const drop = document.getElementById('itemDropdown');
-
-            // סנן פריטים שעדיין לא נבחרו (ושמתאימים לחיפוש)
-            const matches = inventoryData.items.filter(item =>
-                (!q || item.label.toLowerCase().includes(q) || item.key.toLowerCase().includes(q))
-            );
-
-            if (matches.length === 0) {
-                drop.innerHTML = '<div class="item-drop-row no-match">אין תוצאות</div>';
-            } else {
-                drop.innerHTML = matches.map(item => {
-                    const sel = selectedKeys.has(item.key) ? ' selected-row' : '';
-                    return `<div class="item-drop-row${sel}" onmousedown="toggleItem(${JSON.stringify(item.key)})">${escHtml(item.label)}</div>`;
-                }).join('');
-            }
-            drop.classList.add('open');
-        }
-
-        function toggleItem(key) {
-            if (!inventoryData) return;
-            if (selectedKeys.has(key)) {
-                selectedKeys.delete(key);
-            } else {
-                selectedKeys.add(key);
-            }
-            document.getElementById('searchInput').value = '';
-            renderChips();
-            applyFilter();
-            // עדכן דרופדאון (סמן/בטל סימון)
-            onItemSearch();
-        }
-
-        function removeChip(key) {
-            selectedKeys.delete(key);
-            renderChips();
+            checkedKeys = new Set(inventoryData.items.map(i => i.key));
+            document.getElementById('cbGrid').innerHTML = inventoryData.items.map(item => `
+                <label class="cb-item" data-label="${item.label.toLowerCase()}">
+                    <input type="checkbox" checked onchange="onCbChange(this, ${JSON.stringify(item.key)})" />
+                    ${escHtml(item.label)}
+                </label>
+            `).join('');
+            updateSelectAll();
+            updateFilterCount();
             applyFilter();
         }
 
-        function renderChips() {
-            const wrap = document.getElementById('chipsWrap');
-            if (!inventoryData || selectedKeys.size === 0) { wrap.innerHTML = ''; return; }
-            wrap.innerHTML = [...selectedKeys].map(key => {
-                const item = inventoryData.items.find(i => i.key === key);
-                const label = item ? item.label : key;
-                return `<span class="chip">
-                    <button class="chip-x" onmousedown="removeChip(${JSON.stringify(key)})">✕</button>
-                    ${escHtml(label)}
-                </span>`;
-            }).join('');
+        function onCbChange(cb, key) {
+            if (cb.checked) checkedKeys.add(key);
+            else            checkedKeys.delete(key);
+            updateSelectAll();
+            updateFilterCount();
+            applyFilter();
+        }
+
+        function toggleAll(checked) {
+            if (!inventoryData) return;
+            if (checked) checkedKeys = new Set(inventoryData.items.map(i => i.key));
+            else         checkedKeys = new Set();
+            document.querySelectorAll('#cbGrid input[type=checkbox]').forEach(cb => cb.checked = checked);
+            updateFilterCount();
+            applyFilter();
+        }
+
+        function filterChecklist() {
+            const q = document.getElementById('filterSearch').value.trim().toLowerCase();
+            document.querySelectorAll('#cbGrid .cb-item').forEach(label => {
+                label.classList.toggle('cb-hidden', !!q && !label.dataset.label.includes(q));
+            });
+        }
+
+        function updateSelectAll() {
+            const total = inventoryData ? inventoryData.items.length : 0;
+            const cb    = document.getElementById('selectAllCb');
+            cb.checked       = checkedKeys.size === total;
+            cb.indeterminate = checkedKeys.size > 0 && checkedKeys.size < total;
+        }
+
+        function updateFilterCount() {
+            const total = inventoryData ? inventoryData.items.length : 0;
+            document.getElementById('filterCount').textContent =
+                checkedKeys.size === total ? '' : `${checkedKeys.size} / ${total} נבחרו`;
         }
 
         function applyFilter() {
             if (!inventoryData) return;
-            let filtered;
-            if (selectedKeys.size > 0) {
-                filtered = inventoryData.items.filter(i => selectedKeys.has(i.key));
-            } else {
-                filtered = inventoryData.items;
-            }
+            const filtered = inventoryData.items.filter(i => checkedKeys.has(i.key));
             buildBody(filtered, inventoryData.units, inventoryData.counts,
                       inventoryData.totals, inventoryData.names || {}, armoryData);
         }
-
-        // סגור דרופדאון בלחיצה מחוץ
-        document.addEventListener('click', e => {
-            const wrap = document.querySelector('.item-ac-wrap');
-            if (wrap && !wrap.contains(e.target))
-                document.getElementById('itemDropdown').classList.remove('open');
-        });
 
         // ============================================================
         // CSV Export
@@ -682,10 +667,7 @@
             if (!inventoryData) return;
             const { units, items, counts, totals } = inventoryData;
 
-            // פריטים מסוננים (כמו בטבלה הנוכחית)
-            const filtered = selectedKeys.size > 0
-                ? items.filter(i => selectedKeys.has(i.key))
-                : items;
+            const filtered = items.filter(i => checkedKeys.has(i.key));
 
             const headers = ['פריט', ...units, 'סה"כ נופק', 'נשקייה', 'סה"כ'];
             const rows = filtered.map(item => {
