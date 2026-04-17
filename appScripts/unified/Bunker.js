@@ -489,10 +489,23 @@ function bunker_shatsalReport(data) {
     sh.getRange(1, 1, 1, SHATSAL_HEADERS.length).setValues([SHATSAL_HEADERS]);
   }
 
-  data.items.forEach(function(item) {
-    sh.appendRow([reportId, execDate, data.unit, data.responsible, item.key, Number(item.qty) || 0, reportTs]);
-    bunker_schemaUpdateShatsal(ss, item.key, data.unit, Number(item.qty) || 0);
-  });
+  var written = [];
+  try {
+    data.items.forEach(function(item) {
+      var qty = Number(item.qty) || 0;
+      if (!qty) return;
+      sh.appendRow([reportId, execDate, data.unit, data.responsible, item.key, qty, reportTs]);
+      written.push({ type: 'row', sheet: sh });
+      bunker_schemaUpdateShatsal(ss, item.key, data.unit, qty);
+      written.push({ type: 'schema', key: item.key, unit: data.unit, delta: qty });
+    });
+  } catch(e) {
+    written.reverse().forEach(function(w) {
+      if (w.type === 'row')    w.sheet.deleteRow(w.sheet.getLastRow());
+      if (w.type === 'schema') bunker_schemaUpdateShatsal(ss, w.key, w.unit, -w.delta);
+    });
+    return { success: false, error: 'שגיאת כתיבה: ' + e.message };
+  }
 
   return { success: true };
 }
