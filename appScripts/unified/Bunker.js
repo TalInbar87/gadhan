@@ -738,6 +738,6 @@ function bunker_fixDispensesValidation() {
   var ss = bunker_ss();
   var sh = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
   if (!sh) return 'גליון ניפוקים לא נמצא';
-  sh.clearDataValidations();
+  sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).setDataValidation(null);
   return 'הסרת validation הצליחה';
 }
