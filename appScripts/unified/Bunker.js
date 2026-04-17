@@ -119,17 +119,11 @@ function bunker_getInventory() {
     var name = String(rows[i][0] || '').trim();
     if (!name) continue;
     var entry = {
-      label:    name,
-      key:      name,
-      nafatli:  Number(rows[i][1]) || 0,
-      bilo:     Number(rows[i][2]) || 0,
-      units:    {},
-      totalNafatli: Number(rows[i][10]) || 0,
-      totalBilo:    Number(rows[i][11]) || 0
+      label:   name,
+      key:     name,
+      nafatli: Number(rows[i][1]) || 0,
+      bilo:    Number(rows[i][2]) || 0
     };
-    Object.keys(BUNKER_UNIT_COLS).forEach(function(unit) {
-      entry.units[unit] = Number(rows[i][BUNKER_UNIT_COLS[unit] - 1]) || 0;
-    });
     items.push(entry);
   }
   return { success: true, data: items };
@@ -195,15 +189,10 @@ function bunker_dispense(data) {
   if (errors.length) return { success: false, error: errors.join(', ') };
 
   // שלב 2: כתיבה — רק אחרי שכל הולידציות עברו
-  var ts      = bunker_ts();
-  var unitCol = BUNKER_UNIT_COLS[data.unit];
+  var ts = bunker_ts();
 
   validated.forEach(function(v) {
     main.getRange(v.rowIdx, warehouseCol).setValue(v.stock - v.qty);
-    if (unitCol) {
-      var cur = Number(main.getRange(v.rowIdx, unitCol).getValue()) || 0;
-      main.getRange(v.rowIdx, unitCol).setValue(cur + v.qty);
-    }
     disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, v.item.key, v.qty, data.by || 'לא ידוע', 'פעיל', '', '']);
     bunker_schemaUpdateDispense(ss, v.item.key, data.unit, v.qty);
   });
@@ -250,8 +239,7 @@ function bunker_credit(data) {
   var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
   if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
 
-  var unitCol = BUNKER_UNIT_COLS[data.unit];
-  if (!unitCol) return { success: false, error: 'מסגרת לא מזוהה: ' + data.unit };
+  if (!BUNKER_UNIT_COLS[data.unit]) return { success: false, error: 'מסגרת לא מזוהה: ' + data.unit };
 
   var warehouse    = data.warehouse || '';
   var warehouseCol = BUNKER_WAREHOUSE_COLS[warehouse];
@@ -259,7 +247,7 @@ function bunker_credit(data) {
   var creditsSheet = bunker_ensureSheet(ss, BUNKER_CREDITS_SHEET,
     ['תאריך זיכוי', 'מזכה', 'מחסן', 'מסגרת', 'פריט', 'כמות']);
 
-  // שלב 1: ולידציה — בדוק שהפריט קיים במלאים (ללא בדיקת כמות — זיכוי יכול לחרוג)
+  // שלב 1: ולידציה — בדוק שהפריט קיים במלאים
   var errors    = [];
   var validated = [];
   data.items.forEach(function(item) {
@@ -267,23 +255,21 @@ function bunker_credit(data) {
     if (qty <= 0) return;
     var rowIdx = bunker_findItemRow(main, item.key);
     if (rowIdx === -1) { errors.push('פריט לא נמצא: ' + item.key); return; }
-    var unitQty = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
-    validated.push({ key: item.key, qty: qty, rowIdx: rowIdx, unitQty: unitQty });
+    validated.push({ key: item.key, qty: qty, rowIdx: rowIdx });
   });
   if (errors.length) return { success: false, error: errors.join(', ') };
 
   // שלב 2: כתיבה — רק אחרי שכל הולידציות עברו
   var ts = bunker_ts();
   validated.forEach(function(v) {
-    // מלאים: מסגרת מרדת ל-max(0), מחסן מקבל את הכמות המלאה שזוכתה
-    main.getRange(v.rowIdx, unitCol).setValue(Math.max(0, v.unitQty - v.qty));
+    // מלאים: מחסן בלבד (מסגרות מנוהלות בסכימה)
     if (warehouseCol) {
       var wStock = Number(main.getRange(v.rowIdx, warehouseCol).getValue()) || 0;
       main.getRange(v.rowIdx, warehouseCol).setValue(wStock + v.qty);
     }
     // זיכויים (לוג בלבד)
     creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, data.unit, v.key, v.qty]);
-    // סכימה
+    // סכימה — מקור האמת למסגרות
     bunker_schemaUpdateDispense(ss, v.key, data.unit, -v.qty);
   });
 
