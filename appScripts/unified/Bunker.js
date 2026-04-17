@@ -730,3 +730,14 @@ function bunker_rebuildSchema() {
 
   return { success: true, rebuilt: Object.keys(allKeys).length };
 }
+
+// ================================================================
+// הסר חוקי validation מגליון ניפוקים — הרץ פעם אחת מהעורך
+// ================================================================
+function bunker_fixDispensesValidation() {
+  var ss = bunker_ss();
+  var sh = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
+  if (!sh) return 'גליון ניפוקים לא נמצא';
+  sh.clearDataValidations();
+  return 'הסרת validation הצליחה';
+}
