@@ -167,7 +167,7 @@ function bunker_dispense(data) {
   if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
 
   var disp = bunker_ensureSheet(ss, CONFIG.BUNKER.DISPENSES_SHEET,
-    ['מזהה', 'תאריך', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מנפק', 'סטטוס', 'תאריך זיכוי', 'מזכה']);
+    ['מזהה', 'תאריך', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מנפק']);
 
   // שלב 1: ולידציה מלאה לכל הפריטים — לא כותבים כלום עד שהכל תקין
   var errors    = [];
@@ -193,7 +193,7 @@ function bunker_dispense(data) {
 
   validated.forEach(function(v) {
     main.getRange(v.rowIdx, warehouseCol).setValue(v.stock - v.qty);
-    disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, v.item.key, v.qty, data.by || 'לא ידוע', 'פעיל', '', '']);
+    disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, v.item.key, v.qty, data.by || 'לא ידוע']);
     bunker_schemaUpdateDispense(ss, v.item.key, data.unit, v.qty);
   });
 
