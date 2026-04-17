@@ -223,8 +223,6 @@ function bunker_getDispenses(unit) {
   var result = [];
 
   for (var i = 1; i < rows.length; i++) {
-    var status = String(rows[i][7] || '').trim();
-    if (status !== 'פעיל') continue;
     var rowUnit = String(rows[i][3] || '').trim();
     if (unit && rowUnit !== unit) continue;
     result.push({
@@ -242,80 +240,54 @@ function bunker_getDispenses(unit) {
 }
 
 // ================================================================
-// 5. זיכוי — לפי מזהי ניפוק + עדכן מלאי מחסן
+// 5. זיכוי — עדכון מלאים + לוג בלבד (ללא תלות בגליון ניפוקים)
 // ================================================================
 function bunker_credit(data) {
-  // תמיכה בפורמט חדש: credits:[{id,qty}] ובפורמט ישן: ids:[]
-  var credits;
-  if (data.credits && data.credits.length) {
-    credits = data.credits;
-  } else if (data.ids && data.ids.length) {
-    credits = data.ids.map(function(id) { return { id: id, qty: null }; });
-  } else {
-    return { success: false, error: 'חסרים מזהי ניפוק לזיכוי' };
-  }
+  if (!data || !data.unit || !data.items || !data.items.length)
+    return { success: false, error: 'חסרים נתונים לזיכוי' };
 
   var ss   = bunker_ss();
   var main = ss.getSheetByName(CONFIG.BUNKER.MAIN_SHEET);
-  var disp = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
-  if (!disp) return { success: false, error: 'גליון ניפוקים לא נמצא' };
+  if (!main) return { success: false, error: 'גליון מלאים לא נמצא' };
+
+  var unitCol = BUNKER_UNIT_COLS[data.unit];
+  if (!unitCol) return { success: false, error: 'מסגרת לא מזוהה: ' + data.unit };
+
+  var warehouse    = data.warehouse || '';
+  var warehouseCol = BUNKER_WAREHOUSE_COLS[warehouse];
 
   var creditsSheet = bunker_ensureSheet(ss, BUNKER_CREDITS_SHEET,
-    ['תאריך זיכוי', 'מזכה', 'מחסן', 'מסגרת', 'פריט', 'כמות', 'מזהה ניפוק']);
+    ['תאריך זיכוי', 'מזכה', 'מחסן', 'מסגרת', 'פריט', 'כמות']);
 
-  var rows      = disp.getDataRange().getValues();
-  var creditMap = {};
-  credits.forEach(function(c) { creditMap[String(c.id)] = c.qty; });
-  var ts       = bunker_ts();
-  var credited = 0;
+  // שלב 1: ולידציה — בדוק שהפריט קיים במלאים (ללא בדיקת כמות — זיכוי יכול לחרוג)
+  var errors    = [];
+  var validated = [];
+  data.items.forEach(function(item) {
+    var qty = Number(item.qty) || 0;
+    if (qty <= 0) return;
+    var rowIdx = bunker_findItemRow(main, item.key);
+    if (rowIdx === -1) { errors.push('פריט לא נמצא: ' + item.key); return; }
+    var unitQty = Number(main.getRange(rowIdx, unitCol).getValue()) || 0;
+    validated.push({ key: item.key, qty: qty, rowIdx: rowIdx, unitQty: unitQty });
+  });
+  if (errors.length) return { success: false, error: errors.join(', ') };
 
-  for (var i = 1; i < rows.length; i++) {
-    var rowId = String(rows[i][0] || '').trim();
-    if (!(rowId in creditMap) || String(rows[i][7]).trim() !== 'פעיל') continue;
-
-    var warehouse    = (data.warehouse && BUNKER_WAREHOUSE_COLS[data.warehouse])
-                         ? data.warehouse
-                         : String(rows[i][2]).trim();
-    var unit         = String(rows[i][3]).trim();
-    var itemKey      = String(rows[i][4]).trim();
-    var originalQty  = Number(rows[i][5]) || 0;
-    var creditQty    = (creditMap[rowId] !== null && creditMap[rowId] !== undefined)
-                         ? Number(creditMap[rowId]) : originalQty;
-    if (creditQty <= 0) continue;
-    var warehouseCol = BUNKER_WAREHOUSE_COLS[warehouse];
-
-    // החזר למלאי המחסן + הפחת מעמודת מסגרת
-    if (main) {
-      var rowIdx2 = bunker_findItemRow(main, itemKey);
-      if (rowIdx2 !== -1) {
-        if (warehouseCol) {
-          var stock = Number(main.getRange(rowIdx2, warehouseCol).getValue()) || 0;
-          main.getRange(rowIdx2, warehouseCol).setValue(stock + creditQty);
-        }
-        var unitCol2 = BUNKER_UNIT_COLS[unit];
-        if (unitCol2) {
-          var unitQty = Number(main.getRange(rowIdx2, unitCol2).getValue()) || 0;
-          main.getRange(rowIdx2, unitCol2).setValue(Math.max(0, unitQty - creditQty));
-        }
-      }
+  // שלב 2: כתיבה — רק אחרי שכל הולידציות עברו
+  var ts = bunker_ts();
+  validated.forEach(function(v) {
+    // מלאים: מסגרת מרדת ל-max(0), מחסן מקבל את הכמות המלאה שזוכתה
+    main.getRange(v.rowIdx, unitCol).setValue(Math.max(0, v.unitQty - v.qty));
+    if (warehouseCol) {
+      var wStock = Number(main.getRange(v.rowIdx, warehouseCol).getValue()) || 0;
+      main.getRange(v.rowIdx, warehouseCol).setValue(wStock + v.qty);
     }
+    // זיכויים (לוג בלבד)
+    creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, data.unit, v.key, v.qty]);
+    // סכימה
+    bunker_schemaUpdateDispense(ss, v.key, data.unit, -v.qty);
+  });
 
-    // רשום לגליון זיכויים
-    creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, unit, itemKey, creditQty, rowId]);
-
-    // זיכוי חלקי — עדכן כמות ושמור פעיל; זיכוי מלא/עודף — סגור שורה
-    if (creditQty < originalQty) {
-      disp.getRange(i + 1, 6).setValue(originalQty - creditQty); // עדכן כמות נותרת
-    } else {
-      disp.getRange(i + 1, 8).setValue('זוכה');
-      disp.getRange(i + 1, 9).setValue(ts);
-      disp.getRange(i + 1, 10).setValue(data.by || 'לא ידוע');
-    }
-    bunker_schemaUpdateDispense(ss, itemKey, unit, -creditQty);
-    credited++;
-  }
-
-  return { success: true, credited: credited };
+  return { success: true, credited: validated.length };
 }
 
 // ================================================================
@@ -672,19 +644,32 @@ function bunker_rebuildSchema() {
   if (existing) ss.deleteSheet(existing);
   var sh = bunker_ensureSheet(ss, SCHEMA_SHEET, SCHEMA_HEADERS);
 
-  // ניפוקים — סטטוס פעיל בלבד
+  // ניפוקים — כל השורות (לוג גולמי; מחסר זיכויים בהמשך)
   var dispAgg = {};
   var dispSheet = ss.getSheetByName(CONFIG.BUNKER.DISPENSES_SHEET);
   if (dispSheet && dispSheet.getLastRow() > 1) {
-    var dRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 8).getValues();
+    var dRows = dispSheet.getRange(2, 1, dispSheet.getLastRow() - 1, 6).getValues();
     dRows.forEach(function(r) {
-      if (String(r[7] || '').trim() !== 'פעיל') return;
       var itemKey = String(r[4] || '').trim();
       var unit    = String(r[3] || '').trim();
       var qty     = Number(r[5]) || 0;
       if (!itemKey || !unit || !qty) return;
       if (!dispAgg[itemKey]) dispAgg[itemKey] = {};
       dispAgg[itemKey][unit] = (dispAgg[itemKey][unit] || 0) + qty;
+    });
+  }
+
+  // זיכויים — הפחת מניפוקים (עמודות: [ts, by, warehouse, unit, itemKey, qty])
+  var credSheet = ss.getSheetByName(BUNKER_CREDITS_SHEET);
+  if (credSheet && credSheet.getLastRow() > 1) {
+    var cRows = credSheet.getRange(2, 1, credSheet.getLastRow() - 1, 6).getValues();
+    cRows.forEach(function(r) {
+      var unit    = String(r[3] || '').trim();
+      var itemKey = String(r[4] || '').trim();
+      var qty     = Number(r[5]) || 0;
+      if (!itemKey || !unit || !qty) return;
+      if (!dispAgg[itemKey]) dispAgg[itemKey] = {};
+      dispAgg[itemKey][unit] = Math.max(0, (dispAgg[itemKey][unit] || 0) - qty);
     });
   }
 

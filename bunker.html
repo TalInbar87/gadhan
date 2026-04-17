@@ -463,9 +463,9 @@
                 <div class="msg-error"   id="dispenseError"></div>
             </div>
 
-            <!-- ניפוקים פעילים -->
+            <!-- היסטוריית ניפוקים -->
             <div class="card">
-                <h2>📋 ניפוקים פעילים</h2>
+                <h2>📋 היסטוריית ניפוקים</h2>
                 <div class="form-row" style="margin-bottom:12px;align-items:flex-end;gap:10px;">
                     <select id="filterDispenseUnit" onchange="renderActiveDispenses()">
                         <option value="">כל המסגרות</option>
@@ -1081,56 +1081,39 @@
             showLoader('creditLoader', true);
             document.getElementById('creditItemsList').innerHTML = '';
             try {
-                const [dispJson, summJson] = await Promise.all([
-                    apiPost('bunker_get_dispenses',    { unit }),
-                    apiPost('bunker_dispense_summary', { filterUnit: unit })
-                ]);
-
-                if (dispJson.statusCode !== 200 || !dispJson.data.length) {
-                    document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין ניפוקים פעילים למסגרת זו</p>';
+                const json = await apiPost('bunker_dispense_summary', { filterUnit: unit });
+                if (json.statusCode !== 200) {
+                    document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">שגיאה בטעינת נתונים</p>';
                     return;
                 }
 
-                // מפה של שצ״ל לפי פריט (מהסכימה)
-                const shatsalMap = {};
-                if (summJson.statusCode === 200 && summJson.data?.rows) {
-                    summJson.data.rows.forEach(r => {
-                        shatsalMap[r.item] = (r.shatsalPerUnit && r.shatsalPerUnit[unit]) || 0;
-                    });
+                // פריטים עם ניפוק נטו > 0 לאותה מסגרת
+                const rows = (json.data?.rows || []).filter(r =>
+                    ((r.dispenses && r.dispenses[unit]) || 0) - ((r.shatsalPerUnit && r.shatsalPerUnit[unit]) || 0) > 0
+                );
+
+                if (!rows.length) {
+                    document.getElementById('creditItemsList').innerHTML = '<p style="color:#666;">אין פריטים מנופקים למסגרת זו</p>';
+                    return;
                 }
 
-                // אגד לפי itemKey — סה״כ לפי פריט
-                creditAggregated = {};
-                dispJson.data.forEach(r => {
-                    if (!creditAggregated[r.itemKey]) {
-                        const label = bunkerItems.find(i => i.key === r.itemKey)?.label || r.itemKey;
-                        creditAggregated[r.itemKey] = { label, totalQty: 0, records: [] };
-                    }
-                    creditAggregated[r.itemKey].totalQty += r.qty;
-                    creditAggregated[r.itemKey].records.push({ id: r.id, qty: r.qty });
-                });
-
-                document.getElementById('creditItemsList').innerHTML =
-                    Object.entries(creditAggregated).map(([key, item]) => {
-                        const shatsal     = shatsalMap[key] || 0;
-                        const toCredit    = item.totalQty - shatsal;
-                        const creditColor = toCredit > 0 ? '#4ade80' : toCredit < 0 ? '#f87171' : '#666';
-                        const safeKey     = key.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-                        const defaultQty = Math.max(0, toCredit);
-                        return `
-                        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
-                            <input type="checkbox" class="credit-cb" data-key="${safeKey}"
-                                   onchange="toggleCreditQty(this)"
-                                   style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
-                            <span style="flex:1;color:#fff;font-weight:600;min-width:130px;">${item.label}</span>
-                            <span style="font-size:0.85em;white-space:nowrap;color:#888;">
-                                סה״כ:
-                                <input type="number" class="credit-qty" data-key="${safeKey}"
-                                       value="${defaultQty}" min="1" max="${item.totalQty}" disabled
-                                       style="width:60px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;" />
-                            </span>
-                        </div>`;
-                    }).join('');
+                document.getElementById('creditItemsList').innerHTML = rows.map(r => {
+                    const net     = (r.dispenses[unit] || 0) - ((r.shatsalPerUnit && r.shatsalPerUnit[unit]) || 0);
+                    const safeKey = r.item.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+                    return `
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1e1e1e;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
+                        <input type="checkbox" class="credit-cb" data-key="${safeKey}"
+                               onchange="toggleCreditQty(this)"
+                               style="width:18px;height:18px;accent-color:#dc2626;cursor:pointer;flex-shrink:0;" />
+                        <span style="flex:1;color:#fff;font-weight:600;min-width:130px;">${r.item}</span>
+                        <span style="font-size:0.85em;white-space:nowrap;color:#888;">
+                            נטו: <strong style="color:#ff8c00;">${net}</strong>
+                            <input type="number" class="credit-qty" data-key="${safeKey}"
+                                   value="${net}" min="1" disabled
+                                   style="width:60px;border:1px solid #444;border-radius:6px;padding:3px 6px;background:#2a2a2a;color:#ff8c00;font-weight:700;text-align:center;margin-right:6px;" />
+                        </span>
+                    </div>`;
+                }).join('');
             } finally { showLoader('creditLoader', false); }
         }
 
@@ -1150,25 +1133,17 @@
             if (!checked.length) { showMsg('credit', false, 'יש לסמן לפחות פריט אחד'); return; }
 
             const warehouse = document.getElementById('creditWarehouse').value;
-            // FIFO — חלק את הכמות שהמשתמש הזין על פני ה-records הבודדים
-            const credits = [];
-            checked.forEach(cb => {
+            const items = checked.map(cb => {
                 const key = cb.dataset.key;
-                let reqQty = 0;
-                document.querySelectorAll('.credit-qty').forEach(inp => {
-                    if (inp.dataset.key === key) reqQty = Math.max(1, Number(inp.value) || 1);
-                });
-                (creditAggregated[key]?.records || []).forEach(rec => {
-                    if (reqQty <= 0) return;
-                    const amt = Math.min(reqQty, rec.qty);
-                    if (amt > 0) credits.push({ id: rec.id, qty: amt });
-                    reqQty -= amt;
-                });
+                const inp = document.querySelector(`.credit-qty[data-key="${key.replace(/"/g,'\\"')}"]`);
+                const qty = Math.max(1, Number(inp?.value) || 1);
+                return { key, qty };
             });
+
             setPageDisabled(true);
             try {
-                const json = await apiPost('bunker_credit', { unit, by, warehouse, credits });
-                showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${credits.length} פריטים` : (json.message || 'שגיאה'));
+                const json = await apiPost('bunker_credit', { unit, by, warehouse, items });
+                showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
                 if (json.statusCode === 200) { resetCreditTab(); }
             } catch(e) {
                 showMsg('credit', false, 'שגיאת תקשורת: ' + e.message);
