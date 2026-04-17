@@ -188,14 +188,30 @@ function bunker_dispense(data) {
 
   if (errors.length) return { success: false, error: errors.join(', ') };
 
-  // שלב 2: כתיבה — רק אחרי שכל הולידציות עברו
-  var ts = bunker_ts();
+  // שלב 2: כתיבה עם rollback במקרה של שגיאה
+  var ts      = bunker_ts();
+  var written = [];
 
-  validated.forEach(function(v) {
-    main.getRange(v.rowIdx, warehouseCol).setValue(v.stock - v.qty);
-    disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, v.item.key, v.qty, data.by || 'לא ידוע']);
-    bunker_schemaUpdateDispense(ss, v.item.key, data.unit, v.qty);
-  });
+  try {
+    validated.forEach(function(v) {
+      var whRange = main.getRange(v.rowIdx, warehouseCol);
+      whRange.setValue(v.stock - v.qty);
+      written.push({ type: 'cell', range: whRange, original: v.stock });
+
+      disp.appendRow([bunker_uid(), ts, data.warehouse, data.unit, v.item.key, v.qty, data.by || 'לא ידוע']);
+      written.push({ type: 'row', sheet: disp });
+
+      bunker_schemaUpdateDispense(ss, v.item.key, data.unit, v.qty);
+      written.push({ type: 'schema', key: v.item.key, unit: data.unit, delta: v.qty });
+    });
+  } catch(e) {
+    written.reverse().forEach(function(w) {
+      if (w.type === 'cell')   w.range.setValue(w.original);
+      if (w.type === 'row')    w.sheet.deleteRow(w.sheet.getLastRow());
+      if (w.type === 'schema') bunker_schemaUpdateDispense(ss, w.key, w.unit, -w.delta);
+    });
+    return { success: false, error: 'שגיאת כתיבה: ' + e.message };
+  }
 
   return { success: true, dispensed: validated.length };
 }
@@ -259,19 +275,33 @@ function bunker_credit(data) {
   });
   if (errors.length) return { success: false, error: errors.join(', ') };
 
-  // שלב 2: כתיבה — רק אחרי שכל הולידציות עברו
-  var ts = bunker_ts();
-  validated.forEach(function(v) {
-    // מלאים: מחסן בלבד (מסגרות מנוהלות בסכימה)
-    if (warehouseCol) {
-      var wStock = Number(main.getRange(v.rowIdx, warehouseCol).getValue()) || 0;
-      main.getRange(v.rowIdx, warehouseCol).setValue(wStock + v.qty);
-    }
-    // זיכויים (לוג בלבד)
-    creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, data.unit, v.key, v.qty]);
-    // סכימה — מקור האמת למסגרות
-    bunker_schemaUpdateDispense(ss, v.key, data.unit, -v.qty);
-  });
+  // שלב 2: כתיבה עם rollback במקרה של שגיאה
+  var ts      = bunker_ts();
+  var written = [];
+
+  try {
+    validated.forEach(function(v) {
+      if (warehouseCol) {
+        var whRange = main.getRange(v.rowIdx, warehouseCol);
+        var wStock  = Number(whRange.getValue()) || 0;
+        whRange.setValue(wStock + v.qty);
+        written.push({ type: 'cell', range: whRange, original: wStock });
+      }
+
+      creditsSheet.appendRow([ts, data.by || 'לא ידוע', warehouse, data.unit, v.key, v.qty]);
+      written.push({ type: 'row', sheet: creditsSheet });
+
+      bunker_schemaUpdateDispense(ss, v.key, data.unit, -v.qty);
+      written.push({ type: 'schema', key: v.key, unit: data.unit, delta: -v.qty });
+    });
+  } catch(e) {
+    written.reverse().forEach(function(w) {
+      if (w.type === 'cell')   w.range.setValue(w.original);
+      if (w.type === 'row')    w.sheet.deleteRow(w.sheet.getLastRow());
+      if (w.type === 'schema') bunker_schemaUpdateDispense(ss, w.key, w.unit, -w.delta);
+    });
+    return { success: false, error: 'שגיאת כתיבה: ' + e.message };
+  }
 
   return { success: true, credited: validated.length };
 }
