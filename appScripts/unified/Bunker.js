@@ -536,6 +536,39 @@ function bunker_shatsalReport(data) {
   return { success: true };
 }
 
+// תקן תאריכים שנשמרו כמחרוזת DD/MM/YYYY בגליונות ניפוקים וזיכויים
+// Sheets פירש אותם כ-MM/DD → הפך אותם לתאריכי עתיד. תאריך עתיד = סימן לתיקון.
+function bunker_fixLogDates() {
+  var ss    = bunker_ss();
+  var today = new Date(); today.setHours(23, 59, 59, 999);
+  var total = 0;
+
+  function fixSheet(shName, col) {
+    var sh = ss.getSheetByName(shName);
+    if (!sh || sh.getLastRow() < 2) return 0;
+    var rows  = sh.getRange(2, 1, sh.getLastRow() - 1, col).getValues();
+    var fixed = 0;
+    rows.forEach(function(r, i) {
+      var val = r[col - 1];
+      if (!(val instanceof Date)) return; // מחרוזת — לא נוגעים
+      if (val <= today) return;           // בעבר — תקין, לא נוגעים
+      var storedMonth = val.getMonth() + 1;
+      var storedDay   = val.getDate();
+      if (storedDay < 1 || storedDay > 12) return; // החלפה תייצר חודש לא-חוקי
+      var corrected = new Date(val.getFullYear(), storedDay - 1, storedMonth,
+                               val.getHours(), val.getMinutes());
+      sh.getRange(i + 2, col).setValue(corrected);
+      fixed++;
+    });
+    return fixed;
+  }
+
+  total += fixSheet(CONFIG.BUNKER.DISPENSES_SHEET, 2); // עמודה B — תאריך ניפוק
+  total += fixSheet(BUNKER_CREDITS_SHEET, 1);           // עמודה A — תאריך זיכוי
+
+  return { success: true, fixed: total };
+}
+
 // תקן תאריכי ביצוע שנשמרו עם DD/MM הפוך (Sheets US-locale bug)
 // הלוגיקה: תאריך ביצוע שצ״ל אמור תמיד להיות בעבר. אם הוא בעתיד → כנראה DD/MM הוחלפו.
 function bunker_fixShatsalDates() {
