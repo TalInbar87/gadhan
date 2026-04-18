@@ -57,9 +57,9 @@ function bunker_uid() {
   return Utilities.getUuid().split('-')[0].toUpperCase();
 }
 
-// ── עזר: timestamp ──
+/// ── עזר: timestamp — מחזיר Date object (לא מחרוזת) כדי למנוע US-locale bug של Sheets ──
 function bunker_ts() {
-  return Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'dd/MM/yyyy HH:mm');
+  return new Date();
 }
 
 // ── עזר: פורמט תאריך — מטפל גם ב-Date object וגם במחרוזת ──
