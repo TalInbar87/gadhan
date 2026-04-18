@@ -706,7 +706,7 @@ function handleBunkerCredit(data, request) {
   if (!payload) return createResponse(401, 'Invalid or expired token', null);
   if (!Authorization.canAccessResource(payload, null, 'write')) return createResponse(403, 'Insufficient permissions', null);
   try {
-    var result = bunker_credit({ credits: data.credits, ids: data.ids, by: data.by, warehouse: data.warehouse });
+    var result = bunker_credit({ unit: data.unit, items: data.items, by: data.by, warehouse: data.warehouse });
     return result.success ? createResponse(200, 'זיכוי בוצע — ' + result.credited + ' פריטים', null) : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
