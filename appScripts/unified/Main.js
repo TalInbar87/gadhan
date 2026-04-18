@@ -105,6 +105,7 @@ function doPost(e) {
       case 'bunker_get_inventory': return handleBunkerGetInventory(data, e);
       case 'bunker_save_inventory':return handleBunkerSaveInventory(data, e);
       case 'bunker_get_dispenses': return handleBunkerGetDispenses(data, e);
+      case 'bunker_get_credits':   return handleBunkerGetCredits(data, e);
       case 'bunker_dispense':      return handleBunkerDispense(data, e);
       case 'bunker_credit':        return handleBunkerCredit(data, e);
       case 'bunker_transfer':      return handleBunkerTransfer(data, e);
@@ -698,6 +699,15 @@ function handleBunkerDispense(data, request) {
   try {
     var result = bunker_dispense({ warehouse: data.warehouse, unit: data.unit, items: data.items, by: data.by });
     return result.success ? createResponse(200, 'ניפוק בוצע', null) : createResponse(500, result.error, null);
+  } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
+}
+
+function handleBunkerGetCredits(data, request) {
+  var payload = JWTUtil.verify(data.token, CONFIG.JWT_SECRET);
+  if (!payload) return createResponse(401, 'Invalid or expired token', null);
+  try {
+    var result = bunker_getCredits(data.unit || '');
+    return result.success ? createResponse(200, 'OK', result.data) : createResponse(500, result.error, null);
   } catch (e) { return createResponse(500, 'Server error: ' + e.toString(), null); }
 }
 

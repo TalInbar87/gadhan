@@ -245,6 +245,32 @@ function bunker_getDispenses(unit) {
 }
 
 // ================================================================
+// 4b. היסטוריית זיכויים לפי מסגרת
+// ================================================================
+function bunker_getCredits(unit) {
+  var ss   = bunker_ss();
+  var sh   = ss.getSheetByName(BUNKER_CREDITS_SHEET);
+  if (!sh || sh.getLastRow() < 2) return { success: true, data: [] };
+
+  var rows   = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues();
+  var result = [];
+  for (var i = 0; i < rows.length; i++) {
+    var rowUnit = String(rows[i][3] || '').trim();
+    if (unit && rowUnit !== unit) continue;
+    result.push({
+      timestamp: bunker_formatDate(rows[i][0]),
+      by:        String(rows[i][1] || '').trim(),
+      warehouse: String(rows[i][2] || '').trim(),
+      unit:      rowUnit,
+      itemKey:   String(rows[i][4] || '').trim(),
+      qty:       Number(rows[i][5]) || 0
+    });
+  }
+  result.reverse();
+  return { success: true, data: result };
+}
+
+// ================================================================
 // 5. זיכוי — עדכון מלאים + לוג בלבד (ללא תלות בגליון ניפוקים)
 // ================================================================
 function bunker_credit(data) {

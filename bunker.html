@@ -522,7 +522,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>מסגרת</label>
-                        <select id="creditUnit" onchange="loadUnitDispenses()">
+                        <select id="creditUnit" onchange="loadUnitDispenses();loadCreditHistory()">
                             <option value="">— בחר מסגרת —</option>
                         </select>
                     </div>
@@ -560,6 +560,37 @@
 
                 <div class="msg-success" id="creditSuccess"></div>
                 <div class="msg-error"   id="creditError"></div>
+
+                <!-- היסטוריית זיכויים -->
+                <div id="creditHistorySection" style="display:none; margin-top:28px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="margin:0;color:#fff;font-size:1em;">📜 היסטוריית זיכויים</h3>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="date" id="filterCreditDate"
+                                   onchange="renderCreditHistory()"
+                                   style="background:#1a1a1a;color:#eee;border:1px solid #333;border-radius:6px;padding:6px 10px;font-size:13px;" />
+                            <button onclick="document.getElementById('filterCreditDate').value='';renderCreditHistory();"
+                                    style="background:#2a2a2a;color:#aaa;border:1px solid #333;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;">✕</button>
+                        </div>
+                    </div>
+                    <div id="creditHistoryLoader" style="display:none;justify-content:center;padding:16px;"><div class="spinner"></div></div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="background:#1a1a1a;color:#aaa;text-align:right;">
+                                    <th style="padding:8px 10px;">תאריך</th>
+                                    <th style="padding:8px 10px;">פריט</th>
+                                    <th style="padding:8px 10px;">כמות</th>
+                                    <th style="padding:8px 10px;">מחסן</th>
+                                    <th style="padding:8px 10px;">מזכה</th>
+                                </tr>
+                            </thead>
+                            <tbody id="creditHistoryBody">
+                                <tr><td colspan="5" style="text-align:center;color:#666;padding:20px;">טוען...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1139,6 +1170,45 @@
             });
         }
 
+        let _creditHistory = [];
+
+        async function loadCreditHistory() {
+            const unit = document.getElementById('creditUnit').value;
+            if (!unit) { document.getElementById('creditHistorySection').style.display = 'none'; return; }
+            document.getElementById('creditHistorySection').style.display = 'block';
+            document.getElementById('creditHistoryLoader').style.display = 'flex';
+            try {
+                const json = await apiPost('bunker_get_credits', { unit });
+                if (json.statusCode === 200) {
+                    _creditHistory = json.data || [];
+                    renderCreditHistory();
+                }
+            } finally { document.getElementById('creditHistoryLoader').style.display = 'none'; }
+        }
+
+        function renderCreditHistory() {
+            const filterDate = document.getElementById('filterCreditDate').value;
+            const tbody = document.getElementById('creditHistoryBody');
+            let rows = _creditHistory;
+            if (filterDate) {
+                const [fy, fm, fd] = filterDate.split('-');
+                const filterDay = `${fd}/${fm}/${fy}`;
+                rows = rows.filter(r => String(r.timestamp || '').startsWith(filterDay));
+            }
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;padding:20px;">אין זיכויים</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map((r, i) => `
+                <tr style="background:${i % 2 === 0 ? '#1a1a1a' : '#161616'};">
+                    <td style="padding:8px 10px;color:#aaa;">${r.timestamp}</td>
+                    <td style="padding:8px 10px;color:#fff;font-weight:600;">${r.itemKey}</td>
+                    <td style="padding:8px 10px;color:#ff8c00;font-weight:700;">${r.qty}</td>
+                    <td style="padding:8px 10px;color:#aaa;">${r.warehouse || '—'}</td>
+                    <td style="padding:8px 10px;color:#aaa;">${r.by}</td>
+                </tr>`).join('');
+        }
+
         let _creditPayload = null;
 
         function submitCredit() {
@@ -1199,7 +1269,7 @@
             } catch(e) {
                 showMsg('credit', false, 'שגיאת תקשורת: ' + e.message);
             } finally {
-                await Promise.all([loadInventory(), loadActiveDispenses()]).catch(() => {});
+                await Promise.all([loadInventory(), loadActiveDispenses(), loadCreditHistory()]).catch(() => {});
                 setPageDisabled(false);
             }
         }
