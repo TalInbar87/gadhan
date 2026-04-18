@@ -292,6 +292,21 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- מודל אישור זיכוי -->
+    <div id="creditConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:#1e1e1e;border:1px solid #444;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;direction:rtl;">
+            <h3 style="margin:0 0 16px;color:#fff;font-size:1.1em;">אישור זיכוי</h3>
+            <div id="creditConfirmBody" style="margin-bottom:20px;font-size:0.95em;"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button onclick="closeCreditModal()" style="background:#2a2a2a;color:#aaa;border:1px solid #444;border-radius:8px;padding:9px 20px;cursor:pointer;font-size:0.95em;">ביטול</button>
+                <button onclick="confirmCredit()" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-size:0.95em;font-weight:700;">אשר זיכוי</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- הודעת הצלחה מרכזית -->
+    <div id="creditSuccessToast" style="display:none;position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;border-radius:10px;padding:16px 28px;font-size:1em;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);direction:rtl;text-align:center;"></div>
+
     <div class="container" id="mainContent" style="display:none;">
 
         <header>
@@ -1124,7 +1139,9 @@
             });
         }
 
-        async function submitCredit() {
+        let _creditPayload = null;
+
+        function submitCredit() {
             const unit    = document.getElementById('creditUnit').value;
             const by      = document.getElementById('creditBy').value.trim();
             const checked = [...document.querySelectorAll('.credit-cb:checked')];
@@ -1140,11 +1157,45 @@
                 return { key, qty };
             });
 
+            _creditPayload = { unit, by, warehouse, items };
+
+            const warehouseLabel = warehouse || 'לא נבחר';
+            const rows = items.map(i => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #333;">
+                <span style="color:#fff;">${i.key}</span>
+                <span style="color:#ff8c00;font-weight:700;">${i.qty}</span>
+            </div>`).join('');
+
+            document.getElementById('creditConfirmBody').innerHTML = `
+                <div style="color:#aaa;margin-bottom:12px;">
+                    <span>מסגרת: <strong style="color:#fff;">${unit}</strong></span> &nbsp;|&nbsp;
+                    <span>מחסן: <strong style="color:#fff;">${warehouseLabel}</strong></span> &nbsp;|&nbsp;
+                    <span>מזכה: <strong style="color:#fff;">${by}</strong></span>
+                </div>
+                ${rows}`;
+            document.getElementById('creditConfirmModal').style.display = 'flex';
+        }
+
+        function closeCreditModal() {
+            document.getElementById('creditConfirmModal').style.display = 'none';
+            _creditPayload = null;
+        }
+
+        async function confirmCredit() {
+            if (!_creditPayload) return;
+            const payload = _creditPayload;
+            closeCreditModal();
             setPageDisabled(true);
             try {
-                const json = await apiPost('bunker_credit', { unit, by, warehouse, items });
-                showMsg('credit', json.statusCode === 200, json.statusCode === 200 ? `זיכוי בוצע — ${items.length} פריטים` : (json.message || 'שגיאה'));
-                if (json.statusCode === 200) { resetCreditTab(); }
+                const json = await apiPost('bunker_credit', payload);
+                if (json.statusCode === 200) {
+                    resetCreditTab();
+                    const toast = document.getElementById('creditSuccessToast');
+                    toast.textContent = `✅ זיכוי בוצע בהצלחה — ${payload.items.length} פריטים הוחזרו`;
+                    toast.style.display = 'block';
+                    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+                } else {
+                    showMsg('credit', false, json.message || 'שגיאה');
+                }
             } catch(e) {
                 showMsg('credit', false, 'שגיאת תקשורת: ' + e.message);
             } finally {
