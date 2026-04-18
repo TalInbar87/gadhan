@@ -587,44 +587,50 @@ backup_run('בוקר')  // או backup_run('ערב')
 
 #### טאב מלאים (`CONFIG.BUNKER.MAIN_SHEET`)
 
+**מקור האמת למלאי מחסנים בלבד.** כמויות מסגרות מנוהלות בגליון סכימה — לא כאן.
+
 | עמודה | Index (0-based) | תוכן |
 |-------|-----------------|------|
 | A | 0 | שם פריט (key) |
 | B | 1 | מחסן נפתלי — מלאי נוכחי |
 | C | 2 | מחסן בילו — מלאי נוכחי |
-| D | 3 | פלוגה א (כמות אצלם) |
-| E | 4 | פלוגה ב |
-| F | 5 | פלוגה ג |
-| G | 6 | צמה |
-| H | 7 | ניוד |
-| I | 8 | מחסר |
-| J | 9 | חפק |
-| K | 10 | סה"כ נופק מנפתלי (היסטורי) |
-| L | 11 | סה"כ נופק מבילו (היסטורי) |
 
 קבועי עמודה ב-GAS (1-indexed, לשימוש ב-`getRange`):
 ```javascript
 BUNKER_WAREHOUSE_COLS = { 'נפתלי': 2, 'בילו': 3 }
-BUNKER_UNIT_COLS      = { 'פלוגה א': 4, 'פלוגה ב': 5, 'פלוגה ג': 6, 'צמה': 7, 'ניוד': 8, 'מחסר': 9, 'חפק': 10 }
-BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
+// BUNKER_UNIT_COLS — קיים בקוד אך לא נכתב אליו עוד (רק לולידציה)
 ```
 
 ---
 
 #### טאב ניפוקים (`CONFIG.BUNKER.DISPENSES_SHEET`)
 
+**לוג בלבד** — append-only. לא נקרא לצורך חישוב, לא מתעדכן אחרי זיכוי.
+
 | עמודה | Index | תוכן |
 |-------|-------|------|
 | A | 0 | מזהה (UUID קצר) |
-| B | 1 | תאריך (timestamp `dd/MM/yyyy HH:mm`) |
+| B | 1 | תאריך (**Date object** — ראה מלכודת US-locale) |
 | C | 2 | מחסן (`'נפתלי'`\|`'בילו'`) |
 | D | 3 | מסגרת |
 | E | 4 | פריט (שם = key) |
 | F | 5 | כמות |
 | G | 6 | מנפק |
-| H | 7 | סטטוס (`'פעיל'`\|`'זוכה'`) |
-| I | 8 | תאריך זיכוי |
-| J | 9 | מזכה |
+
+> שורות ישנות עשויות להכיל עמודות H–J (סטטוס, תאריך זיכוי, מזכה) — מורשת, לא נכתבות יותר.
+
+#### טאב זיכויים (`BUNKER_CREDITS_SHEET = 'זיכויים'`)
+
+**לוג בלבד** — append-only. לא נכתב ID (כל שורה עצמאית).
+
+| עמודה | Index | תוכן |
+|-------|-------|------|
+| A | 0 | תאריך זיכוי (**Date object**) |
+| B | 1 | מזכה |
+| C | 2 | מחסן |
+| D | 3 | מסגרת |
+| E | 4 | פריט (key) |
+| F | 5 | כמות |
 
 ---
 
@@ -642,12 +648,14 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 
 ---
 
-#### טאב סכימה (`'סכימה'`) — Materialized View
+#### טאב סכימה (`'סכימה'`) — מקור האמת למסגרות
+
+**מקור האמת היחיד לכמויות מסגרות.** מכיל ניפוק נטו (ניפוק − זיכוי) ושצ"ל לכל פריט × מסגרת.
 
 | עמודה | Index | תוכן |
 |-------|-------|------|
 | A | 0 | פריט (key) |
-| B–H | 1–7 | ניפוק פעיל לפי מסגרת לפי `UNIT_ORDER` |
+| B–H | 1–7 | ניפוק נטו לפי מסגרת לפי `UNIT_ORDER` |
 | I–O | 8–14 | שצ״ל לפי מסגרת לפי `UNIT_ORDER` |
 
 `UNIT_ORDER = ['פלוגה א', 'פלוגה ב', 'פלוגה ג', 'צמה', 'ניוד', 'מחסר', 'חפק']`
@@ -665,7 +673,7 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 | `bunker_ss()` | פתח את גיליון Bunker (`CONFIG.SHEETS.BUNKER`) |
 | `bunker_ensureSheet(ss, name, headers)` | מצא/צור טאב, אם חדש — כתוב headers עם עיצוב |
 | `bunker_uid()` | UUID קצר (8 תווים עליונים) |
-| `bunker_ts()` | timestamp `dd/MM/yyyy HH:mm` ב-timezone ישראל |
+| `bunker_ts()` | מחזיר `new Date()` — **Date object, לא מחרוזת** (מניעת US-locale bug) |
 | `bunker_formatDate(val)` | מחזיר מחרוזת: אם `Date` → `formatDate`, אחרת → `String(val).trim()` |
 | `bunker_parseLocalDate(str)` | מפרסר `"DD/MM/YYYY [HH:mm]"` ← **Date object** (פתרון ל-US-locale) |
 | `bunker_findItemRow(sheet, itemName)` | מחזיר index 1-based של שורת הפריט, או `-1` |
@@ -675,30 +683,33 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 | פונקציה | section | תיאור |
 |---------|---------|-------|
 | `bunker_getItems()` | 1 | רשימת כל הפריטים `[{key, label}]` מגליון מלאים |
-| `bunker_getInventory()` | 2 | מלאי מלא לכל פריט: nafatli, bilo, units{}, totals |
-| `bunker_saveInventory(data)` | 2b | שמור מלאי — עדכן עמודות B/C לפי `{nafatli:{key:qty}, bilo:{key:qty}}` |
-| `bunker_dispense(data)` | 3 | ניפוק: הפחת מלאי מחסן + עדכן מסגרת + רשום בניפוקים + עדכן סכימה |
-| `bunker_getDispenses(unit)` | 4 | שליפת ניפוקים פעילים. `unit=null` → הכל |
-| `bunker_credit(data)` | 5 | זיכוי לפי `credits:[{id,qty}]` או `ids:[]` — החזר למלאי + עדכן סכימה |
+| `bunker_getInventory()` | 2 | מלאי מחסנים: `[{key, label, nafatli, bilo}]` — ללא עמודות מסגרת |
+| `bunker_saveInventory(data)` | 2b | שמור מלאי — עדכן עמודות B/C בלבד |
+| `bunker_dispense(data)` | 3 | ניפוק: הפחת ממחסן + לוג בניפוקים + עדכן סכימה. **rollback** אם נכשל |
+| `bunker_getDispenses(unit)` | 4 | שליפת כל הניפוקים (לוג). `unit=null` → הכל |
+| `bunker_getCredits(unit)` | 4b | שליפת היסטוריית זיכויים מגליון זיכויים. `unit=null` → הכל |
+| `bunker_credit(data)` | 5 | זיכוי: הוסף למחסן + לוג בזיכויים + עדכן סכימה. **rollback** אם נכשל |
 | `bunker_receive(data)` | 6 | קבלה: הוסף למלאי מחסן + רשום בגליון קבלות |
 | `bunker_addItem(name)` | 7 | הוסף פריט חדש לגליון מלאים (כל הכמויות 0) |
 | `bunker_transfer(data)` | 8 | העברה בין מחסנים: `{from, to, items:[{key,qty}]}` |
 | `bunker_regulate(data)` | 9 | וויסות: הפחת ממחסן + רשום בגליון וויסותים |
 | `bunker_getRegulations()` | 9 | שליפת כל הוויסותים (reversed) |
-| `bunker_shatsalReport(data)` | 10 | דיווח שצ״ל: שמור לגליון שצ״ל + עדכן סכימה |
-| `bunker_fixShatsalDates()` | 10 | מיגרציה: תקן תאריכי ביצוע שנשמרו הפוך (US-locale bug) |
+| `bunker_shatsalReport(data)` | 10 | דיווח שצ״ל: שמור לגליון שצ״ל + עדכן סכימה. **rollback** אם נכשל |
+| `bunker_fixShatsalDates()` | 10 | מיגרציה: תקן תאריכי ביצוע שצ"ל שנשמרו הפוך (US-locale bug) |
+| `bunker_fixLogDates()` | — | מיגרציה: תקן תאריכים בגליון ניפוקים ו-זיכויים (תאריך עתיד = הפוך) |
+| `bunker_fixDispensesValidation()` | — | הסר data validation rules מגליון ניפוקים (חד-פעמי) |
 | `bunker_getShatsal()` | 10 | שליפת כל דיווחי שצ״ל (reversed, עם `bunker_formatDate`) |
 | `bunker_dispenseSummary(filterUnit)` | 11 | סיכום ניפוק מול שצ״ל — קריאה מגליון סכימה בלבד |
 | `bunker_schemaEnsureRow(sh, itemKey)` | 12 | מצא/צור שורה בסכימה, מחזיר index 1-based |
-| `bunker_schemaUpdateDispense(ss, itemKey, unit, delta)` | 12 | עדכן ניפוק פעיל בסכימה (delta חיובי/שלילי) |
+| `bunker_schemaUpdateDispense(ss, itemKey, unit, delta)` | 12 | עדכן ניפוק נטו בסכימה (delta חיובי = ניפוק, שלילי = זיכוי) |
 | `bunker_schemaUpdateShatsal(ss, itemKey, unit, delta)` | 12 | עדכן שצ״ל בסכימה |
-| `bunker_rebuildSchema()` | 12 | מחק ובנה מחדש את כל גליון הסכימה מהמקורות הגולמיים |
+| `bunker_rebuildSchema()` | 12 | מחק ובנה מחדש את כל גליון הסכימה: ניפוקים − זיכויים + שצ"ל |
 
-#### פרמטרים נפוצים ל-`bunker_dispense`:
+#### פרמטרים ל-`bunker_dispense`:
 ```javascript
 {
   warehouse: 'נפתלי' | 'בילו',
-  unit: 'פלוגה א' | 'פלוגה ב' | ...,
+  unit: 'פלוגה א' | ...,
   items: [{ key: 'שם_פריט', qty: 5 }],
   by: 'fullName'
 }
@@ -706,11 +717,14 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 
 #### פרמטרים ל-`bunker_credit`:
 ```javascript
-// פורמט חדש (זיכוי חלקי):
-{ credits: [{ id: 'ABC123', qty: 3 }], by: '...', warehouse: '...' }
-
-// פורמט ישן (זיכוי מלא):
-{ ids: ['ABC123', 'DEF456'], by: '...' }
+{
+  unit: 'פלוגה א' | ...,
+  warehouse: 'נפתלי' | 'בילו',  // מחסן לקבל את הזיכוי
+  items: [{ key: 'שם_פריט', qty: 3 }],
+  by: 'fullName'
+}
+// ⚠️ זיכוי חריג מותר — qty יכולה לחרוג מהכמות שיש למסגרת
+// מסגרת בסכימה → max(0, קיים - qty) | מחסן → +qty ללא cap
 ```
 
 ---
@@ -723,10 +737,11 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 | action | handler | פונקציית GAS | תיאור |
 |--------|---------|-------------|-------|
 | `bunker_get_items` | `handleBunkerGetItems` | `bunker_getItems()` | רשימת פריטים |
-| `bunker_get_inventory` | `handleBunkerGetInventory` | `bunker_getInventory()` | מלאי מלא |
-| `bunker_save_inventory` | `handleBunkerSaveInventory` | `bunker_saveInventory(data)` | שמור מלאי |
+| `bunker_get_inventory` | `handleBunkerGetInventory` | `bunker_getInventory()` | מלאי מחסנים (nafatli, bilo) |
+| `bunker_save_inventory` | `handleBunkerSaveInventory` | `bunker_saveInventory(data)` | שמור מלאי מחסנים |
 | `bunker_dispense` | `handleBunkerDispense` | `bunker_dispense(data)` | ניפוק |
-| `bunker_get_dispenses` | `handleBunkerGetDispenses` | `bunker_getDispenses(unit)` | שליפת ניפוקים |
+| `bunker_get_dispenses` | `handleBunkerGetDispenses` | `bunker_getDispenses(unit)` | היסטוריית ניפוקים |
+| `bunker_get_credits` | `handleBunkerGetCredits` | `bunker_getCredits(unit)` | היסטוריית זיכויים |
 | `bunker_credit` | `handleBunkerCredit` | `bunker_credit(data)` | זיכוי |
 | `bunker_receive` | `handleBunkerReceive` | `bunker_receive(data)` | קבלה |
 | `bunker_add_item` | `handleBunkerAddItem` | `bunker_addItem(name)` | הוספת פריט |
@@ -748,20 +763,25 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 | מספר | שם | תוכן |
 |------|----|------|
 | 1 | ניפוק | בחר מחסן + מסגרת + כמויות לפי פריט → ניפוק |
-| 2 | זיכוי | שליפת ניפוקים פעילים לפי מסגרת → בחר + כמות → זיכוי |
-| 3 | קבלה | קבלת תחמושת מחוץ לגדוד → עדכון מלאי מחסן |
-| 4 | שצ״ל | דיווח שימוש בתחמושת: מסגרת + תאריך ביצוע + כמויות + `max` לפי נותר |
-| 5 | וויסות | יציאת תחמושת מהמחסן לגורם חיצוני |
-| 6 | היסטוריית שצ״ל | גדוד (מסכימה+סינון תאריך) + CSV; סיכום לפי מסגרת (on-demand) |
-| 7 | סיכום | סיכום ניפוק מול שצ״ל: 4 עמודות (פריט/ניפוק/שצ״ל/נשאר), ממוין א"ב עברית |
-| 8 | מלאי | עריכת מלאי נוכחי (נפתלי+בילו) + הוספת פריט + כפתור "בנה סכימה" |
+| 2 | היסטוריית ניפוקים | כל הניפוקים (לוג) + סינון מסגרת + סינון תאריך |
+| 3 | זיכוי | שליפת פריטים מגליון סכימה (ניפוק−שצ"ל) → בחר + כמות → מודל אישור → זיכוי + היסטוריית זיכויים לפי מסגרת |
+| 4 | קבלה | קבלת תחמושת מחוץ לגדוד → עדכון מלאי מחסן |
+| 5 | שצ״ל | דיווח שימוש בתחמושת: מסגרת + תאריך ביצוע + כמויות + `max` לפי נותר |
+| 6 | וויסות | יציאת תחמושת מהמחסן לגורם חיצוני |
+| 7 | היסטוריית שצ״ל | גדוד (מסכימה+סינון תאריך) + CSV; סיכום לפי מסגרת (on-demand) |
+| 8 | סיכום | סיכום ניפוק מול שצ״ל: 4 עמודות (פריט/ניפוק/שצ״ל/נשאר), ממוין א"ב עברית |
+| 9 | מלאי | עריכת מלאי נוכחי (נפתלי+בילו) + הוספת פריט + כפתור "בנה סכימה" |
 
 #### פונקציות JS מרכזיות
 
 | פונקציה | תיאור |
 |---------|-------|
 | `apiPost(action, data)` | POST ל-GAS עם `URLSearchParams`, מחזיר `json` |
-| `loadUnitDispenses(unit)` | שולפת ניפוקים פעילים לטאב זיכוי — qty ברירת מחדל = max(0, total−shatsal) |
+| `loadUnitDispenses()` | טאב זיכוי — שולפת מגליון סכימה (`bunker_dispense_summary`), מציגה פריטים עם ניפוק נטו > 0 |
+| `loadCreditHistory()` | טוען היסטוריית זיכויים לפי מסגרת (`bunker_get_credits`) |
+| `renderCreditHistory()` | מרנדר טבלת זיכויים עם סינון תאריך |
+| `submitCredit()` | בונה payload, פותח מודל אישור עם רשימת פריטים |
+| `confirmCredit()` | מבצע את הזיכוי בפועל, מציג toast הצלחה ירוק |
 | `renderShatsalGrid(unit)` | בונה גריד שצ״ל עם "נותר: X", מסתיר פריטים עם נותר=0 |
 | `updateShatsalVisibility()` | (async) נקרא בבחירת מסגרת — מביא summary ואז רונדר גריד |
 | `loadShatsalHistory()` | טוען היסטוריית שצ״ל + סיכום (מקביל), עדכון גדוד אם אין סינון |
@@ -769,46 +789,61 @@ BUNKER_TOTAL_COLS     = { 'נפתלי': 11, 'בילו': 12 }
 | `exportBattalionCSV()` | ייצוא CSV של תצוגת גדוד הנוכחית |
 | `loadShatsalSummary()` | טוען "סיכום שצ״ל לפי מסגרת" on-demand, שומר flag `shatsalSummaryLoaded` |
 | `toggleShatsalSummary()` | כיפול/פריסה של טבלת הסיכום |
-| `renderSummaryTable(data)` | טאב 7 — 4 עמודות, ממוין א"ב; multi-unit = סה"כ, single-unit = לפי מסגרת |
+| `renderSummaryTable(data)` | טאב סיכום — 4 עמודות, ממוין א"ב; multi-unit = סה"כ, single-unit = לפי מסגרת |
 | `rebuildSchema()` | קורא `bunker_rebuild_schema`, מציג הצלחה/שגיאה |
 
 ---
 
-### 11.5 מלכודות נפוצות — בונקר
+### 11.5 ארכיטקטורה — עקרונות מרכזיים
+
+| פעולה | מלאים (מחסן) | סכימה (מסגרת) | לוג |
+|-------|-------------|--------------|-----|
+| ניפוק | `-qty` | `+qty` | גליון ניפוקים |
+| זיכוי | `+qty` | `-qty` (max 0) | גליון זיכויים |
+| שצ"ל | — | שצ"ל `+qty` | גליון שצ"ל |
+| קבלה | `+qty` | — | גליון קבלות |
+| וויסות | `-qty` | — | גליון וויסותים |
+
+**ולידציות:**
+- ניפוק: מחסן חייב להכיל מספיק. אם פריט אחד נכשל — כולם מבוטלים (validate-then-write).
+- זיכוי: בדיקת קיום פריט בלבד — כמות חריגה מותרת.
+- שצ"ל: בדיקת שדות חובה בלבד.
+- כל הפעולות: rollback אוטומטי אם נכשלת כתיבה באמצע.
+
+---
+
+### 11.6 מלכודות נפוצות — בונקר
 
 #### ⚠️ US-Locale Date Bug — Sheets
 
-**בעיה:** כשכותבים מחרוזת `"05/04/2026 00:00"` לתא ב-Sheets, הוא מפרש אותה כ-MM/DD → שומר כ-5 מאי (לא 4 אפריל).
+**בעיה:** כשכותבים מחרוזת `"05/04/2026"` לתא, Sheets מפרש כ-MM/DD → שומר 5 מאי במקום 4 אפריל.
 
-**פתרון:** אל תשמור תאריך ביצוע כמחרוזת. השתמש ב-`bunker_parseLocalDate(str)` ושמור **Date object**:
+**פתרון:** תמיד שמור **Date object**, לא מחרוזת:
 ```javascript
+// תאריך מה-Frontend (מוזן ידנית):
 var execDate = bunker_parseLocalDate(data.date.trim()) || new Date();
-sh.appendRow([id, execDate, ...]);  // Sheets מפרש Date object נכון
+
+// timestamp אוטומטי:
+var ts = bunker_ts();  // מחזיר new Date()
+
+sh.appendRow([id, execDate, ts, ...]);
 ```
 
-**לא בעיה:** תאריך הדיווח (`bunker_ts()`) נשמר כמחרוזת כי הוא נוצר ב-GAS — לא מוזן מה-Frontend.
+**מיגרציה שורות ישנות:** הרץ `bunker_fixLogDates()` ו-`bunker_fixShatsalDates()` מ-GAS Editor.
 
 ---
 
 #### ⚠️ גליון סכימה — fallback אוטומטי
 
-`bunker_dispenseSummary` בודקת אם גליון סכימה קיים ועם נתונים. אם לא — מריצה `bunker_rebuildSchema()` אוטומטית לפני החזרת הנתונים. לכן אפשר לשחזר את הסכימה תמיד ע"י:
-1. מחיקת טאב "סכימה" מ-Sheets ידנית
-2. טעינת טאב סיכום ב-bunker.html
+`bunker_dispenseSummary` בודקת אם גליון סכימה קיים ועם נתונים. אם לא — מריצה `bunker_rebuildSchema()` אוטומטית.
 
-כפתור "בנה סכימה" בטאב מלאי עושה rebuild מפורש (`bunker_rebuild_schema` action).
+כפתור "בנה סכימה" בטאב מלאי עושה rebuild מפורש.
 
 ---
 
 #### ⚠️ item key = label
 
-בבונקר אין הפרדה בין key ל-label — שם הפריט הוא גם המפתח (עמודה A בגליון מלאים). שינוי שם פריט ישבור את ה-join עם גליון ניפוקים/שצ״ל.
-
----
-
-#### ⚠️ זיכוי חלקי — שורה נשארת פעילה
-
-אם `creditQty < originalQty`: הכמות בגליון ניפוקים מתעדכנת (F), הסטטוס נשאר `'פעיל'`. בזיכוי מלא/עודף: סטטוס הופך `'זוכה'` + עמודות I/J מתמלאות.
+בבונקר אין הפרדה בין key ל-label — שם הפריט הוא גם המפתח (עמודה A בגליון מלאים). שינוי שם פריט ישבור את ה-join עם גליון ניפוקים/שצ״ל/סכימה.
 
 ---
 
@@ -903,5 +938,30 @@ function createPdfHtml(type, data, timestamp, schema) {
 
 ---
 
-*מסמך זה עודכן לאחרונה: 2026-04-13*
-*גרסת מערכת: deployment @188+*
+---
+
+### 11.7 DailyReport.js — דוח יומי אוטומטי
+
+קובץ נפרד: `appScripts/unified/DailyReport.js`
+
+| פונקציה | תיאור |
+|---------|-------|
+| `sendDailyInventoryEmail()` | שולחת מייל יומי עם PDF מלאי נשק לכתובת `DAILY_REPORT_EMAIL` |
+| `buildReportHtml(...)` | בונה HTML מעוצב לדוח |
+| `buildReportPdf(html, today)` | ממיר HTML ל-PDF דרך DriveApp |
+| `buildReportText(...)` | טקסט fallback לגוף המייל |
+| `setupDailyInventoryTrigger()` | יוצר trigger יומי ב-08:00 — **הרץ פעם אחת מ-GAS Editor** |
+
+**הגדרות:**
+```javascript
+DAILY_REPORT_EMAIL = 'shporn14@gmail.com'
+DAILY_REPORT_HOUR  = 8
+DAILY_REPORT_EXCLUDED = ['roskM16','roskM4','negev','mag','matol','baret','trig','m5','mepro','zavon','akila6','zayinNegev','lior']
+```
+
+> **חשוב:** הטריגר לא נוצר אוטומטית בפריסה. יש להריץ `setupDailyInventoryTrigger()` ידנית ב-GAS Editor, ולאמת שהטריגר מופיע בחלונית Triggers.
+
+---
+
+*מסמך זה עודכן לאחרונה: 2026-04-18*
+*גרסת מערכת: deployment @222+*
