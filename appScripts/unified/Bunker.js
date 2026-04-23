@@ -791,6 +791,73 @@ function bunker_rebuildSchema() {
 }
 
 // ================================================================
+// אבחון: השווה גליון שצ״ל מול עמודות שצ״ל בסכימה
+// הרץ מהעורך — תוצאה ב-Logger
+// ================================================================
+function bunker_debugShatsalSync() {
+  var ss = bunker_ss();
+
+  // --- קרא גליון שצ״ל וצבור לפי פריט+מסגרת ---
+  var shSheet = ss.getSheetByName(SHATSAL_SHEET);
+  if (!shSheet || shSheet.getLastRow() < 2) { Logger.log('גליון שצ״ל ריק'); return; }
+
+  var numCols = Math.max(shSheet.getLastColumn(), SHATSAL_HEADERS.length);
+  var sRows   = shSheet.getRange(2, 1, shSheet.getLastRow() - 1, numCols).getValues();
+  var fromSheet = {}; // { itemKey: { unit: qty } }
+
+  sRows.forEach(function(r, idx) {
+    var itemKey = String(r[4] || '').trim();
+    var unit    = String(r[2] || '').trim();
+    var qty     = Number(r[5]) || 0;
+    if (!itemKey || !unit || !qty) {
+      Logger.log('שורה ' + (idx + 2) + ' מדולגת — itemKey:"' + itemKey + '" unit:"' + unit + '" qty:' + qty);
+      return;
+    }
+    if (!fromSheet[itemKey]) fromSheet[itemKey] = {};
+    fromSheet[itemKey][unit] = (fromSheet[itemKey][unit] || 0) + qty;
+  });
+
+  // --- קרא סכימה — עמודות שצ״ל ---
+  var scSheet = ss.getSheetByName(SCHEMA_SHEET);
+  if (!scSheet || scSheet.getLastRow() < 2) { Logger.log('גליון סכימה ריק'); return; }
+
+  var scRows    = scSheet.getRange(2, 1, scSheet.getLastRow() - 1, 1 + UNIT_ORDER.length * 2).getValues();
+  var fromSchema = {}; // { itemKey: { unit: qty } }
+
+  scRows.forEach(function(r) {
+    var itemKey = String(r[0] || '').trim();
+    if (!itemKey) return;
+    fromSchema[itemKey] = {};
+    UNIT_ORDER.forEach(function(u, i) {
+      fromSchema[itemKey][u] = Number(r[1 + UNIT_ORDER.length + i]) || 0;
+    });
+  });
+
+  // --- השווה ---
+  var allItems = {};
+  Object.keys(fromSheet).forEach(function(k)  { allItems[k] = true; });
+  Object.keys(fromSchema).forEach(function(k) { allItems[k] = true; });
+
+  var diffs = [];
+  Object.keys(allItems).forEach(function(item) {
+    UNIT_ORDER.forEach(function(unit) {
+      var sheetVal  = (fromSheet[item]  && fromSheet[item][unit])  || 0;
+      var schemaVal = (fromSchema[item] && fromSchema[item][unit]) || 0;
+      if (sheetVal !== schemaVal) {
+        diffs.push(item + ' / ' + unit + ': גליון=' + sheetVal + '  סכימה=' + schemaVal);
+      }
+    });
+  });
+
+  if (!diffs.length) {
+    Logger.log('✅ אין פערים — גליון שצ״ל תואם לסכימה');
+  } else {
+    Logger.log('❌ נמצאו ' + diffs.length + ' פערים:');
+    diffs.forEach(function(d) { Logger.log('  ' + d); });
+  }
+}
+
+// ================================================================
 // הסר חוקי validation מגליון ניפוקים — הרץ פעם אחת מהעורך
 // ================================================================
 function bunker_fixDispensesValidation() {
