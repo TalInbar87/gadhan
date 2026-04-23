@@ -770,7 +770,7 @@ function bunker_rebuildSchema() {
       var itemKey = String(r[4] || '').trim();
       var unit    = String(r[2] || '').trim();
       var qty     = Number(r[5]) || 0;
-      if (!itemKey || !qty) return;
+      if (!itemKey || !unit || !qty) return;
       if (!shAgg[itemKey]) shAgg[itemKey] = {};
       shAgg[itemKey][unit] = (shAgg[itemKey][unit] || 0) + qty;
     });
