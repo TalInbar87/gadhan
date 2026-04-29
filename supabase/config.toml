@@ -1,0 +1,5 @@
+# Local Supabase project metadata (used by the Supabase CLI).
+project_id = "gadhan"
+
+[functions.bunker]
+verify_jwt = false
