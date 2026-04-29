@@ -2,9 +2,14 @@
   "name": "gadhan-management-system",
   "version": "1.0.0",
   "description": "מערכת ניהול ציוד וחתימות - גדחה\"ו קומנדו 8219",
+  "type": "module",
   "scripts": {
     "update-urls": "node update-urls.js",
-    "update-urls:help": "echo '\n📋 שימוש:\n  npm run update-urls -- --permissions=<URL> --weapons=<URL> --radio=<URL>\n\n📚 למידע מלא ראה: URL_UPDATE_GUIDE.md\n'"
+    "update-urls:help": "echo '\n📋 שימוש:\n  npm run update-urls -- --permissions=<URL> --weapons=<URL> --radio=<URL>\n\n📚 למידע מלא ראה: URL_UPDATE_GUIDE.md\n'",
+    "migrate:bunker": "node scripts/bunker-migrate.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
   },
   "repository": {
     "type": "git",
