@@ -965,3 +965,126 @@ DAILY_REPORT_EXCLUDED = ['roskM16','roskM4','negev','mag','matol','baret','trig'
 
 *מסמך זה עודכן לאחרונה: 2026-04-18*
 *גרסת מערכת: deployment @222+*
+
+---
+
+## 13. מעבר ל-Supabase — ארכיטקטורת יעד
+
+### 13.1 עיקרון
+
+```
+Frontend (HTML + Vanilla JS) — ללא שינוי מהותי
+    ↓ fetch POST, Authorization: Bearer <supabase_token>
+Supabase Edge Functions (Deno/TypeScript)
+    ↓ service role → PostgreSQL
+Supabase PostgreSQL
+```
+
+**מה משתנה בפרונטאנד:** `apiPost()` שולח `Authorization: Bearer <token>` ב-header (במקום `token` בתוך body). פורמט תשובה זהה: `{ statusCode, message, data, timestamp }`.
+
+---
+
+### 13.2 מבנה הפרויקט הנוכחי ב-staging
+
+```
+gadhan/
+  supabase/
+    config.toml                    ← project_id = "gadhan"
+    migrations/
+      0014_bunker.sql              ← טבלאות בונקר + RLS
+      0015_bunker_functions.sql    ← PostgreSQL functions (transactions)
+    functions/
+      bunker/
+        index.ts                   ← Edge Function (17 פעולות)
+```
+
+---
+
+### 13.3 לימוד מ-gadhan-radio (מקור האמת לפטרנים)
+
+**gadhan-radio** הוא פרויקט Supabase פעיל. ממנו לומדים:
+
+#### Auth
+- Supabase Auth — משתמשים עם email `<username>@gadhan.local`
+- **Roles:** `admin` | `raspar` (ב-gadhan יהיו: `admin` | `sergeant` | `himush`)
+- **Profiles table:** מקושר ל-`auth.users.id` עם `on delete cascade`
+- **Login flow:** `signInWithPassword({ email: username + '@gadhan.local', password })`
+
+#### Edge Functions
+- `verify_jwt = false` בכל הפונקציות — auth מתבצעת ידנית בתוך הפונקציה
+- **Pattern:** `userClient` עם `Authorization` header → `getUser()` → בדיקת `profiles.role`
+- **DB access:** service role key מ-`Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')`
+- כל פונקציה מקבל `req.json()`, מחזירה `{ statusCode, message, data, timestamp }`
+
+```typescript
+// pattern אחיד לכל Edge Function
+const userClient = createClient(supabaseUrl, anonKey, {
+  global: { headers: { Authorization: auth } },
+});
+const { data: { user } } = await userClient.auth.getUser();
+if (!user) return res(401, 'Invalid token', null);
+
+const sb = createClient(supabaseUrl, serviceKey);  // service role לDB
+const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).single();
+const isAdmin = profile.role === 'admin';
+```
+
+#### Migrations — דפוסים
+- **ממוספרות:** `0001_init.sql`, `0002_seed.sql`, ... `0014_bunker.sql`
+- **Idempotent:** `create table if not exists`, `create index if not exists`
+- **Enums:** `do $$ begin create type ... exception when duplicate_object then null; end $$;`
+- **RLS:** מופעל על כל טבלה + policies מפורשות
+- **Policies:** `drop policy if exists` לפני `create policy` (safe re-run)
+
+#### RLS — helper functions (מוגדרות ב-0001)
+```sql
+is_admin()         → SELECT role='admin' AND active FROM profiles WHERE id=auth.uid()
+current_unit_id()  → SELECT unit_id FROM profiles WHERE id=auth.uid()
+current_role_t()   → SELECT role FROM profiles WHERE id=auth.uid()
+```
+
+#### ארגון טבלאות ב-gadhan-radio (הקיים)
+| טבלה | תיאור |
+|------|-------|
+| `units` | מסגרות (פלוגה א, פלוגה ב...) — **כבר קיים** |
+| `profiles` | משתמשים — **כבר קיים** |
+| `soldiers` | חיילים — **כבר קיים** |
+| `items` | פריטי קשר — **כבר קיים** |
+| `signings` | חתימות קשר — **כבר קיים** |
+| `signing_items` | שורות חתימה — **כבר קיים** |
+| `audit_logs` | לוג ביקורת — **כבר קיים** |
+
+**בונקר (חדש — 0014+0015):**
+| טבלה | תיאור |
+|------|-------|
+| `bunker_items` | פריטי תחמושת |
+| `bunker_inventory` | מלאי מחסנים (נפתלי/בילו) |
+| `bunker_dispenses` | ניפוקים (לוג) |
+| `bunker_credits` | זיכויים (לוג) |
+| `bunker_shatsal` | שצ"ל (לוג) |
+| `bunker_schema` | סכימה מחושבת |
+| `bunker_receipts` | קבלות |
+| `bunker_regulations` | וויסותים |
+
+---
+
+### 13.4 אסטרטגיית מעבר (פאזות)
+
+| פאזה | מה | branch |
+|------|----|--------|
+| א' (נוכחי) | בונקר — Edge Function + DB | `staging` |
+| ב' | Auth — Supabase Auth במקום custom JWT | `staging` |
+| ג' | אפסנאות + מחסנאות | `staging` |
+| ד' | נשקים + קשר | `staging` |
+| Deploy | merge staging → main | `main` |
+
+---
+
+### 13.5 משתני סביבה ב-Vercel
+
+| Variable | Production | Preview (staging) |
+|----------|------------|-------------------|
+| `GAS_URL` | URL פעיל | נשאר זמנית |
+| `SUPABASE_FUNCTION_URL` | — | `https://<ref>.supabase.co/functions/v1/bunker` |
+
+ב-`bunker.html`: אם `SUPABASE_FUNCTION_URL` מוגדר → שולח ל-Supabase. אחרת → GAS (לאחור תואם).
