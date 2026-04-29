@@ -1,7 +1,7 @@
 // supabase/functions/bunker/index.ts
 // מודול בונקר — כל פעולות התחמושת והציוד
-// Auth: Supabase Auth JWT (Authorization: Bearer <token>)
-// DB:   service role (bypasses RLS — auth נבדקת ידנית)
+// Auth: custom JWT (גדחן) — פאזה ב' תעבור ל-Supabase Auth
+// DB:   service role (bypasses RLS)
 
 // deno-lint-ignore-file no-explicit-any
 import { serve }        from 'https://deno.land/std@0.224.0/http/server.ts';
@@ -29,31 +29,49 @@ function fmtDate(ts: string | null): string {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// ── אימות custom JWT של גדחן (HS256) ──
+async function verifyGadhanJwt(token: string): Promise<Record<string, any> | null> {
+  try {
+    const secret = Deno.env.get('GADHAN_JWT_SECRET') ??
+      'BagadHatzamKomando8219SecretKey2026XyZ_STATIC_2026';
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const [header, payload, sig] = parts;
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+    );
+    const sigBytes = Uint8Array.from(atob(sig.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key,
+      sigBytes, new TextEncoder().encode(`${header}.${payload}`));
+    if (!valid) return null;
+
+    const decoded = JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/')));
+    if (decoded.exp < Math.floor(Date.now() / 1000)) return null;
+    return decoded;
+  } catch { return null; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST')   return res(405, 'Method not allowed', null, 405);
 
-  const supabaseUrl  = Deno.env.get('SUPABASE_URL')!;
-  const serviceKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const anonKey      = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // ── 1. אמת זהות ──
+  // ── 1. אמת JWT ──
   const auth = req.headers.get('Authorization');
-  if (!auth) return res(401, 'Missing Authorization header', null);
+  if (!auth?.startsWith('Bearer ')) return res(401, 'Missing Authorization header', null);
+  const token = auth.slice(7);
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: auth } },
-  });
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return res(401, 'Invalid or expired token', null);
+  const jwtPayload = await verifyGadhanJwt(token);
+  if (!jwtPayload) return res(401, 'Invalid or expired token', null);
+
+  const isAdmin = jwtPayload.role === 'admin';
+  const by      = jwtPayload.fullName ?? jwtPayload.username ?? 'לא ידוע';
 
   const sb = createClient(supabaseUrl, serviceKey);
-
-  // ── 2. שלוף פרופיל ──
-  const { data: profile } = await sb.from('profiles').select('role, full_name').eq('id', user.id).single();
-  if (!profile) return res(401, 'Profile not found', null);
-  const isAdmin = profile.role === 'admin';
-  const by = profile.full_name ?? user.email ?? 'לא ידוע';
 
   // ── 3. קרא body ──
   let body: Record<string, any>;
