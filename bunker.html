@@ -913,16 +913,20 @@
         // API Helper
         // ============================================================
         async function apiPost(action, payload = {}) {
-            // אם מוגדר SUPABASE_FUNCTION_URL — שלח ל-Supabase (JSON body)
-            // אחרת — GAS (URLSearchParams, לאחור תואם)
+            // אם מוגדר SUPABASE_FUNCTION_URL — שלח ל-Supabase
+            // Authorization: Bearer <supabase_token> | JSON body ללא token
             if (typeof SUPABASE_FUNCTION_URL !== 'undefined' && SUPABASE_FUNCTION_URL) {
                 const res = await fetch(SUPABASE_FUNCTION_URL, {
                     method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ action, token: authClient.token, ...payload }),
+                    headers: {
+                        'Content-Type':  'application/json',
+                        'Authorization': `Bearer ${authClient.token}`,
+                    },
+                    body: JSON.stringify({ action, ...payload }),
                 });
                 return res.json();
             }
+            // GAS — URLSearchParams (לאחור תואם)
             const p = new URLSearchParams();
             p.append('data', JSON.stringify({ action, token: authClient.token, ...payload }));
             const res  = await fetch(API_URL, { method: 'POST', body: p });
