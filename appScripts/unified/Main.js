@@ -377,8 +377,7 @@ function handleCreditData(data, request) {
     AuditLogger.log(payload.username, 'DATA_CREDITED', formType,
                    creditData.personalNumber,
                    { creditBy: creditData.creditBy, items: creditData.itemsWithValues || [] }, request);
-    return createResponse(200, 'Credit completed successfully',
-        result.warning ? { warning: result.warning } : null);
+    return createResponse(200, 'Credit completed successfully', null);
   }
   return createResponse(500, result.error || 'Credit failed', null);
 }
@@ -416,8 +415,7 @@ function handlePartialCredit(data, request) {
     AuditLogger.log(payload.username, 'DATA_PARTIAL_CREDITED', formType,
                    creditData.personalNumber,
                    { items: creditData.itemsWithValues || creditData.selectedItems, noteItems: creditData.selectedNoteItems, creditBy: creditData.creditBy }, request);
-    return createResponse(200, 'Partial credit completed successfully',
-        result.warning ? { warning: result.warning } : null);
+    return createResponse(200, 'Partial credit completed successfully', null);
   }
   return createResponse(500, result.error || 'Partial credit failed', null);
 }
