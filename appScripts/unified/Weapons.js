@@ -476,9 +476,10 @@ function weapons_handleCredit(data) {
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Credit PDF/email failed: ' + emailErr);
+    return { success: true, warning: 'הזיכוי בוצע, אך שמירת ה-PDF/מייל נכשלה. בדוק ביומן.' };
   }
 
-  return { success: true, message: 'Credit completed' };
+  return { success: true };
 }
 
 // ================================================================
@@ -607,9 +608,10 @@ function weapons_handlePartialCredit(data) {
     }
   } catch (emailErr) {
     Logger.log('⚠️ [Weapons] Partial credit PDF/email failed: ' + emailErr);
+    return { success: true, warning: 'הזיכוי בוצע, אך שמירת ה-PDF/מייל נכשלה. בדוק ביומן.' };
   }
 
-  return { success: true, message: 'Partial credit completed' };
+  return { success: true };
 }
 
 // ================================================================

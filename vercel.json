@@ -4,8 +4,7 @@
   "framework": null,
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "staging": true
+      "main": true
     }
   }
 }
