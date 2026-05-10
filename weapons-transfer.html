@@ -1014,12 +1014,19 @@
                     }
                 }));
 
-                const response = await fetch(API_URL, { method: 'POST', body: postData });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 90000);
+                const response = await fetch(API_URL, { method: 'POST', body: postData, signal: controller.signal });
+                clearTimeout(timeoutId);
                 const result = await response.json();
 
                 if (result.statusCode === 200) {
                     const total = selectedItems.length + selectedNoteItems.length;
-                    alert(`זיכוי בוצע בהצלחה! ${total} פריטים הועברו לגיליון הזיכויים.`);
+                    if (result.data && result.data.warning) {
+                        alert('⚠️ ' + result.data.warning);
+                    } else {
+                        alert(`זיכוי בוצע בהצלחה! ${total} פריטים הועברו לגיליון הזיכויים.`);
+                    }
                     resetImport();
                     sourceInput.value = '';
                     importBtn.disabled = true;
@@ -1028,7 +1035,13 @@
                 }
             } catch (err) {
                 console.error('Credit error:', err);
-                alert('שגיאה בזיכוי: ' + (err.message || 'נסה שוב'));
+                if (err.name === 'AbortError') {
+                    alert('הזיכוי לוקח יותר מדי זמן — רענן את הדף ובדוק אם הפעולה בוצעה לפני שתנסה שוב.');
+                } else if (err instanceof SyntaxError) {
+                    alert('שגיאת תקשורת עם השרת — בדוק אם הזיכוי בוצע ורענן את הדף.');
+                } else {
+                    alert('שגיאה בזיכוי: ' + (err.message || 'נסה שוב'));
+                }
             } finally {
                 isCreditSubmitting = false;
                 btn.disabled = false;
