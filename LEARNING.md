@@ -946,7 +946,7 @@ function createPdfHtml(type, data, timestamp, schema) {
 
 | פונקציה | תיאור |
 |---------|-------|
-| `sendDailyInventoryEmail()` | שולחת מייל יומי עם PDF מלאי נשק לכתובת `DAILY_REPORT_EMAIL` |
+| `sendDailyInventoryEmail()` | בונה דוח PDF ושולחת מייל (כרגע **מושבתת** — ראה הערה) |
 | `buildReportHtml(...)` | בונה HTML מעוצב לדוח |
 | `buildReportPdf(html, today)` | ממיר HTML ל-PDF דרך DriveApp |
 | `buildReportText(...)` | טקסט fallback לגוף המייל |
@@ -959,9 +959,12 @@ DAILY_REPORT_HOUR  = 8
 DAILY_REPORT_EXCLUDED = ['roskM16','roskM4','negev','mag','matol','baret','trig','m5','mepro','zavon','akila6','zayinNegev','lior']
 ```
 
+> **⚠️ שליחת המייל מושבתת כרגע** — ה-`MailApp.sendEmail` מוהע בקוד (`// Email sending disabled`).
+> להפעלה מחדש: הסר את ה-הערה ב-`DailyReport.js` ופרוס מחדש.
+
 > **חשוב:** הטריגר לא נוצר אוטומטית בפריסה. יש להריץ `setupDailyInventoryTrigger()` ידנית ב-GAS Editor, ולאמת שהטריגר מופיע בחלונית Triggers.
 
 ---
 
-*מסמך זה עודכן לאחרונה: 2026-04-18*
-*גרסת מערכת: deployment @222+*
+*מסמך זה עודכן לאחרונה: 2026-06-08*
+*גרסת מערכת: deployment @235+*

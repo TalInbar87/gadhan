@@ -222,7 +222,7 @@ print_success "Script ID הוגדר: $SCRIPT_ID"
 # ════════════════════════════════════════════════
 print_step "3" "הגדרת Google Sheets"
 
-echo -e "  המערכת זקוקה ל-4 גיליונות Google Sheets נפרדים."
+echo -e "  המערכת זקוקה ל-7 גיליונות Google Sheets נפרדים."
 echo -e "  צור אותם עכשיו ב: ${BOLD}https://sheets.google.com${NC}"
 echo ""
 echo -e "  ${BOLD}הגיליונות הנדרשים:${NC}"
@@ -230,12 +230,15 @@ echo -e "    1️⃣  ${BOLD}משתמשים${NC} — רשימת המשתמשים
 echo -e "    2️⃣  ${BOLD}יומן ביקורת${NC} — תיעוד כל הפעולות במערכת"
 echo -e "    3️⃣  ${BOLD}נשק${NC} — טבלת הנשקים והציוד"
 echo -e "    4️⃣  ${BOLD}קשר${NC} — טבלת ציוד הקשר"
+echo -e "    5️⃣  ${BOLD}נשקייה${NC} — ספירות מלאי נשקייה"
+echo -e "    6️⃣  ${BOLD}בונקר${NC} — מלאי וניפוקי בונקר"
+echo -e "    7️⃣  ${BOLD}אפסנאות${NC} — ניהול ציוד אפסנאות"
 echo ""
 echo -e "  ${YELLOW}איך למצוא Sheet ID?${NC}"
 echo -e "  בכתובת הגיליון: docs.google.com/spreadsheets/d/${BOLD}[זה ה-ID]${NC}/edit"
 echo ""
 
-echo -ne "  ${BOLD}לחץ Enter כשיצרת את 4 הגיליונות...${NC}"
+echo -ne "  ${BOLD}לחץ Enter כשיצרת את 7 הגיליונות...${NC}"
 read -r
 
 echo ""
@@ -243,6 +246,9 @@ USERS_SHEET_ID=$(ask "1️⃣  Sheet ID של גיליון משתמשים:")
 AUDIT_SHEET_ID=$(ask "2️⃣  Sheet ID של יומן ביקורת:")
 WEAPONS_SHEET_ID=$(ask "3️⃣  Sheet ID של נשק:")
 RADIO_SHEET_ID=$(ask "4️⃣  Sheet ID של קשר:")
+ARMORY_SHEET_ID=$(ask "5️⃣  Sheet ID של נשקייה:")
+BUNKER_SHEET_ID=$(ask "6️⃣  Sheet ID של בונקר:")
+APSNAUT_SHEET_ID=$(ask "7️⃣  Sheet ID של אפסנאות:")
 
 echo ""
 print_info "מעדכן Config.js עם ה-Sheet IDs..."
@@ -254,10 +260,13 @@ import re
 with open('$CONFIG_JS', 'r', encoding='utf-8') as f:
     content = f.read()
 
-content = re.sub(r"USERS:\s*'[^']*'", "USERS:     '$USERS_SHEET_ID'", content)
-content = re.sub(r"AUDIT_LOG:\s*'[^']*'", "AUDIT_LOG: '$AUDIT_SHEET_ID'", content)
-content = re.sub(r"WEAPONS:\s*'[^']*'", "WEAPONS:   '$WEAPONS_SHEET_ID'", content)
-content = re.sub(r"RADIO:\s*'[^']*'", "RADIO:     '$RADIO_SHEET_ID'", content)
+content = re.sub(r"USERS:\s*'[^']*'",     "USERS:     '$USERS_SHEET_ID'",   content)
+content = re.sub(r"AUDIT_LOG:\s*'[^']*'", "AUDIT_LOG: '$AUDIT_SHEET_ID'",   content)
+content = re.sub(r"WEAPONS:\s*'[^']*'",   "WEAPONS:   '$WEAPONS_SHEET_ID'", content)
+content = re.sub(r"RADIO:\s*'[^']*'",     "RADIO:     '$RADIO_SHEET_ID'",   content)
+content = re.sub(r"ARMORY:\s*'[^']*'",    "ARMORY:    '$ARMORY_SHEET_ID'",  content)
+content = re.sub(r"BUNKER:\s*'[^']*'",    "BUNKER:    '$BUNKER_SHEET_ID'",  content)
+content = re.sub(r"APSNAUT:\s*'[^']*'",   "APSNAUT:   '$APSNAUT_SHEET_ID'", content)
 
 with open('$CONFIG_JS', 'w', encoding='utf-8') as f:
     f.write(content)
